@@ -1,13 +1,9 @@
 name: core
 
+# На PR запускается всегда: core-test и core-docker — обязательные проверки для слияния в main,
+# и PR, который не трогает ядро, иначе ждал бы их бесконечно.
 on:
   pull_request:
-    paths:
-      - "services/core/**"
-      - "contracts/core.yaml"
-      - "docs/architecture/statuses.md"
-      - "docker-compose.yml"
-      - ".github/workflows/core.yml"
   push:
     branches: [main]
     paths:
@@ -18,6 +14,7 @@ permissions:
 
 jobs:
   test:
+    name: core-test
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -44,6 +41,7 @@ jobs:
             || (echo "::error::Выполните 'python -m app.export_docs' в services/core и закоммитьте результат" && exit 1)
 
   docker:
+    name: core-docker
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
