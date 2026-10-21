@@ -15,13 +15,13 @@
 /contracts/scoring.yaml        @TODO-area-c @Razer2023
 
 # D. Веб-интерфейс
-/web/                          @TODO-area-d
+/web/                          @alexzabota
 
 # ТЗ общие: в папку области ревью делает её владелец
 /tz/A-core/                    @Razer2023
 /tz/B-integrations/            @TODO-area-b
 /tz/C-scoring/                 @TODO-area-c
-/tz/D-web/                     @TODO-area-d
+/tz/D-web/                     @alexzabota
 
 # Правила команды и настройки репозитория меняет только лид
 /.github/                      @Razer2023
