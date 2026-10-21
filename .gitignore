@@ -30,3 +30,4 @@ pgdata/
 
 # Локальные настройки ИИ-ассистентов
 .claude/settings.local.json
+CLAUDE.local.md
