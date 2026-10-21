@@ -9,3 +9,4 @@
 - [Области ответственности](docs/team/AREAS.md)
 - [Настройка GitHub и ежедневный цикл](docs/team/GITHUB_SETUP.md)
 - [ТЗ между областями](tz/README.md)
+- [Дизайн: Core Components Альфа-Банка](docs/design/DESIGN.md)
