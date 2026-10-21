@@ -8,6 +8,25 @@ THIRD_PARTY_NOTICES — сторонние компоненты, модели, �
   Лицензия: MIT
   Источник: https://github.com/core-ds/core-components
 
+--- Ядро (services/core), точные версии — в services/core/uv.lock ---
+
+FastAPI — MIT — https://github.com/fastapi/fastapi
+Uvicorn — BSD-3-Clause — https://github.com/encode/uvicorn
+SQLAlchemy — MIT — https://github.com/sqlalchemy/sqlalchemy
+Alembic — MIT — https://github.com/sqlalchemy/alembic
+psycopg 3 — LGPL-3.0 — https://github.com/psycopg/psycopg
+pydantic, pydantic-settings — MIT — https://github.com/pydantic
+PyJWT — MIT — https://github.com/jpadilla/pyjwt
+HTTPX — BSD-3-Clause — https://github.com/encode/httpx
+pytest (разработка) — MIT — https://github.com/pytest-dev/pytest
+PyYAML (разработка) — MIT — https://github.com/yaml/pyyaml
+uv (сборка) — MIT / Apache-2.0 — https://github.com/astral-sh/uv
+
+--- Инфраструктура ---
+
+PostgreSQL 16 (образ postgres:16.4-alpine) — PostgreSQL License — https://www.postgresql.org
+Python 3.12 (образ python:3.12-slim) — PSF License — https://www.python.org
+
 == Модели ==
 
 (пока нет)
@@ -20,3 +39,5 @@ THIRD_PARTY_NOTICES — сторонние компоненты, модели, �
 
 ЕГРЮЛ / ЕГРИП, ФНС «Прозрачный бизнес», бюро кредитных историй, выписка по расчётному счёту, простая электронная подпись, выдача денежных средств.
 Реальные сервисы не вызываются, все ответы формируются локальными моками.
+До готовности сервисов B и C ядро использует встроенные заглушки: services/core/app/clients/stub_data.py.
+Подписание (код подтверждения в интерфейсе вместо SMS) и выдача денег смоделированы в ядре без реальных операций.

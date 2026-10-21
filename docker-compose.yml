@@ -1,0 +1,43 @@
+# Запуск всего решения: docker compose up --build
+# Ядро: http://localhost:8080/docs (Swagger UI)
+#
+# Сервисы B (integrations), C (scoring) и D (web) добавляются сюда по мере готовности (через ТЗ в tz/A-core/).
+# Пока их нет, ядро работает на встроенных заглушках: CORE_INTEGRATIONS_MODE=stub, CORE_SCORING_MODE=stub.
+
+name: alfa-credit
+
+services:
+  postgres:
+    image: postgres:16.4-alpine
+    environment:
+      POSTGRES_DB: credit
+      POSTGRES_USER: credit
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-credit-dev-only}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U credit -d credit"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+  core:
+    build: ./services/core
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      CORE_DATABASE_URL: postgresql+psycopg://credit:${POSTGRES_PASSWORD:-credit-dev-only}@postgres:5432/credit
+      CORE_JWT_SECRET: ${CORE_JWT_SECRET:-dev-only-secret-change-me-in-production-0123456789}
+      CORE_DEMO_PASSWORD: ${CORE_DEMO_PASSWORD:-demo}
+      CORE_INTEGRATIONS_MODE: ${CORE_INTEGRATIONS_MODE:-stub}
+      CORE_SCORING_MODE: ${CORE_SCORING_MODE:-stub}
+      CORE_PIPELINE_STEP_DELAY_SECONDS: ${CORE_PIPELINE_STEP_DELAY_SECONDS:-2}
+      CORE_DEMO_CODES: ${CORE_DEMO_CODES:-true}
+    ports:
+      - "8080:8000"
+    restart: unless-stopped
+
+volumes:
+  pgdata:
