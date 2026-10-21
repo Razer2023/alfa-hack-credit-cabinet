@@ -47,7 +47,7 @@ main ──●──────────────────────
   - Enforcement: Active; Target: Default branch (`main`);
   - ✅ Restrict deletions; ✅ Block force pushes;
   - ✅ Require a pull request before merging → 1 approval, ✅ Require review from Code Owners, ✅ Dismiss stale approvals;
-  - ✅ Require status checks to pass (добавить CI-проверки, когда появится workflow);
+  - ✅ Require status checks to pass: `core-test` и `core-docker` (GitHub Actions). Новые сервисы добавляют свои проверки с уникальными именами (`scoring-test`, `web-build` и т. п.);
   - Bypass list: только Repository admin (лид). Пользоваться обходом лишь в аварийной ситуации.
 - **Rules → Rulesets → New tag ruleset** «release-tags»: target `v*`, ✅ Restrict creations, updates, deletions; bypass — Repository admin. Теги версий может ставить только лид.
 - **Collaborators → Add people:** пригласить разработчиков (для личного репозитория у них будет роль Write). Для жюри позже добавить аккаунт **`alfa-hack-2026`** (по условиям кейса для приватного репо).
