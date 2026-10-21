@@ -68,7 +68,10 @@ POST /api/v1/decisions
 - [ ] Демо-компании дают три разных исхода: `7701234567` — одобрение, `7702345678` при 10 млн — контрпредложение, `7703456789` — ручное рассмотрение
 - [ ] Правила в конфиге с версией (`model_version` в ответе), а не размазаны по коду
 - [ ] OpenAPI сервиса в `contracts/scoring.yaml`
-- [ ] Dockerfile; имя сервиса и порт — в PR, `docker-compose.yml` обновлю я
+- [ ] Dockerfile. Сервис в compose называется **`scoring`**, порт **8000** внутри контейнера: ядро уже ходит на `http://scoring:8000` (`CORE_SCORING_URL`). `docker-compose.yml` обновлю я и переключу `CORE_SCORING_MODE=http`
+- [ ] `GET /health` → 200, для healthcheck в compose
+- [ ] CI: `.github/workflows/scoring.yml` с задачей `name: scoring-test` (тесты на каждом PR). Я добавлю её в обязательные проверки. Образец — `.github/workflows/core.yml`
+- [ ] Проверка совместимости: запусти ядро с `CORE_SCORING_MODE=http CORE_SCORING_URL=http://localhost:<порт>` и пройди три демо-сценария в Swagger ядра
 
 ## Пока не сделано, я работаю так
 На встроенной заглушке, демо работает и без сервиса.
