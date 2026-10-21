@@ -1,0 +1,32 @@
+# Секреты и локальное окружение
+.env
+.env.*
+!.env.example
+
+# IDE и ОС
+.idea/
+.vscode/
+*.iml
+.DS_Store
+Thumbs.db
+
+# Сборка и зависимости
+node_modules/
+dist/
+build/
+target/
+out/
+.gradle/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Логи и локальные данные
+*.log
+.data/
+minio-data/
+pgdata/
+
+# Локальные настройки ИИ-ассистентов
+.claude/settings.local.json

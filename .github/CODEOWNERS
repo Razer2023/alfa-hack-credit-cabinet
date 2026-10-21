@@ -1,0 +1,30 @@
+# Владельцы областей (см. docs/team/AREAS.md).
+# Замените @TODO-* на реальные GitHub-логины. Последнее совпавшее правило важнее предыдущих.
+
+# A. Платформа и ядро процесса (лид) — по умолчанию всё, что не отнесено к другим областям
+*                              @Razer2023
+
+# B. Данные и интеграции
+/services/integrations/        @TODO-area-b
+/mocks/                        @TODO-area-b
+/data/synthetic/               @TODO-area-b
+/contracts/integrations.yaml   @TODO-area-b @Razer2023
+
+# C. Скоринг и кредитное решение
+/services/scoring/             @TODO-area-c
+/contracts/scoring.yaml        @TODO-area-c @Razer2023
+
+# D. Веб-интерфейс
+/web/                          @TODO-area-d
+
+# ТЗ общие: в папку области ревью делает её владелец
+/tz/A-core/                    @Razer2023
+/tz/B-integrations/            @TODO-area-b
+/tz/C-scoring/                 @TODO-area-c
+/tz/D-web/                     @TODO-area-d
+
+# Правила команды и настройки репозитория меняет только лид
+/.github/                      @Razer2023
+/CONTRIBUTING.md               @Razer2023
+/CLAUDE.md                     @Razer2023
+/docs/team/                    @Razer2023
