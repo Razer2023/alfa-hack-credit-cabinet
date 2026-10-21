@@ -33,7 +33,7 @@ main ──●──────────────────────
    ```bash
    git init -b main
    git config user.name "Razer2023"
-   git config user.email "artemrazvorotnev37@gmail.com"
+   git config user.email "<почта из GitHub>"
    git add .
    git commit -m "Ядро: правила команды и структура репозитория"
    git remote add origin https://github.com/Razer2023/alfa-hack-credit-cabinet.git
@@ -42,6 +42,7 @@ main ──●──────────────────────
 
 ### 1.3 Настройки репозитория (Settings)
 - **General → Pull Requests:** оставить только *Allow squash merging*. Выключить merge commits и rebase merging. Включить *Automatically delete head branches*.
+- **Rules → Rulesets:** быстрее всего через **New ruleset → Import a ruleset**, по очереди файлы [`.github/rulesets/main-protection.json`](../../.github/rulesets/main-protection.json) и [`release-tags.json`](../../.github/rulesets/release-tags.json). Ниже то же самое для ручной настройки.
 - **Rules → Rulesets → New branch ruleset** «main-protection»:
   - Enforcement: Active; Target: Default branch (`main`);
   - ✅ Restrict deletions; ✅ Block force pushes;
