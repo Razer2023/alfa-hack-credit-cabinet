@@ -1,0 +1,22 @@
+/* Токены дизайн-системы (палитра bluetint, отступы, типографика) и тема компонентов corp. */
+@import '@alfalab/core-components/vars/bundle/corp.css';
+@import '@alfalab/core-components/themes/corp.css';
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-family-system);
+  color: var(--color-light-text-primary);
+  background: var(--color-light-base-bg-secondary);
+}

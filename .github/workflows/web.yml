@@ -1,0 +1,41 @@
+name: web
+
+# На PR запускается всегда: web-build — обязательная проверка для слияния в main,
+# и PR, который не трогает веб, иначе ждал бы её бесконечно.
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths:
+      - "web/**"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: web-build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.21.1"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Зависимости из lock-файла
+        run: npm ci --no-audit --no-fund
+
+      - name: Линтер
+        run: npm run lint
+
+      - name: Сборка (проверка типов + Vite)
+        run: npm run build
+
+      - name: Сборка образа
+        run: docker build -t web:ci .

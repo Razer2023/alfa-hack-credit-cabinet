@@ -3,7 +3,7 @@ to: D-web
 from: A
 story: все экраны
 priority: normal
-status: new
+status: in_progress
 done_in: ""
 ---
 
@@ -29,3 +29,7 @@ done_in: ""
 Ядро уже готово и работает (Swagger: http://localhost:8000/docs). Интерфейс от этого ТЗ не блокирует остальных. Подключение экранов к API — в ТЗ [2026-10-21-a-core-api.md](2026-10-21-a-core-api.md).
 
 ## Ответ владельца области
+Принято, в работе (ветка `feat/d-skeleton`).
+- Подключены токены `vars/bundle/corp.css` и тема компонентов `themes/corp.css`: только с ней кнопки, теги и поля выглядят как в corp.
+- `postcss-mixins` нужен уже сейчас: бандл токенов содержит `@define-mixin`, без плагина они попадают в итоговый CSS как мусор.
+- CI `.github/workflows/web.yml` (задача `web-build`) добавлен по этому ТЗ, хотя `.github/` — область лида.
