@@ -70,7 +70,10 @@ POST /api/v1/checks
 - [ ] Три демо-ИНН из `stub_data.py` отдают те же данные (или согласованные новые): на них держится демо
 - [ ] Ошибки: 404 — не найдено, 5xx — сбой (ядро повторит шаг само)
 - [ ] OpenAPI сервиса в `contracts/integrations.yaml`
-- [ ] Dockerfile; имя сервиса и порт — в PR, `docker-compose.yml` обновлю я
+- [ ] Dockerfile. Сервис в compose называется **`integrations`**, порт **8000** внутри контейнера: ядро уже ходит на `http://integrations:8000` (`CORE_INTEGRATIONS_URL`). `docker-compose.yml` обновлю я и переключу `CORE_INTEGRATIONS_MODE=http`
+- [ ] `GET /health` → 200, для healthcheck в compose
+- [ ] CI: `.github/workflows/integrations.yml` с задачей `name: integrations-test` (тесты на каждом PR). Я добавлю её в обязательные проверки. Образец — `.github/workflows/core.yml`
+- [ ] Проверка совместимости: запусти ядро с `CORE_INTEGRATIONS_MODE=http CORE_INTEGRATIONS_URL=http://localhost:<порт>` и пройди три демо-сценария в Swagger ядра (заполнение по ИНН, проверка, решение)
 
 ## Пока не сделано, я работаю так
 На встроенной заглушке, демо работает и без сервиса.
