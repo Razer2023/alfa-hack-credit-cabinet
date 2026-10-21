@@ -11,8 +11,8 @@
 /contracts/integrations.yaml   @TODO-area-b @Razer2023
 
 # C. Скоринг и кредитное решение
-/services/scoring/             @TODO-area-c
-/contracts/scoring.yaml        @TODO-area-c @Razer2023
+/services/scoring/             @zedskane
+/contracts/scoring.yaml        @zedskane @Razer2023
 
 # D. Веб-интерфейс
 /web/                          @alexzabota
@@ -20,7 +20,7 @@
 # ТЗ общие: в папку области ревью делает её владелец
 /tz/A-core/                    @Razer2023
 /tz/B-integrations/            @TODO-area-b
-/tz/C-scoring/                 @TODO-area-c
+/tz/C-scoring/                 @zedskane
 /tz/D-web/                     @alexzabota
 
 # Правила команды и настройки репозитория меняет только лид
