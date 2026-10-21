@@ -1,0 +1,2115 @@
+openapi: 3.1.0
+info:
+  title: Ядро кредитного конвейера
+  description: Заявки, статусы, журнал событий, роли, подписание и выдача. Область A.
+  version: 0.1.0
+paths:
+  /api/v1/auth/login:
+    post:
+      tags:
+      - Вход
+      summary: Вход демо-пользователя, выдача JWT
+      operationId: login_api_v1_auth_login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginIn'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/me:
+    get:
+      tags:
+      - Вход
+      summary: Текущий пользователь
+      operationId: me_api_v1_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+      security:
+      - HTTPBearer: []
+  /api/v1/products:
+    get:
+      tags:
+      - Справочники
+      summary: Кредитные продукты (S1.1)
+      operationId: products_api_v1_products_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ProductOut'
+                type: array
+                title: Response Products Api V1 Products Get
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+      security:
+      - HTTPBearer: []
+  /api/v1/calc/payment:
+    post:
+      tags:
+      - Справочники
+      summary: Расчёт ежемесячного платежа (S3.2)
+      operationId: calc_payment_api_v1_calc_payment_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentCalcIn'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentCalcOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /api/v1/reference/statuses:
+    get:
+      tags:
+      - Справочники
+      summary: Статусы заявки и переходы
+      operationId: statuses_api_v1_reference_statuses_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/StatusReferenceOut'
+                type: array
+                title: Response Statuses Api V1 Reference Statuses Get
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+      security:
+      - HTTPBearer: []
+  /api/v1/applications:
+    get:
+      tags:
+      - 'Клиент: заявки'
+      summary: Заявки моей компании
+      operationId: list_mine_api_v1_applications_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ApplicationOut'
+                type: array
+                title: Response List Mine Api V1 Applications Get
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+      security:
+      - HTTPBearer: []
+    post:
+      tags:
+      - 'Клиент: заявки'
+      summary: Создать черновик
+      operationId: create_api_v1_applications_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationCreate'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
+  /api/v1/applications/{application_id}:
+    get:
+      tags:
+      - 'Клиент: заявки'
+      summary: Заявка
+      operationId: get_api_v1_applications__application_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - 'Клиент: заявки'
+      summary: Сохранить черновик (S3.4)
+      operationId: patch_api_v1_applications__application_id__patch
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApplicationPatch'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/applications/{application_id}/prefill:
+    post:
+      tags:
+      - 'Клиент: заявки'
+      summary: Заполнить анкету по ИНН (S3.1)
+      operationId: prefill_api_v1_applications__application_id__prefill_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrefillIn'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/applications/{application_id}/submit/code:
+    post:
+      tags:
+      - 'Клиент: заявки'
+      summary: Код для отправки заявки (S3.3)
+      operationId: submit_code_api_v1_applications__application_id__submit_code_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeRequestOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/applications/{application_id}/submit/confirm:
+    post:
+      tags:
+      - 'Клиент: заявки'
+      summary: Отправить заявку с кодом (S3.3)
+      operationId: submit_confirm_api_v1_applications__application_id__submit_confirm_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodeConfirmIn'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/applications/{application_id}/info:
+    post:
+      tags:
+      - 'Клиент: заявки'
+      summary: Дополнить заявку по запросу банка
+      operationId: provide_info_api_v1_applications__application_id__info_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InfoProvideIn'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/applications/{application_id}/offers/{offer_id}/accept:
+    post:
+      tags:
+      - 'Клиент: заявки'
+      summary: Принять контрпредложение (S6.2)
+      operationId: accept_offer_api_v1_applications__application_id__offers__offer_id__accept_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: offer_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Offer Id
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/applications/{application_id}/cancel:
+    post:
+      tags:
+      - 'Клиент: заявки'
+      summary: Отменить заявку или отказаться от условий
+      operationId: cancel_api_v1_applications__application_id__cancel_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CancelIn'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/applications/{application_id}/sign/code:
+    post:
+      tags:
+      - 'Клиент: заявки'
+      summary: Код для подписания (S7.1)
+      operationId: sign_code_api_v1_applications__application_id__sign_code_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeRequestOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/applications/{application_id}/sign/confirm:
+    post:
+      tags:
+      - 'Клиент: заявки'
+      summary: Подписать договор кодом (S7.1)
+      operationId: sign_confirm_api_v1_applications__application_id__sign_confirm_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodeConfirmIn'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/applications/{application_id}/events:
+    get:
+      tags:
+      - 'Клиент: заявки'
+      summary: История заявки для трекера (S4.5)
+      operationId: events_api_v1_applications__application_id__events_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventOut'
+                title: Response Events Api V1 Applications  Application Id  Events Get
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/bank/applications:
+    get:
+      tags:
+      - 'Банк: заявки'
+      summary: Очередь заявок (S4.3)
+      operationId: queue_api_v1_bank_applications_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApplicationStatus'
+          description: Фильтр по статусам; пусто — все, кроме черновиков
+          default: []
+          title: Status
+        description: Фильтр по статусам; пусто — все, кроме черновиков
+      - name: mine
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Только заявки, взятые мной в работу
+          default: false
+          title: Mine
+        description: Только заявки, взятые мной в работу
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApplicationBankOut'
+                title: Response Queue Api V1 Bank Applications Get
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/bank/applications/{application_id}:
+    get:
+      tags:
+      - 'Банк: заявки'
+      summary: Карточка заявки (S5.3)
+      operationId: card_api_v1_bank_applications__application_id__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationBankOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/bank/applications/{application_id}/events:
+    get:
+      tags:
+      - 'Банк: заявки'
+      summary: Полная история заявки
+      operationId: events_api_v1_bank_applications__application_id__events_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventOut'
+                title: Response Events Api V1 Bank Applications  Application Id  Events Get
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/bank/applications/{application_id}/take:
+    post:
+      tags:
+      - 'Банк: заявки'
+      summary: Взять заявку в работу
+      operationId: take_api_v1_bank_applications__application_id__take_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationBankOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/bank/applications/{application_id}/decision:
+    post:
+      tags:
+      - 'Банк: заявки'
+      summary: Решение андеррайтера
+      operationId: decide_api_v1_bank_applications__application_id__decision_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionIn'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationBankOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/bank/applications/{application_id}/info-request:
+    post:
+      tags:
+      - 'Банк: заявки'
+      summary: Запросить данные у клиента (S4.4)
+      operationId: info_request_api_v1_bank_applications__application_id__info_request_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InfoRequestIn'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationBankOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/events:
+    get:
+      tags:
+      - События
+      summary: Новые события после after_id (опрос)
+      operationId: poll_api_v1_events_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: after_id
+        in: query
+        required: false
+        schema:
+          type: integer
+          default: 0
+          title: After Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventOut'
+                title: Response Poll Api V1 Events Get
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/stream:
+    get:
+      tags:
+      - События
+      summary: Поток событий (text/event-stream)
+      description: EventSource в браузере не умеет передавать заголовки, поэтому JWT передаётся в параметре token. Без after_id
+        поток начинается с текущего момента; при переподключении браузер сам шлёт Last-Event-ID.
+      operationId: stream_api_v1_stream_get
+      parameters:
+      - name: token
+        in: query
+        required: true
+        schema:
+          type: string
+          title: Token
+      - name: after_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: After Id
+      - name: last-event-id
+        in: header
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Last-Event-Id
+      responses:
+        '200':
+          description: Successful Response
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /health/live:
+    get:
+      tags:
+      - Служебное
+      summary: Процесс жив
+      operationId: live_health_live_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Live Health Live Get
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+  /health/ready:
+    get:
+      tags:
+      - Служебное
+      summary: Готов принимать запросы (БД доступна)
+      operationId: ready_health_ready_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties: true
+                type: object
+                title: Response Ready Health Ready Get
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+components:
+  schemas:
+    ApplicationBankOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        number:
+          type: string
+          title: Number
+        status:
+          $ref: '#/components/schemas/StatusOut'
+        allowed_actions:
+          items:
+            type: string
+          type: array
+          title: Allowed Actions
+          description: 'Действия, доступные текущему пользователю: какие кнопки показать'
+        product_code:
+          type: string
+          title: Product Code
+        amount:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Amount
+        term_months:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Term Months
+        purpose:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Purpose
+        form:
+          additionalProperties: true
+          type: object
+          title: Form
+          description: company — поля по ИНН с источником; extra — сведения, введённые клиентом
+        need_info:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Need Info
+          description: Что банк просит дополнить (в статусе NEED_INFO)
+        decision:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Decision
+        offers:
+          items:
+            $ref: '#/components/schemas/OfferOut'
+          type: array
+          title: Offers
+        company:
+          $ref: '#/components/schemas/CompanyOut'
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+        submitted_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Submitted At
+        status_changed_at:
+          type: string
+          format: date-time
+          title: Status Changed At
+        enrichment:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Enrichment
+        scoring:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Scoring
+        assignee_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Assignee Id
+      type: object
+      required:
+      - id
+      - number
+      - status
+      - allowed_actions
+      - product_code
+      - amount
+      - term_months
+      - purpose
+      - form
+      - need_info
+      - decision
+      - offers
+      - company
+      - created_at
+      - updated_at
+      - submitted_at
+      - status_changed_at
+      - enrichment
+      - scoring
+      - assignee_id
+      title: ApplicationBankOut
+    ApplicationCreate:
+      properties:
+        product_code:
+          type: string
+          title: Product Code
+      type: object
+      required:
+      - product_code
+      title: ApplicationCreate
+    ApplicationOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        number:
+          type: string
+          title: Number
+        status:
+          $ref: '#/components/schemas/StatusOut'
+        allowed_actions:
+          items:
+            type: string
+          type: array
+          title: Allowed Actions
+          description: 'Действия, доступные текущему пользователю: какие кнопки показать'
+        product_code:
+          type: string
+          title: Product Code
+        amount:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Amount
+        term_months:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Term Months
+        purpose:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Purpose
+        form:
+          additionalProperties: true
+          type: object
+          title: Form
+          description: company — поля по ИНН с источником; extra — сведения, введённые клиентом
+        need_info:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Need Info
+          description: Что банк просит дополнить (в статусе NEED_INFO)
+        decision:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Decision
+        offers:
+          items:
+            $ref: '#/components/schemas/OfferOut'
+          type: array
+          title: Offers
+        company:
+          $ref: '#/components/schemas/CompanyOut'
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+        submitted_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Submitted At
+        status_changed_at:
+          type: string
+          format: date-time
+          title: Status Changed At
+      type: object
+      required:
+      - id
+      - number
+      - status
+      - allowed_actions
+      - product_code
+      - amount
+      - term_months
+      - purpose
+      - form
+      - need_info
+      - decision
+      - offers
+      - company
+      - created_at
+      - updated_at
+      - submitted_at
+      - status_changed_at
+      title: ApplicationOut
+    ApplicationPatch:
+      properties:
+        amount:
+          anyOf:
+          - type: integer
+            maximum: 1000000000.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Amount
+        term_months:
+          anyOf:
+          - type: integer
+            maximum: 120.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Term Months
+        purpose:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Purpose
+        extra:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Extra
+      type: object
+      title: ApplicationPatch
+    ApplicationStatus:
+      type: string
+      enum:
+      - DRAFT
+      - SUBMITTED
+      - CHECKING
+      - NEED_INFO
+      - SCORING
+      - MANUAL_REVIEW
+      - APPROVED
+      - COUNTER_OFFER
+      - REJECTED
+      - SIGNED
+      - ISSUED
+      - CANCELLED
+      title: ApplicationStatus
+    CancelIn:
+      properties:
+        reason:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Reason
+      type: object
+      title: CancelIn
+    CodeConfirmIn:
+      properties:
+        confirmation_id:
+          type: string
+          format: uuid
+          title: Confirmation Id
+        code:
+          type: string
+          pattern: ^\d{6}$
+          title: Code
+      type: object
+      required:
+      - confirmation_id
+      - code
+      title: CodeConfirmIn
+    CodeRequestOut:
+      properties:
+        confirmation_id:
+          type: string
+          format: uuid
+          title: Confirmation Id
+        expires_at:
+          type: string
+          format: date-time
+          title: Expires At
+        demo_code:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Demo Code
+          description: Код показывается в интерфейсе вместо SMS (демо-режим, CORE_DEMO_CODES=true)
+      type: object
+      required:
+      - confirmation_id
+      - expires_at
+      - demo_code
+      title: CodeRequestOut
+    CompanyOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        inn:
+          type: string
+          title: Inn
+        name:
+          type: string
+          title: Name
+      type: object
+      required:
+      - id
+      - inn
+      - name
+      title: CompanyOut
+    DecisionIn:
+      properties:
+        result:
+          type: string
+          enum:
+          - APPROVE
+          - COUNTER_OFFER
+          - REJECT
+          title: Result
+        amount:
+          anyOf:
+          - type: integer
+            maximum: 1000000000.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Amount
+        term_months:
+          anyOf:
+          - type: integer
+            maximum: 120.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Term Months
+        rate:
+          anyOf:
+          - type: number
+            exclusiveMaximum: 100.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Rate
+        comment:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Comment
+      type: object
+      required:
+      - result
+      title: DecisionIn
+    ErrorOut:
+      properties:
+        code:
+          type: string
+          title: Code
+        message:
+          type: string
+          title: Message
+      type: object
+      required:
+      - code
+      - message
+      title: ErrorOut
+    EventOut:
+      properties:
+        id:
+          type: integer
+          title: Id
+        application_id:
+          type: string
+          format: uuid
+          title: Application Id
+        type:
+          type: string
+          title: Type
+        from_status:
+          anyOf:
+          - $ref: '#/components/schemas/ApplicationStatus'
+          - type: 'null'
+        to_status:
+          anyOf:
+          - $ref: '#/components/schemas/ApplicationStatus'
+          - type: 'null'
+        actor_role:
+          $ref: '#/components/schemas/Role'
+        message:
+          type: string
+          title: Message
+        payload:
+          additionalProperties: true
+          type: object
+          title: Payload
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - id
+      - application_id
+      - type
+      - from_status
+      - to_status
+      - actor_role
+      - message
+      - payload
+      - created_at
+      title: EventOut
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    InfoItem:
+      properties:
+        field:
+          type: string
+          title: Field
+        message:
+          type: string
+          title: Message
+      type: object
+      required:
+      - field
+      - message
+      title: InfoItem
+    InfoProvideIn:
+      properties:
+        amount:
+          anyOf:
+          - type: integer
+            maximum: 1000000000.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Amount
+        term_months:
+          anyOf:
+          - type: integer
+            maximum: 120.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Term Months
+        purpose:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Purpose
+        extra:
+          anyOf:
+          - additionalProperties: true
+            type: object
+          - type: 'null'
+          title: Extra
+        comment:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Comment
+      type: object
+      title: InfoProvideIn
+    InfoRequestIn:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/InfoItem'
+          type: array
+          minItems: 1
+          title: Items
+        comment:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Comment
+      type: object
+      required:
+      - items
+      title: InfoRequestIn
+    LoginIn:
+      properties:
+        login:
+          type: string
+          title: Login
+        password:
+          type: string
+          title: Password
+      type: object
+      required:
+      - login
+      - password
+      title: LoginIn
+    OfferKind:
+      type: string
+      enum:
+      - STANDARD
+      - COUNTER
+      title: OfferKind
+    OfferOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        kind:
+          $ref: '#/components/schemas/OfferKind'
+        status:
+          $ref: '#/components/schemas/OfferStatus'
+        amount:
+          type: integer
+          title: Amount
+        term_months:
+          type: integer
+          title: Term Months
+        rate:
+          type: number
+          title: Rate
+        monthly_payment:
+          type: integer
+          title: Monthly Payment
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - id
+      - kind
+      - status
+      - amount
+      - term_months
+      - rate
+      - monthly_payment
+      - created_at
+      title: OfferOut
+    OfferStatus:
+      type: string
+      enum:
+      - PROPOSED
+      - ACCEPTED
+      - DECLINED
+      title: OfferStatus
+    PaymentCalcIn:
+      properties:
+        product_code:
+          type: string
+          title: Product Code
+        amount:
+          type: integer
+          maximum: 1000000000.0
+          exclusiveMinimum: 0.0
+          title: Amount
+        term_months:
+          type: integer
+          maximum: 120.0
+          exclusiveMinimum: 0.0
+          title: Term Months
+      type: object
+      required:
+      - product_code
+      - amount
+      - term_months
+      title: PaymentCalcIn
+    PaymentCalcOut:
+      properties:
+        rate:
+          type: number
+          title: Rate
+        monthly_payment:
+          type: integer
+          title: Monthly Payment
+        total_payment:
+          type: integer
+          title: Total Payment
+        overpayment:
+          type: integer
+          title: Overpayment
+      type: object
+      required:
+      - rate
+      - monthly_payment
+      - total_payment
+      - overpayment
+      title: PaymentCalcOut
+    PrefillIn:
+      properties:
+        inn:
+          type: string
+          pattern: ^\d{10}(\d{2})?$
+          title: Inn
+      type: object
+      required:
+      - inn
+      title: PrefillIn
+    ProductOut:
+      properties:
+        code:
+          type: string
+          title: Code
+        name:
+          type: string
+          title: Name
+        description:
+          type: string
+          title: Description
+        min_amount:
+          type: integer
+          title: Min Amount
+        max_amount:
+          type: integer
+          title: Max Amount
+        min_term_months:
+          type: integer
+          title: Min Term Months
+        max_term_months:
+          type: integer
+          title: Max Term Months
+        base_rate:
+          type: number
+          title: Base Rate
+      type: object
+      required:
+      - code
+      - name
+      - description
+      - min_amount
+      - max_amount
+      - min_term_months
+      - max_term_months
+      - base_rate
+      title: ProductOut
+    Role:
+      type: string
+      enum:
+      - CLIENT
+      - MANAGER
+      - UNDERWRITER
+      - SYSTEM
+      title: Role
+    StatusOut:
+      properties:
+        code:
+          $ref: '#/components/schemas/ApplicationStatus'
+        title:
+          type: string
+          title: Title
+        hint:
+          type: string
+          title: Hint
+      type: object
+      required:
+      - code
+      - title
+      - hint
+      title: StatusOut
+    StatusReferenceOut:
+      properties:
+        code:
+          $ref: '#/components/schemas/ApplicationStatus'
+        title:
+          type: string
+          title: Title
+        hint:
+          type: string
+          title: Hint
+        terminal:
+          type: boolean
+          title: Terminal
+        next:
+          items:
+            $ref: '#/components/schemas/ApplicationStatus'
+          type: array
+          title: Next
+      type: object
+      required:
+      - code
+      - title
+      - hint
+      - terminal
+      - next
+      title: StatusReferenceOut
+    TokenOut:
+      properties:
+        access_token:
+          type: string
+          title: Access Token
+        token_type:
+          type: string
+          title: Token Type
+          default: bearer
+        user:
+          $ref: '#/components/schemas/UserOut'
+      type: object
+      required:
+      - access_token
+      - user
+      title: TokenOut
+    UserOut:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        login:
+          type: string
+          title: Login
+        full_name:
+          type: string
+          title: Full Name
+        role:
+          $ref: '#/components/schemas/Role'
+        company:
+          anyOf:
+          - $ref: '#/components/schemas/CompanyOut'
+          - type: 'null'
+      type: object
+      required:
+      - id
+      - login
+      - full_name
+      - role
+      - company
+      title: UserOut
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
+  securitySchemes:
+    HTTPBearer:
+      type: http
+      scheme: bearer

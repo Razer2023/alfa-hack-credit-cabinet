@@ -31,3 +31,7 @@ pgdata/
 # Локальные настройки ИИ-ассистентов
 .claude/settings.local.json
 CLAUDE.local.md
+
+# Локальные базы SQLite (разработка без Docker)
+*.db
+.pytest_cache/

@@ -1,0 +1,53 @@
+name: core
+
+on:
+  pull_request:
+    paths:
+      - "services/core/**"
+      - "contracts/core.yaml"
+      - "docs/architecture/statuses.md"
+      - "docker-compose.yml"
+      - ".github/workflows/core.yml"
+  push:
+    branches: [main]
+    paths:
+      - "services/core/**"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/core
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.13.4"
+
+      - name: Зависимости из lock-файла
+        run: uv sync --frozen
+
+      - name: Тесты
+        run: uv run pytest -q
+
+      - name: Контракт и диаграмма статусов актуальны
+        env:
+          CORE_WORKER_ENABLED: "false"
+        run: |
+          uv run python -m app.export_docs
+          git diff --exit-code -- ../../contracts/core.yaml ../../docs/architecture/statuses.md \
+            || (echo "::error::Выполните 'python -m app.export_docs' в services/core и закоммитьте результат" && exit 1)
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Сборка образа ядра
+        run: docker build -t core:ci services/core
+      - name: Проверка docker-compose.yml
+        run: docker compose config --quiet
