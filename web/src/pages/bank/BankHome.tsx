@@ -14,7 +14,7 @@ import { navigate } from '../../router';
 import styles from './Bank.module.css';
 
 const FILTERS: Record<string, { title: string; query: string }> = {
-  review: { title: 'Ждут решения', query: '?status=MANUAL_REVIEW' },
+  review: { title: 'Ждут решения', query: '?status=PENDING_APPROVAL&status=MANUAL_REVIEW' },
   active: {
     title: 'В работе',
     query: '?status=SUBMITTED&status=CHECKING&status=NEED_INFO&status=SCORING&status=APPROVED&status=COUNTER_OFFER&status=SIGNED',

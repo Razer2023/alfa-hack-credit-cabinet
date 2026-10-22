@@ -283,29 +283,49 @@ def take(session: Session, app: Application, actor: Actor) -> None:
 
 
 def decide_manual(session: Session, app: Application, actor: Actor, data: dict) -> None:
-    _require_status(app, S.MANUAL_REVIEW)
+    """Решение сотрудника банка. Кто что может, задаёт статусная машина:
+    подтвердить рекомендацию (PENDING_APPROVAL) — менеджер или андеррайтер, отказ и рисковые заявки — андеррайтер."""
+    _require_status(app, S.PENDING_APPROVAL, S.MANUAL_REVIEW)
     result = data["result"]
     comment = data.get("comment")
     if result == "REJECT":
-        reasons = [{"code": "UNDERWRITER", "text": comment or "Решение кредитного специалиста"}]
-        app.decision = {"result": result, "decided_by": "UNDERWRITER", "reasons": reasons}
+        reasons = [{"code": actor.role.value, "text": comment or "Решение кредитного специалиста"}]
+        app.decision = {"result": result, "decided_by": actor.role.value, "reasons": reasons}
         transition(session, app, S.REJECTED, actor, "Банк не может одобрить заявку", payload={"reasons": reasons})
         return
 
+    # По умолчанию — условия, рекомендованные скорингом; без рекомендации — запрошенные клиентом
+    recommended = ((app.scoring or {}).get("offers") or [{}])[0]
     product = get_scoring().get_product(app.product_code)
     terms = {
-        "amount": data.get("amount") or app.amount,
-        "term_months": data.get("term_months") or app.term_months,
-        "rate": data.get("rate") or product["base_rate"],
+        "amount": data.get("amount") or recommended.get("amount") or app.amount,
+        "term_months": data.get("term_months") or recommended.get("term_months") or app.term_months,
+        "rate": data.get("rate") or recommended.get("rate") or product["base_rate"],
     }
-    if result == "COUNTER_OFFER" and not (data.get("amount") or data.get("term_months")):
+    if result == "COUNTER_OFFER" and not (data.get("amount") or data.get("term_months") or recommended):
         raise DomainError("counter_terms_required", "Для контрпредложения укажите сумму или срок", 422)
 
     kind = OfferKind.COUNTER if result == "COUNTER_OFFER" else OfferKind.STANDARD
-    offer = add_offer(session, app, terms, kind, Role.UNDERWRITER)
-    app.decision = {"result": result, "decided_by": "UNDERWRITER", "reasons": [], "comment": comment}
+    offer = add_offer(session, app, terms, kind, actor.role)
+    # Сотрудник подтвердил рекомендацию скоринга — клиент видит её объяснение (почему другие условия)
+    scoring = app.scoring or {}
+    reasons = scoring.get("reasons", []) if scoring.get("result") == result else []
+    app.decision = {"result": result, "decided_by": actor.role.value, "reasons": reasons, "comment": comment}
     target = S.COUNTER_OFFER if kind == OfferKind.COUNTER else S.APPROVED
-    transition(session, app, target, actor, payload={"offer_id": str(offer.id), "amount": offer.amount})
+    message = "Банк подтвердил одобрение" if target == S.APPROVED else "Банк предложил другие условия"
+    transition(session, app, target, actor, message, payload={"offer_id": str(offer.id), "amount": offer.amount})
+
+
+def escalate(session: Session, app: Application, actor: Actor, comment: str | None) -> None:
+    """Менеджер передаёт заявку андеррайтеру, если сомневается в рекомендации скоринга."""
+    transition(
+        session,
+        app,
+        S.MANUAL_REVIEW,
+        actor,
+        "Заявку изучает кредитный специалист",
+        payload={"comment": comment},
+    )
 
 
 def request_info(session: Session, app: Application, actor: Actor, items: list[dict], comment: str | None) -> None:

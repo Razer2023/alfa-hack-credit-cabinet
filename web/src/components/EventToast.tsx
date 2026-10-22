@@ -14,14 +14,14 @@ export function EventToast() {
     const interesting =
       user.role === 'CLIENT'
         ? incoming.type === 'STATUS_CHANGED' && incoming.actor_role !== 'CLIENT'
-        : incoming.to_status === 'MANUAL_REVIEW';
+        : incoming.to_status === 'PENDING_APPROVAL' || incoming.to_status === 'MANUAL_REVIEW';
     if (interesting) setEvent(incoming);
   });
 
   const badge =
     event?.to_status === 'REJECTED'
       ? 'negative-alert'
-      : event?.to_status === 'NEED_INFO' || event?.to_status === 'MANUAL_REVIEW'
+      : event?.to_status === 'NEED_INFO' || event?.to_status === 'MANUAL_REVIEW' || event?.to_status === 'PENDING_APPROVAL'
         ? 'attention-alert'
         : 'positive-checkmark';
 

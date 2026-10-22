@@ -32,6 +32,7 @@ export const STATUS_COLOR: Record<ApplicationStatus, NonNullable<StatusProps['co
   CHECKING: 'blue',
   NEED_INFO: 'orange',
   SCORING: 'blue',
+  PENDING_APPROVAL: 'blue',
   MANUAL_REVIEW: 'purple',
   APPROVED: 'green',
   COUNTER_OFFER: 'teal',

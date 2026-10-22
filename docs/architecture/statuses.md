@@ -14,10 +14,14 @@ stateDiagram-v2
     CHECKING --> SCORING: SYSTEM
     NEED_INFO --> CHECKING: CLIENT
     NEED_INFO --> CANCELLED: CLIENT
-    SCORING --> APPROVED: SYSTEM
-    SCORING --> COUNTER_OFFER: SYSTEM
+    SCORING --> PENDING_APPROVAL: SYSTEM
     SCORING --> REJECTED: SYSTEM
     SCORING --> MANUAL_REVIEW: SYSTEM
+    PENDING_APPROVAL --> APPROVED: MANAGER, UNDERWRITER
+    PENDING_APPROVAL --> COUNTER_OFFER: MANAGER, UNDERWRITER
+    PENDING_APPROVAL --> REJECTED: UNDERWRITER
+    PENDING_APPROVAL --> NEED_INFO: MANAGER, UNDERWRITER
+    PENDING_APPROVAL --> MANUAL_REVIEW: MANAGER
     MANUAL_REVIEW --> APPROVED: UNDERWRITER
     MANUAL_REVIEW --> COUNTER_OFFER: UNDERWRITER
     MANUAL_REVIEW --> REJECTED: UNDERWRITER
@@ -39,6 +43,7 @@ stateDiagram-v2
 | `CHECKING` | Проверка данных | Проверяем данные компании в ЕГРЮЛ, ФНС и бюро кредитных историй |  |
 | `NEED_INFO` | Нужны данные | Банку не хватает информации — дополните заявку |  |
 | `SCORING` | Оценка | Оцениваем заявку и подбираем условия |  |
+| `PENDING_APPROVAL` | Ждёт подтверждения | Заявка предварительно одобрена, сотрудник банка проверяет условия |  |
 | `MANUAL_REVIEW` | У специалиста | Заявку изучает кредитный специалист |  |
 | `APPROVED` | Одобрена | Проверьте условия и подпишите договор |  |
 | `COUNTER_OFFER` | Другие условия | Банк готов выдать кредит на других условиях — посмотрите предложение |  |

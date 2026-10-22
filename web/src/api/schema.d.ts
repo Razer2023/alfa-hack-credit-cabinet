@@ -355,8 +355,28 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Решение андеррайтера */
+        /**
+         * Решение сотрудника банка
+         * @description Подтвердить рекомендацию скоринга (статус PENDING_APPROVAL) может менеджер или андеррайтер. Отказ и решения по рисковым заявкам (MANUAL_REVIEW) — только андеррайтер. Без суммы, срока и ставки берутся условия, рекомендованные скорингом.
+         */
         post: operations["decide_api_v1_bank_applications__application_id__decision_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/bank/applications/{application_id}/escalate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Передать андеррайтеру */
+        post: operations["escalate_api_v1_bank_applications__application_id__escalate_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -594,7 +614,7 @@ export interface components {
          * ApplicationStatus
          * @enum {string}
          */
-        ApplicationStatus: "DRAFT" | "SUBMITTED" | "CHECKING" | "NEED_INFO" | "SCORING" | "MANUAL_REVIEW" | "APPROVED" | "COUNTER_OFFER" | "REJECTED" | "SIGNED" | "ISSUED" | "CANCELLED";
+        ApplicationStatus: "DRAFT" | "SUBMITTED" | "CHECKING" | "NEED_INFO" | "SCORING" | "PENDING_APPROVAL" | "MANUAL_REVIEW" | "APPROVED" | "COUNTER_OFFER" | "REJECTED" | "SIGNED" | "ISSUED" | "CANCELLED";
         /** BkiData */
         BkiData: {
             /** Max Overdue Days */
@@ -674,7 +694,7 @@ export interface components {
              * Decided By
              * @enum {string}
              */
-            decided_by: "SYSTEM" | "UNDERWRITER";
+            decided_by: "SYSTEM" | "MANAGER" | "UNDERWRITER";
             /** Reasons */
             reasons?: components["schemas"]["Reason"][];
             /** Comment */
@@ -722,6 +742,11 @@ export interface components {
             code: string;
             /** Message */
             message: string;
+        };
+        /** EscalateIn */
+        EscalateIn: {
+            /** Comment */
+            comment?: string | null;
         };
         /** EventOut */
         EventOut: {
@@ -2318,6 +2343,68 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["DecisionIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationBankOut"];
+                };
+            };
+            /** @description Нужно войти */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Недостаточно прав */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Действие недоступно в текущем статусе */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    escalate_api_v1_bank_applications__application_id__escalate_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EscalateIn"];
             };
         };
         responses: {

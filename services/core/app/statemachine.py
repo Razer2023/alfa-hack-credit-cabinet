@@ -14,10 +14,16 @@ TRANSITIONS: dict[tuple[S, S], frozenset[Role]] = {
     (S.CHECKING, S.SCORING): frozenset({Role.SYSTEM}),
     (S.NEED_INFO, S.CHECKING): frozenset({Role.CLIENT}),
     (S.NEED_INFO, S.CANCELLED): frozenset({Role.CLIENT}),
-    (S.SCORING, S.APPROVED): frozenset({Role.SYSTEM}),
-    (S.SCORING, S.COUNTER_OFFER): frozenset({Role.SYSTEM}),
+    # Автоматически кредит не одобряется: рекомендацию «одобрить» подтверждает сотрудник банка.
+    # Автоматическим остаётся только отказ по стоп-факторам.
+    (S.SCORING, S.PENDING_APPROVAL): frozenset({Role.SYSTEM}),
     (S.SCORING, S.REJECTED): frozenset({Role.SYSTEM}),
     (S.SCORING, S.MANUAL_REVIEW): frozenset({Role.SYSTEM}),
+    (S.PENDING_APPROVAL, S.APPROVED): frozenset({Role.MANAGER, Role.UNDERWRITER}),
+    (S.PENDING_APPROVAL, S.COUNTER_OFFER): frozenset({Role.MANAGER, Role.UNDERWRITER}),
+    (S.PENDING_APPROVAL, S.REJECTED): frozenset({Role.UNDERWRITER}),
+    (S.PENDING_APPROVAL, S.NEED_INFO): frozenset({Role.MANAGER, Role.UNDERWRITER}),
+    (S.PENDING_APPROVAL, S.MANUAL_REVIEW): frozenset({Role.MANAGER}),
     (S.MANUAL_REVIEW, S.APPROVED): frozenset({Role.UNDERWRITER}),
     (S.MANUAL_REVIEW, S.COUNTER_OFFER): frozenset({Role.UNDERWRITER}),
     (S.MANUAL_REVIEW, S.REJECTED): frozenset({Role.UNDERWRITER}),
@@ -46,6 +52,9 @@ STATUS_INFO: dict[S, StatusInfo] = {
     S.CHECKING: StatusInfo("Проверка данных", "Проверяем данные компании в ЕГРЮЛ, ФНС и бюро кредитных историй"),
     S.NEED_INFO: StatusInfo("Нужны данные", "Банку не хватает информации — дополните заявку"),
     S.SCORING: StatusInfo("Оценка", "Оцениваем заявку и подбираем условия"),
+    S.PENDING_APPROVAL: StatusInfo(
+        "Ждёт подтверждения", "Заявка предварительно одобрена, сотрудник банка проверяет условия"
+    ),
     S.MANUAL_REVIEW: StatusInfo("У специалиста", "Заявку изучает кредитный специалист"),
     S.APPROVED: StatusInfo("Одобрена", "Проверьте условия и подпишите договор"),
     S.COUNTER_OFFER: StatusInfo(
@@ -65,6 +74,7 @@ CLIENT_ACTIONS: dict[S, tuple[str, ...]] = {
     S.APPROVED: ("SIGN", "CANCEL"),
 }
 BANK_ACTIONS: dict[S, tuple[str, ...]] = {
+    S.PENDING_APPROVAL: ("TAKE", "DECIDE", "REQUEST_INFO", "ESCALATE"),
     S.MANUAL_REVIEW: ("TAKE", "DECIDE", "REQUEST_INFO"),
 }
 

@@ -67,16 +67,20 @@ export function BankCard({ id }: BankCardProps) {
     [id],
   );
 
-  async function take() {
+  async function act(path: string, body?: unknown) {
     setBusy(true);
+    setError(null);
     try {
-      onChange(await api<BankApplication>(`/bank/applications/${id}/take`, { method: 'POST' }));
+      onChange(await api<BankApplication>(`/bank/applications/${id}/${path}`, { method: 'POST', body }));
     } catch (e) {
       setError(errorMessage(e));
     } finally {
       setBusy(false);
     }
   }
+
+  const take = () => act('take');
+  const escalate = () => act('escalate', { comment: null });
 
   if (error && !application) {
     return (
@@ -88,6 +92,7 @@ export function BankCard({ id }: BankCardProps) {
   if (!application) return <Spinner preset={48} visible={true} />;
 
   const actions = application.allowed_actions;
+  const pending = application.status.code === 'PENDING_APPROVAL';
   const { enrichment, scoring } = application;
   const extra = Object.entries(application.form.extra ?? {});
 
@@ -123,10 +128,24 @@ export function BankCard({ id }: BankCardProps) {
       )}
       <Gap size={24} />
 
-      {actions.includes('DECIDE') && user.role === 'UNDERWRITER' && (
+      {/* Рекомендацию скоринга подтверждает менеджер или андеррайтер; рисковые заявки и отказ — только андеррайтер */}
+      {actions.includes('DECIDE') && (pending || user.role === 'UNDERWRITER') && (
         <>
-          <Plate view='attention' rounded={true} border={true} title='Решение по заявке'>
-            <DecisionForm application={application} onChange={onChange} />
+          <Plate
+            view='attention'
+            rounded={true}
+            border={true}
+            title={pending ? 'Подтверждение одобрения' : 'Решение по заявке'}
+          >
+            <DecisionForm application={application} canReject={user.role === 'UNDERWRITER'} onChange={onChange} />
+            {actions.includes('ESCALATE') && user.role === 'MANAGER' && (
+              <>
+                <Gap size={12} />
+                <Button view='transparent' size={32} loading={busy} onClick={escalate}>
+                  Сомневаюсь — передать андеррайтеру
+                </Button>
+              </>
+            )}
           </Plate>
           <Gap size={16} />
         </>

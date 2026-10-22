@@ -13,8 +13,8 @@ const DEMO_USERS = [
   { login: 'coffee', who: 'Кофейня — одобрение' },
   { login: 'stroy', who: 'Стройка — контрпредложение' },
   { login: 'vector', who: 'Вектор — ручное рассмотрение' },
-  { login: 'manager', who: 'менеджер банка' },
-  { login: 'underwriter', who: 'андеррайтер' },
+  { login: 'manager', who: 'менеджер: подтверждает одобрения' },
+  { login: 'underwriter', who: 'андеррайтер: рисковые заявки и отказы' },
 ];
 
 export function LoginPage() {

@@ -58,24 +58,44 @@ def check(name, cond, detail=""):
 
 
 uw = login("underwriter")
+mgr = login("manager")
+DECIDED = {"PENDING_APPROVAL", "APPROVED", "COUNTER_OFFER", "REJECTED", "MANUAL_REVIEW", "NEED_INFO"}
 
-print("1) coffee: одобрение -> подпись -> выдача")
+
+def bank_path(p):
+    return p.replace("/applications", "/bank/applications")
+
+
+def confirm(p, result):
+    """Автоматического одобрения нет: менеджер подтверждает рекомендацию скоринга."""
+    r = c.post(f"{bank_path(p)}/decision", json={"result": result}, headers=mgr)
+    r.raise_for_status()
+    return r.json()
+
+print("1) coffee: рекомендация «одобрить» -> подтверждение менеджера -> подпись -> выдача")
 h = login("coffee")
 p, sources = submit(h, "7701234567", "EXPRESS", 2_000_000, 12)
 check("профиль из интеграций", sources == {"EGRUL", "FNS", "BANK_ACCOUNT"}, str(sorted(sources)))
-app = wait(h, p, {"APPROVED", "COUNTER_OFFER", "REJECTED", "MANUAL_REVIEW", "NEED_INFO"})
-card = c.get(p.replace("/applications", "/bank/applications"), headers=uw).json()
+app = wait(h, p, DECIDED)
+card = c.get(bank_path(p), headers=uw).json()
 check("решение настоящего скоринга", card["scoring"]["model_version"].startswith("scorecard"), card["scoring"]["model_version"])
-check("статус APPROVED", app["status"]["code"] == "APPROVED", f"{app['status']['code']} score={card['scoring'].get('score')}")
+check("без автоодобрения: ждёт подтверждения", app["status"]["code"] == "PENDING_APPROVAL" and not app["offers"], app["status"]["code"])
+check("рекомендация скоринга APPROVE", card["scoring"]["result"] == "APPROVE", f"score={card['scoring'].get('score')}")
+card = confirm(p, "APPROVE")
+check("менеджер подтвердил -> APPROVED", card["status"]["code"] == "APPROVED", card["decision"]["decided_by"])
 sign(h, p)
 app = wait(h, p, {"ISSUED"})
 check("ISSUED", app["status"]["code"] == "ISSUED", app["offers"][0]["amount"])
 
-print("2) stroy: контрпредложение -> принять -> подпись -> выдача")
+print("2) stroy: рекомендация «другие условия» -> подтверждение менеджера -> принять -> подпись -> выдача")
 h = login("stroy")
 p, _ = submit(h, "7702345678", "WORKING_CAPITAL", 10_000_000, 12)
-app = wait(h, p, {"APPROVED", "COUNTER_OFFER", "REJECTED", "MANUAL_REVIEW", "NEED_INFO"})
+app = wait(h, p, DECIDED)
+check("без автоодобрения: ждёт подтверждения", app["status"]["code"] == "PENDING_APPROVAL", app["status"]["code"])
+confirm(p, "COUNTER_OFFER")
+app = c.get(p, headers=h).json()
 check("статус COUNTER_OFFER", app["status"]["code"] == "COUNTER_OFFER", app["status"]["code"])
+check("клиент видит причину", bool(app["decision"]["reasons"]))
 offer = app["offers"][0]
 print(f"     предложение: {offer['amount']:,} руб. на {offer['term_months']} мес., ставка {offer['rate']}, платёж {offer['monthly_payment']:,}")
 print(f"     причины: {[r['text'] for r in app['decision']['reasons']]}")
@@ -87,7 +107,7 @@ check("ISSUED", app["status"]["code"] == "ISSUED")
 print("3) vector: ручное рассмотрение -> запрос данных -> дополнение -> отказ")
 h = login("vector")
 p, _ = submit(h, "7703456789", "WORKING_CAPITAL", 3_000_000, 12)
-app = wait(h, p, {"APPROVED", "COUNTER_OFFER", "REJECTED", "MANUAL_REVIEW", "NEED_INFO"})
+app = wait(h, p, DECIDED)
 check("статус MANUAL_REVIEW", app["status"]["code"] == "MANUAL_REVIEW", app["status"]["code"])
 bp = p.replace("/applications", "/bank/applications")
 card = c.post(f"{bp}/take", headers=uw).json()
@@ -96,7 +116,7 @@ print(f"     факторы скоринга: {[(f['code'], f.get('impact')) for
 c.post(f"{bp}/info-request", json={"items": [{"field": "overdue_explanation", "message": "Поясните просрочку"}]}, headers=uw).raise_for_status()
 wait(h, p, {"NEED_INFO"})
 c.post(f"{p}/info", json={"extra": {"overdue_explanation": "Задержка оплаты от заказчика"}}, headers=h).raise_for_status()
-app = wait(h, p, {"MANUAL_REVIEW", "APPROVED", "COUNTER_OFFER", "REJECTED"})
+app = wait(h, p, DECIDED - {"NEED_INFO"})
 check("снова MANUAL_REVIEW", app["status"]["code"] == "MANUAL_REVIEW", app["status"]["code"])
 c.post(f"{bp}/decision", json={"result": "REJECT", "comment": "Высокая долговая нагрузка"}, headers=uw).raise_for_status()
 app = c.get(p, headers=h).json()

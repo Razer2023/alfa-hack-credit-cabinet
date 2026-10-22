@@ -8,6 +8,7 @@ import { Typography } from '@alfalab/core-components/typography';
 
 import { api, errorMessage } from '../../api/client';
 import type { BankApplication, DecisionIn } from '../../api/types';
+import { formatMonths, formatRub } from '../../format';
 import styles from './Bank.module.css';
 
 type Result = DecisionIn['result'];
@@ -20,15 +21,20 @@ const RESULTS: { value: Result; title: string }[] = [
 
 type DecisionFormProps = {
   application: BankApplication;
+  canReject: boolean;
   onChange: (application: BankApplication) => void;
 };
 
-// Решение андеррайтера по заявке на ручном рассмотрении (S5.3, S5.4)
-export function DecisionForm({ application, onChange }: DecisionFormProps) {
-  const [result, setResult] = useState<Result>('APPROVE');
-  const [amount, setAmount] = useState<number | null>(application.amount);
-  const [term, setTerm] = useState(application.term_months ? String(application.term_months) : '');
-  const [rate, setRate] = useState('');
+// Решение сотрудника банка (S5.3, S5.4). Условия по умолчанию — из рекомендации скоринга.
+export function DecisionForm({ application, canReject, onChange }: DecisionFormProps) {
+  const recommendation = application.scoring;
+  const recommended = recommendation?.offers?.[0];
+  const [result, setResult] = useState<Result>(
+    recommendation?.result === 'COUNTER_OFFER' ? 'COUNTER_OFFER' : 'APPROVE',
+  );
+  const [amount, setAmount] = useState<number | null>(recommended?.amount ?? application.amount);
+  const [term, setTerm] = useState(String(recommended?.term_months ?? application.term_months ?? ''));
+  const [rate, setRate] = useState(recommended ? String(recommended.rate) : '');
   const [comment, setComment] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,8 +61,18 @@ export function DecisionForm({ application, onChange }: DecisionFormProps) {
 
   return (
     <>
+      {recommended && (
+        <>
+          <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
+            Скоринг рекомендует:{' '}
+            {recommendation?.result === 'COUNTER_OFFER' ? 'другие условия' : 'одобрить'} — {formatRub(recommended.amount)} на{' '}
+            {formatMonths(recommended.term_months)} под {recommended.rate}%. Условия подставлены, их можно изменить.
+          </Typography.Text>
+          <Gap size={12} />
+        </>
+      )}
       <div className={styles.choice}>
-        {RESULTS.map((option) => (
+        {RESULTS.filter((option) => canReject || option.value !== 'REJECT').map((option) => (
           <Button
             key={option.value}
             view={result === option.value ? 'primary' : 'secondary'}
@@ -109,7 +125,7 @@ export function DecisionForm({ application, onChange }: DecisionFormProps) {
       />
       <Gap size={16} />
       <Button view='accent' size={48} loading={busy} disabled={needsReason} onClick={submit}>
-        Принять решение
+        {result === 'APPROVE' ? 'Подтвердить одобрение' : result === 'COUNTER_OFFER' ? 'Предложить условия' : 'Отказать'}
       </Button>
       {error && (
         <>
