@@ -4,7 +4,7 @@ from: D
 story: S3.1, S4.5, S5.3, S6.1, S6.3
 priority: normal
 status: done
-done_in: ""
+done_in: "#16"
 ---
 
 # Типы для полей form, need_info, decision, enrichment, scoring в contracts/core.yaml
