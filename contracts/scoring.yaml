@@ -1,0 +1,630 @@
+# Сгенерировано из services/scoring (python -m app.export_docs). Руками не править.
+openapi: 3.1.0
+info:
+  title: Скоринг и кредитное решение
+  description: Каталог продуктов, расчёт платежа, балльная карта и кредитная логика.
+    Область C. Правила — в services/scoring/rules/*.yaml, их версия возвращается в
+    model_version.
+  version: 0.1.0
+paths:
+  /health:
+    get:
+      tags:
+      - service
+      summary: Health
+      operationId: health_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthOut'
+  /api/v1/products:
+    get:
+      tags:
+      - products
+      summary: Каталог продуктов (S1.1)
+      operationId: list_products_api_v1_products_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ProductOut'
+                type: array
+                title: Response List Products Api V1 Products Get
+  /api/v1/products/{code}:
+    get:
+      tags:
+      - products
+      summary: Продукт по коду (S1.1)
+      operationId: get_product_api_v1_products__code__get
+      parameters:
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Code
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductOut'
+        '404':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+          description: Not Found
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/calc/payment:
+    post:
+      tags:
+      - calc
+      summary: Аннуитетный платёж (S3.2)
+      operationId: calc_payment_api_v1_calc_payment_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentIn'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/decisions:
+    post:
+      tags:
+      - decisions
+      summary: Кредитное решение (S5.1, S5.2, S6.1)
+      operationId: make_decision_api_v1_decisions_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DecisionIn'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DecisionOut'
+        '422':
+          description: Неизвестный продукт или некорректная заявка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+components:
+  schemas:
+    ApplicationIn:
+      properties:
+        product_code:
+          type: string
+          title: Product Code
+          examples:
+          - WORKING_CAPITAL
+        amount:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Amount
+          examples:
+          - 10000000
+        term_months:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Term Months
+          examples:
+          - 12
+        purpose:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Purpose
+      additionalProperties: true
+      type: object
+      required:
+      - product_code
+      - amount
+      - term_months
+      title: ApplicationIn
+    BkiIn:
+      properties:
+        max_overdue_days:
+          type: integer
+          minimum: 0.0
+          title: Max Overdue Days
+          default: 0
+        active_loans:
+          type: integer
+          minimum: 0.0
+          title: Active Loans
+          default: 0
+        total_debt:
+          type: number
+          minimum: 0.0
+          title: Total Debt
+          default: 0
+      additionalProperties: true
+      type: object
+      title: BkiIn
+    CompanyIn:
+      properties:
+        revenue_year:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Revenue Year
+          examples:
+          - 30000000
+        avg_monthly_turnover:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Avg Monthly Turnover
+          examples:
+          - 2500000
+        registration_date:
+          anyOf:
+          - type: string
+            format: date
+          - type: 'null'
+          title: Registration Date
+          examples:
+          - '2018-06-01'
+        employees:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Employees
+          examples:
+          - 35
+      additionalProperties: true
+      type: object
+      title: CompanyIn
+      description: Значения полей анкеты компании (из профиля сервиса B). Все поля
+        необязательны.
+    DecisionIn:
+      properties:
+        application_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Application Id
+        inn:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Inn
+          examples:
+          - '7702345678'
+        application:
+          $ref: '#/components/schemas/ApplicationIn'
+        company:
+          $ref: '#/components/schemas/CompanyIn'
+          default: {}
+        extra:
+          additionalProperties: true
+          type: object
+          title: Extra
+          default: {}
+        enrichment:
+          $ref: '#/components/schemas/EnrichmentIn'
+          default:
+            egrul:
+              liquidation: false
+              status: ACTIVE
+            fns:
+              mass_address: false
+              tax_debt: 0.0
+      additionalProperties: true
+      type: object
+      required:
+      - application
+      title: DecisionIn
+    DecisionOut:
+      properties:
+        result:
+          type: string
+          enum:
+          - APPROVE
+          - COUNTER_OFFER
+          - REJECT
+          - MANUAL_REVIEW
+          title: Result
+        score:
+          type: integer
+          title: Score
+          examples:
+          - 740
+        risk_class:
+          type: string
+          title: Risk Class
+          examples:
+          - A
+        model_version:
+          type: string
+          title: Model Version
+          examples:
+          - scorecard-1.0+products-1.0
+        factors:
+          items:
+            $ref: '#/components/schemas/FactorOut'
+          type: array
+          title: Factors
+        reasons:
+          items:
+            $ref: '#/components/schemas/ReasonOut'
+          type: array
+          title: Reasons
+        offers:
+          items:
+            $ref: '#/components/schemas/OfferOut'
+          type: array
+          title: Offers
+          description: APPROVE — одно, COUNTER_OFFER — одно или несколько, иначе пусто
+        metrics:
+          $ref: '#/components/schemas/MetricsOut'
+      type: object
+      required:
+      - result
+      - score
+      - risk_class
+      - model_version
+      - factors
+      - reasons
+      - offers
+      - metrics
+      title: DecisionOut
+    EgrulIn:
+      properties:
+        status:
+          type: string
+          title: Status
+          default: ACTIVE
+        liquidation:
+          type: boolean
+          title: Liquidation
+          default: false
+      additionalProperties: true
+      type: object
+      title: EgrulIn
+    EnrichmentIn:
+      properties:
+        egrul:
+          $ref: '#/components/schemas/EgrulIn'
+          default:
+            status: ACTIVE
+            liquidation: false
+        fns:
+          $ref: '#/components/schemas/FnsIn'
+          default:
+            tax_debt: 0.0
+            mass_address: false
+        bki:
+          anyOf:
+          - $ref: '#/components/schemas/BkiIn'
+          - type: 'null'
+      additionalProperties: true
+      type: object
+      title: EnrichmentIn
+    ErrorOut:
+      properties:
+        code:
+          type: string
+          title: Code
+        message:
+          type: string
+          title: Message
+      type: object
+      required:
+      - code
+      - message
+      title: ErrorOut
+    FactorOut:
+      properties:
+        code:
+          type: string
+          title: Code
+          examples:
+          - BUSINESS_AGE
+        title:
+          type: string
+          title: Title
+          examples:
+          - Возраст бизнеса
+        impact:
+          type: integer
+          title: Impact
+          description: 'Баллы фактора: плюс повышает оценку, минус снижает'
+          examples:
+          - 60
+        value:
+          type: string
+          title: Value
+          description: Значение фактора для андеррайтера
+          examples:
+          - 8,4 года
+      type: object
+      required:
+      - code
+      - title
+      - impact
+      - value
+      title: FactorOut
+    FnsIn:
+      properties:
+        tax_debt:
+          type: number
+          title: Tax Debt
+          default: 0
+        mass_address:
+          type: boolean
+          title: Mass Address
+          default: false
+      additionalProperties: true
+      type: object
+      title: FnsIn
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    HealthOut:
+      properties:
+        status:
+          type: string
+          const: ok
+          title: Status
+        model_version:
+          type: string
+          title: Model Version
+      type: object
+      required:
+      - status
+      - model_version
+      title: HealthOut
+    MetricsOut:
+      properties:
+        limit:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Limit
+          description: Лимит по выручке для класса риска, ₽
+        monthly_free_cash_flow:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Monthly Free Cash Flow
+        existing_debt_payment:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Existing Debt Payment
+          description: Оценка платежа по текущим кредитам, ₽/мес
+        new_payment:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: New Payment
+          description: Платёж по запрошенным условиям, ₽/мес
+        dscr:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Dscr
+          description: Покрытие платежей свободным денежным потоком
+        min_dscr:
+          type: number
+          title: Min Dscr
+      type: object
+      required:
+      - min_dscr
+      title: MetricsOut
+      description: Расчёт платёжеспособности для карточки андеррайтера.
+    OfferOut:
+      properties:
+        amount:
+          type: integer
+          title: Amount
+          examples:
+          - 6500000
+        term_months:
+          type: integer
+          title: Term Months
+          examples:
+          - 36
+        rate:
+          type: number
+          title: Rate
+          examples:
+          - 18.9
+      type: object
+      required:
+      - amount
+      - term_months
+      - rate
+      title: OfferOut
+    PaymentIn:
+      properties:
+        amount:
+          type: integer
+          maximum: 1000000000.0
+          exclusiveMinimum: 0.0
+          title: Amount
+          examples:
+          - 1200000
+        term_months:
+          type: integer
+          maximum: 120.0
+          exclusiveMinimum: 0.0
+          title: Term Months
+          examples:
+          - 12
+        rate:
+          type: number
+          exclusiveMaximum: 100.0
+          minimum: 0.0
+          title: Rate
+          description: '% годовых'
+          examples:
+          - 22.5
+      type: object
+      required:
+      - amount
+      - term_months
+      - rate
+      title: PaymentIn
+    PaymentOut:
+      properties:
+        monthly_payment:
+          type: integer
+          title: Monthly Payment
+          description: Аннуитетный платёж, ₽
+          examples:
+          - 112602
+        total_payment:
+          type: integer
+          title: Total Payment
+          examples:
+          - 1351224
+        overpayment:
+          type: integer
+          title: Overpayment
+          examples:
+          - 151224
+      type: object
+      required:
+      - monthly_payment
+      - total_payment
+      - overpayment
+      title: PaymentOut
+    ProductOut:
+      properties:
+        code:
+          type: string
+          title: Code
+          examples:
+          - EXPRESS
+        name:
+          type: string
+          title: Name
+          examples:
+          - Экспресс-кредит
+        description:
+          type: string
+          title: Description
+        min_amount:
+          type: integer
+          title: Min Amount
+          examples:
+          - 300000
+        max_amount:
+          type: integer
+          title: Max Amount
+          examples:
+          - 5000000
+        min_term_months:
+          type: integer
+          title: Min Term Months
+          examples:
+          - 3
+        max_term_months:
+          type: integer
+          title: Max Term Months
+          examples:
+          - 24
+        base_rate:
+          type: number
+          title: Base Rate
+          description: Базовая ставка, % годовых
+          examples:
+          - 22.5
+        purposes:
+          items:
+            type: string
+          type: array
+          title: Purposes
+          description: Типичные цели кредита (для подбора продукта)
+      type: object
+      required:
+      - code
+      - name
+      - description
+      - min_amount
+      - max_amount
+      - min_term_months
+      - max_term_months
+      - base_rate
+      - purposes
+      title: ProductOut
+    ReasonOut:
+      properties:
+        code:
+          type: string
+          title: Code
+          examples:
+          - AMOUNT_OVER_LIMIT
+        text:
+          type: string
+          title: Text
+          description: Текст для клиента, человеческим языком
+      type: object
+      required:
+      - code
+      - text
+      title: ReasonOut
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError
