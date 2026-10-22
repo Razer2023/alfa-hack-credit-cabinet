@@ -1,0 +1,47 @@
+name: scoring
+
+# На PR запускается всегда: scoring-test — обязательная проверка для слияния в main (см. core.yml).
+on:
+  pull_request:
+  push:
+    branches: [main]
+    paths:
+      - "services/scoring/**"
+      - "contracts/scoring.yaml"
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: scoring-test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: services/scoring
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.13.4"
+
+      - name: Зависимости из lock-файла
+        run: uv sync --frozen
+
+      - name: Тесты
+        run: uv run pytest -q
+
+      - name: Контракт актуален
+        run: |
+          uv run python -m app.export_docs
+          git diff --exit-code -- ../../contracts/scoring.yaml \
+            || (echo "::error::Выполните 'python -m app.export_docs' в services/scoring и закоммитьте результат" && exit 1)
+
+  docker:
+    name: scoring-docker
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Сборка образа скоринга
+        run: docker build -t scoring:ci services/scoring

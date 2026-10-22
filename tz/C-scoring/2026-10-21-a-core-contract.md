@@ -3,7 +3,7 @@ to: C-scoring
 from: A
 story: S1.1, S3.2, S5.1, S5.2, S6.1
 priority: normal
-status: new
+status: in_progress
 done_in: ""
 ---
 
@@ -77,3 +77,12 @@ POST /api/v1/decisions
 На встроенной заглушке, демо работает и без сервиса.
 
 ## Ответ владельца области
+Принято, сделано в ветке `feat/c-s5.1-scoring-service`. Сервис в `services/scoring/`, правила в `rules/*.yaml`, методика в `services/scoring/README.md`.
+
+- Формат запроса и ответа — как в ТЗ. В ответе два дополнительных поля, ядро их просто сохранит: `factors[].value` (значение фактора для карточки андеррайтера, например «8,4 г.») и `metrics` (лимит, свободный поток, платежи, DSCR).
+- `model_version` — `scorecard-1.0+products-1.0`.
+- Неизвестный продукт → 422 `unknown_product`.
+- Проверено: тесты ядра (30 шт.) проходят с `CORE_SCORING_MODE=http CORE_SCORING_URL=http://localhost:8001`. Демо: 7701234567 → APPROVE, 7702345678 при 10 млн → COUNTER_OFFER 6,6 млн на 36 мес., 7703456789 → MANUAL_REVIEW.
+- В `docker-compose.yml` нужно добавить сервис `scoring` (`build: ./services/scoring`, healthcheck уже в Dockerfile) и `CORE_SCORING_MODE=http` — это за тобой, как договорились.
+- Новых библиотек для THIRD_PARTY_NOTICES нет: FastAPI, Uvicorn, pydantic, pydantic-settings, PyYAML, pytest, HTTPX уже перечислены.
+

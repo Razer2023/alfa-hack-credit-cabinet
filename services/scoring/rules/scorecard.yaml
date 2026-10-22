@@ -1,0 +1,135 @@
+# Балльная карта и кредитная политика (S5.1, S5.2, S6.1, S6.3).
+# Код только считает значения факторов и применяет правила, все числа — здесь.
+# Любое изменение весов или порогов — новая version: она уходит в ответ как model_version
+# и остаётся в заявке, поэтому всегда видно, по каким правилам принято решение.
+version: scorecard-1.0
+
+# Сумма баллов = base_score + баллы каждого фактора. Шкала 300–900, как у кредитных бюро.
+base_score: 520
+
+# Корзины факторов: первая корзина, у которой значение < lt, даёт свои баллы.
+# Корзина без lt — «всё остальное». Обоснование весов — services/scoring/README.md.
+factors:
+  BUSINESS_AGE:
+    title: Возраст бизнеса
+    unit: years
+    bins:
+      - {lt: 1, points: -40}
+      - {lt: 2, points: 0}
+      - {lt: 3, points: 20}
+      - {lt: 5, points: 40}
+      - {points: 60}
+
+  REVENUE:
+    title: Годовая выручка
+    unit: rub
+    bins:
+      - {lt: 6000000, points: -20}
+      - {lt: 20000000, points: 10}
+      - {lt: 60000000, points: 30}
+      - {points: 50}
+
+  BKI_OVERDUE:
+    title: Максимальная просрочка в БКИ
+    unit: days
+    bins:
+      - {lt: 1, points: 60}
+      - {lt: 31, points: 0}
+      - {lt: 61, points: -80}
+      - {lt: 91, points: -120}
+      - {points: -200}
+
+  ACTIVE_LOANS:
+    title: Действующие кредиты
+    unit: count
+    bins:
+      - {lt: 2, points: 20}
+      - {lt: 3, points: 10}
+      - {lt: 4, points: 0}
+      - {points: -30}
+
+  DEBT_LOAD:
+    title: Долговая нагрузка (долг к выручке)
+    unit: share
+    bins:
+      - {lt: 0.10, points: 40}
+      - {lt: 0.25, points: 20}
+      - {lt: 0.40, points: -10}
+      - {points: -60}
+
+  LOAN_TO_REVENUE:
+    title: Запрошенная сумма к выручке
+    unit: share
+    bins:
+      - {lt: 0.20, points: 30}
+      - {lt: 0.35, points: 10}
+      - {lt: 0.50, points: -20}
+      - {points: -50}
+
+  EMPLOYEES:
+    title: Численность сотрудников
+    unit: count
+    bins:
+      - {lt: 5, points: -10}
+      - {lt: 15, points: 10}
+      - {points: 20}
+
+  TAX_DEBT:
+    title: Задолженность по налогам
+    unit: rub
+    bins:
+      - {lt: 1, points: 10}
+      - {points: -40}
+
+  MASS_ADDRESS:
+    title: Адрес массовой регистрации
+    unit: flag
+    bins:
+      - {lt: 1, points: 0}
+      - {points: -50}
+
+# Классы риска: от лучшего к худшему, класс — первый, чей min_score не выше балла.
+# decision: AUTO — система решает сама (одобрение или контрпредложение по лимиту и DSCR).
+risk_classes:
+  - {code: A, min_score: 700, decision: AUTO, limit_share: 0.35, rate_adjustment: -1.0}
+  - {code: B, min_score: 620, decision: AUTO, limit_share: 0.25, rate_adjustment: 0.0}
+  - {code: C, min_score: 540, decision: MANUAL_REVIEW}
+  - {code: D, min_score: 0, decision: REJECT}
+
+# Стоп-факторы: отказ без расчёта лимита
+stop_factors:
+  min_business_age_months: 6
+  max_overdue_days: 90          # просрочка больше — отказ
+  egrul_ok_statuses: [ACTIVE]   # другой статус или признак ликвидации — отказ
+
+# Триггеры ручного рассмотрения: важнее итогового класса, решение принимает андеррайтер
+manual_review:
+  overdue_days_from: 31         # просрочка 31–90 дней
+  tax_debt_above: 0
+  mass_address: true
+
+# Платёжеспособность: лимит и DSCR (debt service coverage ratio)
+affordability:
+  free_cash_flow_share: 0.20    # доля среднемесячного оборота, которая остаётся на обслуживание долга
+  existing_debt_monthly_share: 0.045  # оценка ежемесячного платежа по текущему долгу из БКИ
+  min_dscr: 1.25                # свободный денежный поток / все платежи по долгам
+  amount_step: 100000           # шаг округления суммы контрпредложения вниз
+  term_step: 6                  # срок контрпредложения кратен 6 месяцам
+
+reasons:
+  EGRUL_INACTIVE: Компания не действует по данным ЕГРЮЛ
+  BUSINESS_TOO_YOUNG: Бизнесу меньше 6 месяцев — пока не можем оценить его устойчивость
+  BKI_OVERDUE_CRITICAL: В кредитной истории есть просрочка больше 90 дней
+  BKI_OVERDUE: В кредитной истории есть просрочка {days} дн. — заявку посмотрит специалист
+  TAX_DEBT: Есть задолженность по налогам — заявку посмотрит специалист
+  MASS_ADDRESS: Компания зарегистрирована по адресу массовой регистрации — нужна дополнительная проверка
+  NO_REVENUE_DATA: Не хватает данных о выручке — заявку посмотрит специалист
+  NO_BKI_DATA: Нет данных кредитной истории — заявку посмотрит специалист
+  LOW_SCORE: Финансовые показатели пока не соответствуют требованиям банка
+  BORDERLINE_SCORE: Показатели на границе требований — заявку посмотрит специалист
+  BELOW_PRODUCT_MIN: Сумма меньше минимальной по продукту {product} ({min_amount} ₽)
+  AMOUNT_OVER_PRODUCT: Сумма больше максимальной по продукту {product} ({max_amount} ₽)
+  AMOUNT_OVER_LIMIT: Запрошенная сумма выше допустимой по выручке компании
+  PAYMENT_TOO_HIGH: Ежемесячный платёж слишком высок для текущих оборотов — предлагаем срок длиннее или сумму меньше
+  TERM_ADJUSTED: Срок приведён к условиям продукта
+  CANNOT_AFFORD_MIN: Текущие обороты не позволяют обслуживать даже минимальную сумму по продукту
