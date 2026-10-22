@@ -1,8 +1,11 @@
 # Запуск всего решения: docker compose up --build
-# Ядро: http://localhost:8080/docs (Swagger UI)
+#   Веб-интерфейс:          http://localhost:3000
+#   Swagger ядра:           http://localhost:8080/docs
+#   Swagger интеграций (B): http://localhost:8081/docs
+#   Swagger скоринга (C):   http://localhost:8082/docs
 #
-# Сервисы B (integrations), C (scoring) и D (web) добавляются сюда по мере готовности (через ТЗ в tz/A-core/).
-# Пока их нет, ядро работает на встроенных заглушках: CORE_INTEGRATIONS_MODE=stub, CORE_SCORING_MODE=stub.
+# Ядро ходит в сервисы B и C по HTTP. Чтобы вернуть встроенные заглушки ядра,
+# задайте в .env CORE_INTEGRATIONS_MODE=stub и/или CORE_SCORING_MODE=stub.
 
 name: alfa-credit
 
@@ -22,21 +25,55 @@ services:
       retries: 10
     restart: unless-stopped
 
+  # B. Данные и интеграции: профиль по ИНН, проверка заявки, моки ЕГРЮЛ, ФНС, БКИ.
+  # Собирается из корня репозитория: образ берёт синтетические данные из data/synthetic/.
+  integrations:
+    build:
+      context: .
+      dockerfile: services/integrations/Dockerfile
+    ports:
+      - "8081:8000"
+    restart: unless-stopped
+
+  # C. Скоринг и кредитное решение: продукты, расчёт платежа, решение. Правила — services/scoring/rules/.
+  scoring:
+    build: ./services/scoring
+    ports:
+      - "8082:8000"
+    restart: unless-stopped
+
+  # A. Ядро кредитного конвейера
   core:
     build: ./services/core
     depends_on:
       postgres:
         condition: service_healthy
+      integrations:
+        condition: service_healthy
+      scoring:
+        condition: service_healthy
     environment:
       CORE_DATABASE_URL: postgresql+psycopg://credit:${POSTGRES_PASSWORD:-credit-dev-only}@postgres:5432/credit
       CORE_JWT_SECRET: ${CORE_JWT_SECRET:-dev-only-secret-change-me-in-production-0123456789}
       CORE_DEMO_PASSWORD: ${CORE_DEMO_PASSWORD:-demo}
-      CORE_INTEGRATIONS_MODE: ${CORE_INTEGRATIONS_MODE:-stub}
-      CORE_SCORING_MODE: ${CORE_SCORING_MODE:-stub}
+      CORE_INTEGRATIONS_MODE: ${CORE_INTEGRATIONS_MODE:-http}
+      CORE_INTEGRATIONS_URL: http://integrations:8000
+      CORE_SCORING_MODE: ${CORE_SCORING_MODE:-http}
+      CORE_SCORING_URL: http://scoring:8000
       CORE_PIPELINE_STEP_DELAY_SECONDS: ${CORE_PIPELINE_STEP_DELAY_SECONDS:-2}
       CORE_DEMO_CODES: ${CORE_DEMO_CODES:-true}
     ports:
       - "8080:8000"
+    restart: unless-stopped
+
+  # D. Веб-интерфейс: статика + прокси /api/ на ядро (web/nginx.conf)
+  web:
+    build: ./web
+    depends_on:
+      core:
+        condition: service_healthy
+    ports:
+      - "3000:80"
     restart: unless-stopped
 
 volumes:
