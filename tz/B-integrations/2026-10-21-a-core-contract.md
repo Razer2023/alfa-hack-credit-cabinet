@@ -67,11 +67,11 @@ POST /api/v1/checks
 Если `complete: false`, ядро переводит заявку в `NEED_INFO` и показывает клиенту `missing[].message`. `enrichment.bki` обязателен: по нему работает скоринг.
 
 ## Готово, когда
-- [ ] Три демо-ИНН из `stub_data.py` отдают те же данные (или согласованные новые): на них держится демо
-- [ ] Ошибки: 404 — не найдено, 5xx — сбой (ядро повторит шаг само)
-- [ ] OpenAPI сервиса в `contracts/integrations.yaml`
-- [ ] Dockerfile. Сервис в compose называется **`integrations`**, порт **8000** внутри контейнера: ядро уже ходит на `http://integrations:8000` (`CORE_INTEGRATIONS_URL`). `docker-compose.yml` обновлю я и переключу `CORE_INTEGRATIONS_MODE=http`
-- [ ] `GET /health` → 200, для healthcheck в compose
+- [x] Три демо-ИНН из `stub_data.py` отдают те же данные (или согласованные новые): на них держится демо
+- [x] Ошибки: 404 — не найдено, 5xx — сбой (ядро повторит шаг само)
+- [x] OpenAPI сервиса в `contracts/integrations.yaml`
+- [x] Dockerfile. Сервис в compose называется **`integrations`**, порт **8000** внутри контейнера: ядро уже ходит на `http://integrations:8000` (`CORE_INTEGRATIONS_URL`). `docker-compose.yml` обновлю я и переключу `CORE_INTEGRATIONS_MODE=http`
+- [x] `GET /health` → 200, для healthcheck в compose
 - [ ] CI: `.github/workflows/integrations.yml` с задачей `name: integrations-test` (тесты на каждом PR). Я добавлю её в обязательные проверки. Образец — `.github/workflows/core.yml`
 - [ ] Проверка совместимости: запусти ядро с `CORE_INTEGRATIONS_MODE=http CORE_INTEGRATIONS_URL=http://localhost:<порт>` и пройди три демо-сценария в Swagger ядра (заполнение по ИНН, проверка, решение)
 
@@ -80,8 +80,11 @@ POST /api/v1/checks
 
 ## Ответ владельца области
 
-Принято. Сначала S3.1: `GET /api/v1/companies/{inn}/profile`, `GET /health`, три демо-ИНН в `data/synthetic/companies.json` (те же значения, что в заглушке ядра). `POST /api/v1/checks` (S4.1, S4.2) — следующим шагом.
+Принято. S3.1 и S4.1 сделаны. S4.2 (разные моки ЕГРЮЛ, ФНС и БКИ по трём ИНН) ещё нет: в ответе проверки enrichment пока одинаковый для всех, с нулевой кредитной историей.
 
-Образ собирается из корня репозитория: `docker build -f services/integrations/Dockerfile .` В `docker-compose.yml` сервис не добавлял — это остаётся за ядром, вместе с `CORE_INTEGRATIONS_MODE=http`.
+- S3.1: `GET /api/v1/companies/{inn}/profile` и `GET /health`. Три демо-ИНН в `data/synthetic/companies.json`, те же значения, что в заглушке ядра.
+- S4.1: `POST /api/v1/checks` проверяет сумму, срок, цель, компанию и формат ИНН. Пустые поля отвечают текстами заглушки.
 
-Стек как у ядра: FastAPI, Uvicorn, uv. Новых библиотек сверх `THIRD_PARTY_NOTICES` нет; для тестов — pytest, httpx, PyYAML.
+Образ: `docker build -f services/integrations/Dockerfile .` из корня. Локальный запуск только этого сервиса: `services/integrations/docker-compose.yml`. В корневой `docker-compose.yml` сервис не добавлял — это остаётся за ядром, вместе с `CORE_INTEGRATIONS_MODE=http`.
+
+CI-файл в `.github/` и прогон трёх сценариев через ядро ещё не закрыты: движок Docker на машине не отвечает. Стек как у ядра: FastAPI, Uvicorn, uv. Новых библиотек сверх `THIRD_PARTY_NOTICES` нет.
