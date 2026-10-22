@@ -1364,23 +1364,16 @@ components:
           - type: 'null'
           title: Purpose
         form:
-          additionalProperties: true
-          type: object
-          title: Form
-          description: company — поля по ИНН с источником; extra — сведения, введённые клиентом
+          $ref: '#/components/schemas/ApplicationForm'
         need_info:
           anyOf:
-          - additionalProperties: true
-            type: object
+          - $ref: '#/components/schemas/NeedInfo'
           - type: 'null'
-          title: Need Info
           description: Что банк просит дополнить (в статусе NEED_INFO)
         decision:
           anyOf:
-          - additionalProperties: true
-            type: object
+          - $ref: '#/components/schemas/Decision'
           - type: 'null'
-          title: Decision
         offers:
           items:
             $ref: '#/components/schemas/OfferOut'
@@ -1408,16 +1401,12 @@ components:
           title: Status Changed At
         enrichment:
           anyOf:
-          - additionalProperties: true
-            type: object
+          - $ref: '#/components/schemas/Enrichment'
           - type: 'null'
-          title: Enrichment
         scoring:
           anyOf:
-          - additionalProperties: true
-            type: object
+          - $ref: '#/components/schemas/ScoringResult'
           - type: 'null'
-          title: Scoring
         assignee_id:
           anyOf:
           - type: string
@@ -1456,6 +1445,24 @@ components:
       required:
       - product_code
       title: ApplicationCreate
+    ApplicationForm:
+      properties:
+        company:
+          anyOf:
+          - additionalProperties:
+              $ref: '#/components/schemas/CompanyField'
+            type: object
+          - type: 'null'
+          title: Company
+          description: 'Поля компании по ИНН (сервис B): name, ogrn, registration_date, okved, address, director, employees,
+            tax_regime, revenue_year, avg_monthly_turnover; набор может расширяться'
+        extra:
+          additionalProperties: true
+          type: object
+          title: Extra
+          description: Сведения, которые ввёл клиент
+      type: object
+      title: ApplicationForm
     ApplicationOut:
       properties:
         id:
@@ -1492,23 +1499,16 @@ components:
           - type: 'null'
           title: Purpose
         form:
-          additionalProperties: true
-          type: object
-          title: Form
-          description: company — поля по ИНН с источником; extra — сведения, введённые клиентом
+          $ref: '#/components/schemas/ApplicationForm'
         need_info:
           anyOf:
-          - additionalProperties: true
-            type: object
+          - $ref: '#/components/schemas/NeedInfo'
           - type: 'null'
-          title: Need Info
           description: Что банк просит дополнить (в статусе NEED_INFO)
         decision:
           anyOf:
-          - additionalProperties: true
-            type: object
+          - $ref: '#/components/schemas/Decision'
           - type: 'null'
-          title: Decision
         offers:
           items:
             $ref: '#/components/schemas/OfferOut'
@@ -1600,6 +1600,24 @@ components:
       - ISSUED
       - CANCELLED
       title: ApplicationStatus
+    BkiData:
+      properties:
+        max_overdue_days:
+          type: integer
+          title: Max Overdue Days
+        active_loans:
+          type: integer
+          title: Active Loans
+        total_debt:
+          type: integer
+          title: Total Debt
+      additionalProperties: true
+      type: object
+      required:
+      - max_overdue_days
+      - active_loans
+      - total_debt
+      title: BkiData
     CancelIn:
       properties:
         reason:
@@ -1647,6 +1665,23 @@ components:
       - expires_at
       - demo_code
       title: CodeRequestOut
+    CompanyField:
+      properties:
+        value:
+          anyOf:
+          - type: string
+          - type: integer
+          - type: number
+          - type: boolean
+          title: Value
+        source:
+          $ref: '#/components/schemas/DataSource'
+          description: 'Откуда значение: ЕГРЮЛ, ФНС или выписка по счёту'
+      type: object
+      required:
+      - value
+      - source
+      title: CompanyField
     CompanyOut:
       properties:
         id:
@@ -1665,6 +1700,44 @@ components:
       - inn
       - name
       title: CompanyOut
+    DataSource:
+      type: string
+      enum:
+      - EGRUL
+      - FNS
+      - BANK_ACCOUNT
+      title: DataSource
+    Decision:
+      properties:
+        result:
+          type: string
+          enum:
+          - APPROVE
+          - COUNTER_OFFER
+          - REJECT
+          - MANUAL_REVIEW
+          title: Result
+        decided_by:
+          type: string
+          enum:
+          - SYSTEM
+          - UNDERWRITER
+          title: Decided By
+        reasons:
+          items:
+            $ref: '#/components/schemas/Reason'
+          type: array
+          title: Reasons
+        comment:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Comment
+      type: object
+      required:
+      - result
+      - decided_by
+      title: Decision
     DecisionIn:
       properties:
         result:
@@ -1705,6 +1778,36 @@ components:
       required:
       - result
       title: DecisionIn
+    EgrulData:
+      properties:
+        status:
+          type: string
+          title: Status
+        liquidation:
+          type: boolean
+          title: Liquidation
+      additionalProperties: true
+      type: object
+      required:
+      - status
+      - liquidation
+      title: EgrulData
+    Enrichment:
+      properties:
+        egrul:
+          $ref: '#/components/schemas/EgrulData'
+        fns:
+          $ref: '#/components/schemas/FnsData'
+        bki:
+          $ref: '#/components/schemas/BkiData'
+      additionalProperties: true
+      type: object
+      required:
+      - egrul
+      - fns
+      - bki
+      title: Enrichment
+      description: Данные внешних проверок от сервиса B.
     ErrorOut:
       properties:
         code:
@@ -1763,6 +1866,45 @@ components:
       - payload
       - created_at
       title: EventOut
+    Factor:
+      properties:
+        code:
+          type: string
+          title: Code
+        title:
+          type: string
+          title: Title
+        impact:
+          type: integer
+          title: Impact
+          description: 'Баллы фактора: плюс повышает оценку, минус снижает'
+        value:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Value
+          description: Значение фактора для андеррайтера, например «8,4 года»
+      additionalProperties: true
+      type: object
+      required:
+      - code
+      - title
+      - impact
+      title: Factor
+    FnsData:
+      properties:
+        tax_debt:
+          type: integer
+          title: Tax Debt
+        mass_address:
+          type: boolean
+          title: Mass Address
+      additionalProperties: true
+      type: object
+      required:
+      - tax_debt
+      - mass_address
+      title: FnsData
     HTTPValidationError:
       properties:
         detail:
@@ -1852,6 +1994,26 @@ components:
       - login
       - password
       title: LoginIn
+    NeedInfo:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/InfoItem'
+          type: array
+          title: Items
+        comment:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Comment
+        requested_by:
+          $ref: '#/components/schemas/Role'
+          description: SYSTEM — автоматическая проверка, MANAGER или UNDERWRITER — сотрудник
+      type: object
+      required:
+      - items
+      - requested_by
+      title: NeedInfo
     OfferKind:
       type: string
       enum:
@@ -1991,6 +2153,20 @@ components:
       - max_term_months
       - base_rate
       title: ProductOut
+    Reason:
+      properties:
+        code:
+          type: string
+          title: Code
+        text:
+          type: string
+          title: Text
+          description: Текст для клиента
+      type: object
+      required:
+      - code
+      - text
+      title: Reason
     Role:
       type: string
       enum:
@@ -1999,6 +2175,106 @@ components:
       - UNDERWRITER
       - SYSTEM
       title: Role
+    ScoringMetrics:
+      properties:
+        limit:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Limit
+        monthly_free_cash_flow:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Monthly Free Cash Flow
+        existing_debt_payment:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Existing Debt Payment
+        new_payment:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: New Payment
+        dscr:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Dscr
+        min_dscr:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Min Dscr
+      additionalProperties: true
+      type: object
+      title: ScoringMetrics
+    ScoringOffer:
+      properties:
+        amount:
+          type: integer
+          title: Amount
+        term_months:
+          type: integer
+          title: Term Months
+        rate:
+          type: number
+          title: Rate
+      additionalProperties: true
+      type: object
+      required:
+      - amount
+      - term_months
+      - rate
+      title: ScoringOffer
+    ScoringResult:
+      properties:
+        result:
+          type: string
+          enum:
+          - APPROVE
+          - COUNTER_OFFER
+          - REJECT
+          - MANUAL_REVIEW
+          title: Result
+        score:
+          type: integer
+          title: Score
+        risk_class:
+          type: string
+          title: Risk Class
+        model_version:
+          type: string
+          title: Model Version
+        factors:
+          items:
+            $ref: '#/components/schemas/Factor'
+          type: array
+          title: Factors
+        reasons:
+          items:
+            $ref: '#/components/schemas/Reason'
+          type: array
+          title: Reasons
+        offers:
+          items:
+            $ref: '#/components/schemas/ScoringOffer'
+          type: array
+          title: Offers
+        metrics:
+          anyOf:
+          - $ref: '#/components/schemas/ScoringMetrics'
+          - type: 'null'
+      additionalProperties: true
+      type: object
+      required:
+      - result
+      - score
+      - risk_class
+      - model_version
+      title: ScoringResult
+      description: Ответ сервиса C на заявку.
     StatusOut:
       properties:
         code:
