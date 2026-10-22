@@ -16,15 +16,17 @@ from sqlalchemy.orm.exc import StaleDataError
 from app.clients import get_integrations, get_scoring
 from app.clients.base import ExternalNotFound, ExternalServiceError
 from app.db import SessionLocal, utcnow
-from app.models import Application, ApplicationStatus as S, OfferKind, Role
-from app.service import SYSTEM, active_offer, add_offer, record_event, transition
+from app.models import Application, ApplicationStatus as S, Role
+from app.service import SYSTEM, active_offer, record_event, transition
 from app.statemachine import AUTOMATIC
 
 log = logging.getLogger(__name__)
 
+# Решение скоринга — рекомендация. «Одобрить» и «контрпредложение» подтверждает сотрудник банка,
+# автоматически только отказ по стоп-факторам и передача рисковых заявок андеррайтеру.
 DECISIONS = {
-    "APPROVE": S.APPROVED,
-    "COUNTER_OFFER": S.COUNTER_OFFER,
+    "APPROVE": S.PENDING_APPROVAL,
+    "COUNTER_OFFER": S.PENDING_APPROVAL,
     "REJECT": S.REJECTED,
     "MANUAL_REVIEW": S.MANUAL_REVIEW,
 }
@@ -72,11 +74,13 @@ def step(session: Session, app: Application) -> None:
         except (KeyError, ExternalNotFound) as exc:
             raise ExternalServiceError(f"scoring: некорректный ответ ({exc})") from exc
         app.scoring = result
-        app.decision = {"result": result["result"], "decided_by": "SYSTEM", "reasons": result.get("reasons", [])}
-        kind = OfferKind.COUNTER if target == S.COUNTER_OFFER else OfferKind.STANDARD
-        for terms in result.get("offers", []):
-            add_offer(session, app, terms, kind, Role.SYSTEM)
-        transition(session, app, target, SYSTEM, payload={"reasons": app.decision["reasons"]})
+        if target == S.PENDING_APPROVAL:
+            # Рекомендованные условия видит только банк (app.scoring); клиенту — после подтверждения
+            transition(session, app, target, SYSTEM)
+        else:
+            reasons = result.get("reasons", [])
+            app.decision = {"result": result["result"], "decided_by": "SYSTEM", "reasons": reasons}
+            transition(session, app, target, SYSTEM, payload={"reasons": reasons})
 
     elif app.status == S.SIGNED:
         offer = active_offer(app)

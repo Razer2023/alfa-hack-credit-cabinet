@@ -8,8 +8,8 @@ import { formatDateTime } from '../format';
 const STAGES: { title: string; reachedBy: ApplicationStatus[] }[] = [
   { title: 'Заявка отправлена', reachedBy: ['SUBMITTED'] },
   { title: 'Проверка данных', reachedBy: ['SCORING'] },
-  { title: 'Оценка заявки', reachedBy: ['MANUAL_REVIEW', 'APPROVED', 'COUNTER_OFFER', 'REJECTED'] },
-  { title: 'Решение банка', reachedBy: ['APPROVED', 'REJECTED'] },
+  { title: 'Оценка заявки', reachedBy: ['PENDING_APPROVAL', 'MANUAL_REVIEW', 'REJECTED'] },
+  { title: 'Решение банка', reachedBy: ['APPROVED', 'COUNTER_OFFER', 'REJECTED'] },
   { title: 'Подписание договора', reachedBy: ['SIGNED'] },
   { title: 'Деньги зачислены', reachedBy: ['ISSUED'] },
 ];
@@ -21,8 +21,9 @@ const CURRENT_STAGE: Record<ApplicationStatus, number> = {
   CHECKING: 2,
   NEED_INFO: 2,
   SCORING: 3,
+  PENDING_APPROVAL: 4,
   MANUAL_REVIEW: 4,
-  COUNTER_OFFER: 4,
+  COUNTER_OFFER: 5,
   APPROVED: 5,
   REJECTED: 4,
   SIGNED: 6,
@@ -47,7 +48,7 @@ export function Tracker({ status, events }: TrackerProps) {
       interactive={false}
       activeStep={current}
       checkIsStepWarning={(step) => status === 'NEED_INFO' && step === current}
-      checkIsStepWaiting={(step) => (status === 'MANUAL_REVIEW' || status === 'COUNTER_OFFER') && step === current}
+      checkIsStepWaiting={(step) => (status === 'MANUAL_REVIEW' || status === 'PENDING_APPROVAL') && step === current}
       checkIsStepError={(step) => status === 'REJECTED' && step === current}
       checkIsStepPositive={(step) => status === 'ISSUED' && step === current}
     >

@@ -135,7 +135,7 @@ DecisionResult = Literal["APPROVE", "COUNTER_OFFER", "REJECT", "MANUAL_REVIEW"]
 
 class Decision(BaseModel):
     result: DecisionResult
-    decided_by: Literal["SYSTEM", "UNDERWRITER"]
+    decided_by: Literal["SYSTEM", "MANAGER", "UNDERWRITER"]
     reasons: list[Reason] = Field(default_factory=list)
     comment: str | None = None
 
@@ -283,6 +283,10 @@ class DecisionIn(BaseModel):
     amount: int | None = Field(None, gt=0, le=1_000_000_000)
     term_months: int | None = Field(None, gt=0, le=120)
     rate: float | None = Field(None, gt=0, lt=100)
+    comment: str | None = Field(None, max_length=1000)
+
+
+class EscalateIn(BaseModel):
     comment: str | None = Field(None, max_length=1000)
 
 

@@ -84,6 +84,13 @@ def submit(client: User, product: str, amount: int, term: int, purpose: str = "�
     return response.json()
 
 
+def confirm(staff: User, app_id: str, result: str = "APPROVE") -> dict:
+    """Сотрудник банка подтверждает рекомендацию скоринга (условия — из рекомендации)."""
+    response = staff.post(f"/bank/applications/{app_id}/decision", {"result": result})
+    assert response.status_code == 200, response.text
+    return response.json()
+
+
 def sign(client: User, app_id: str) -> dict:
     path = f"/applications/{app_id}"
     code = client.post(f"{path}/sign/code").json()

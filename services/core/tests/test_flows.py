@@ -1,6 +1,6 @@
 """Сквозные сценарии трёх демо-компаний: одобрение, контрпредложение, ручное рассмотрение."""
 
-from conftest import run_pipeline, sign, submit
+from conftest import confirm, run_pipeline, sign, submit
 
 
 def statuses(client, app_id: str) -> list[str]:
@@ -8,11 +8,17 @@ def statuses(client, app_id: str) -> list[str]:
 
 
 def test_approve_sign_issue(login):
-    coffee = login("coffee")
+    coffee, manager = login("coffee"), login("manager")
     app = submit(coffee, "EXPRESS", 2_000_000, 12)
     assert app["status"]["code"] == "SUBMITTED"
 
     run_pipeline()
+    app = coffee.get(f"/applications/{app['id']}").json()
+    assert app["status"]["code"] == "PENDING_APPROVAL"
+    assert app["offers"] == [] and app["allowed_actions"] == []
+
+    card = confirm(manager, app["id"])
+    assert card["decision"]["decided_by"] == "MANAGER"
     app = coffee.get(f"/applications/{app['id']}").json()
     assert app["status"]["code"] == "APPROVED"
     assert app["allowed_actions"] == ["SIGN", "CANCEL"]
@@ -26,16 +32,18 @@ def test_approve_sign_issue(login):
     assert app["status"]["code"] == "ISSUED"
     assert app["offers"][0]["status"] == "ACCEPTED"
     assert statuses(coffee, app["id"]) == [
-        "DRAFT", "SUBMITTED", "CHECKING", "SCORING", "APPROVED", "SIGNED", "ISSUED",
+        "DRAFT", "SUBMITTED", "CHECKING", "SCORING", "PENDING_APPROVAL", "APPROVED", "SIGNED", "ISSUED",
     ]
 
 
 def test_counter_offer_accepted(login):
-    stroy = login("stroy")
+    stroy, manager = login("stroy"), login("manager")
     app = submit(stroy, "WORKING_CAPITAL", 10_000_000, 12)
     run_pipeline()
+    confirm(manager, app["id"], "COUNTER_OFFER")
     app = stroy.get(f"/applications/{app['id']}").json()
     assert app["status"]["code"] == "COUNTER_OFFER"
+    assert app["decision"]["reasons"][0]["code"] == "AMOUNT_OVER_LIMIT"  # объяснение скоринга видно клиенту
     [offer] = app["offers"]
     assert offer["kind"] == "COUNTER" and offer["amount"] < 10_000_000
 
@@ -47,9 +55,10 @@ def test_counter_offer_accepted(login):
 
 
 def test_counter_offer_declined(login):
-    stroy = login("stroy")
+    stroy, manager = login("stroy"), login("manager")
     app = submit(stroy, "WORKING_CAPITAL", 10_000_000, 12)
     run_pipeline()
+    confirm(manager, app["id"], "COUNTER_OFFER")
     app = stroy.post(f"/applications/{app['id']}/cancel", {"reason": "Нужна вся сумма"}).json()
     assert app["status"]["code"] == "CANCELLED"
     assert app["offers"][0]["status"] == "DECLINED"
@@ -119,4 +128,53 @@ def test_system_asks_for_missing_company_data(login):
     coffee.post(f"{path}/prefill", {"inn": "7701234567"})
     coffee.post(f"{path}/info", {"comment": "Заполнил"})
     run_pipeline()
-    assert coffee.get(path).json()["status"]["code"] == "APPROVED"
+    assert coffee.get(path).json()["status"]["code"] == "PENDING_APPROVAL"
+
+
+def test_no_automatic_approval():
+    from app.models import ApplicationStatus as S
+    from app.models import Role
+    from app.statemachine import TRANSITIONS
+
+    automatic = {dst for (src, dst), roles in TRANSITIONS.items() if Role.SYSTEM in roles}
+    assert S.APPROVED not in automatic and S.COUNTER_OFFER not in automatic
+
+
+def test_manager_confirms_but_cannot_reject(login):
+    coffee, manager, underwriter = login("coffee"), login("manager"), login("underwriter")
+    app = submit(coffee, "EXPRESS", 2_000_000, 12)
+    run_pipeline()
+
+    queue = manager.get("/bank/applications", params={"status": "PENDING_APPROVAL"}).json()
+    assert [a["id"] for a in queue] == [app["id"]]
+    assert queue[0]["scoring"]["result"] == "APPROVE"
+    assert "ESCALATE" in queue[0]["allowed_actions"]
+
+    response = manager.post(f"/bank/applications/{app['id']}/decision", {"result": "REJECT", "comment": "Нет"})
+    assert response.status_code == 403
+
+    card = confirm(underwriter, app["id"])
+    assert card["status"]["code"] == "APPROVED"
+    assert card["decision"]["decided_by"] == "UNDERWRITER"
+
+
+def test_manager_escalates_to_underwriter(login):
+    coffee, manager, underwriter = login("coffee"), login("manager"), login("underwriter")
+    app = submit(coffee, "EXPRESS", 2_000_000, 12)
+    run_pipeline()
+
+    card = manager.post(f"/bank/applications/{app['id']}/escalate", {"comment": "Сомневаюсь в выручке"}).json()
+    assert card["status"]["code"] == "MANUAL_REVIEW"
+    assert underwriter.post(f"/bank/applications/{app['id']}/escalate", {}).status_code == 403
+    assert manager.post(f"/bank/applications/{app['id']}/decision", {"result": "APPROVE"}).status_code == 403
+    assert confirm(underwriter, app["id"])["status"]["code"] == "APPROVED"
+
+
+def test_staff_can_change_recommended_terms(login):
+    coffee, manager = login("coffee"), login("manager")
+    app = submit(coffee, "EXPRESS", 2_000_000, 12)
+    run_pipeline()
+    decision = {"result": "COUNTER_OFFER", "amount": 1_500_000, "term_months": 18}
+    card = manager.post(f"/bank/applications/{app['id']}/decision", decision).json()
+    assert card["status"]["code"] == "COUNTER_OFFER"
+    assert (card["offers"][0]["amount"], card["offers"][0]["term_months"]) == (1_500_000, 18)

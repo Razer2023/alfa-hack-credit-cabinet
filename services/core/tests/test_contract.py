@@ -41,7 +41,7 @@ def test_json_fields_are_described_in_contract():
     }.items():
         assert schema in str(bank[field]), field
     assert schemas["DataSource"]["enum"] == ["EGRUL", "FNS", "BANK_ACCOUNT"]
-    assert schemas["Decision"]["properties"]["decided_by"]["enum"] == ["SYSTEM", "UNDERWRITER"]
+    assert schemas["Decision"]["properties"]["decided_by"]["enum"] == ["SYSTEM", "MANAGER", "UNDERWRITER"]
     assert set(schemas["Decision"]["properties"]["result"]["enum"]) == {"APPROVE", "COUNTER_OFFER", "REJECT", "MANUAL_REVIEW"}
 
 

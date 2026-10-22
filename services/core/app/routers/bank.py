@@ -8,7 +8,7 @@ from app import service
 from app.db import get_session
 from app.deps import BANK_ROLES, bank_application, require
 from app.models import Application, ApplicationStatus, Role, User
-from app.schemas import ApplicationBankOut, DecisionIn, EventOut, InfoRequestIn
+from app.schemas import ApplicationBankOut, DecisionIn, EscalateIn, EventOut, InfoRequestIn
 from app.service import Actor
 from app.views import bank_view, events_for
 
@@ -50,14 +50,35 @@ def take(app: Application = Depends(bank_application), user: User = Staff, sessi
     return bank_view(app, user)
 
 
-@router.post("/{application_id}/decision", response_model=ApplicationBankOut, summary="Решение андеррайтера")
+@router.post(
+    "/{application_id}/decision",
+    response_model=ApplicationBankOut,
+    summary="Решение сотрудника банка",
+    description=(
+        "Подтвердить рекомендацию скоринга (статус PENDING_APPROVAL) может менеджер или андеррайтер. "
+        "Отказ и решения по рисковым заявкам (MANUAL_REVIEW) — только андеррайтер. "
+        "Без суммы, срока и ставки берутся условия, рекомендованные скорингом."
+    ),
+)
 def decide(
     body: DecisionIn,
     app: Application = Depends(bank_application),
-    user: User = Depends(require(Role.UNDERWRITER)),
+    user: User = Staff,
     session: Session = Depends(get_session),
 ):
     service.decide_manual(session, app, Actor.of(user), body.model_dump())
+    session.commit()
+    return bank_view(app, user)
+
+
+@router.post("/{application_id}/escalate", response_model=ApplicationBankOut, summary="Передать андеррайтеру")
+def escalate(
+    body: EscalateIn,
+    app: Application = Depends(bank_application),
+    user: User = Depends(require(Role.MANAGER)),
+    session: Session = Depends(get_session),
+):
+    service.escalate(session, app, Actor.of(user), body.comment)
     session.commit()
     return bank_view(app, user)
 

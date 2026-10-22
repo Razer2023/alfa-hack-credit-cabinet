@@ -1050,7 +1050,10 @@ paths:
     post:
       tags:
       - 'Банк: заявки'
-      summary: Решение андеррайтера
+      summary: Решение сотрудника банка
+      description: Подтвердить рекомендацию скоринга (статус PENDING_APPROVAL) может менеджер или андеррайтер. Отказ и решения
+        по рисковым заявкам (MANUAL_REVIEW) — только андеррайтер. Без суммы, срока и ставки берутся условия, рекомендованные
+        скорингом.
       operationId: decide_api_v1_bank_applications__application_id__decision_post
       security:
       - HTTPBearer: []
@@ -1068,6 +1071,59 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/DecisionIn'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationBankOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/bank/applications/{application_id}/escalate:
+    post:
+      tags:
+      - 'Банк: заявки'
+      summary: Передать андеррайтеру
+      operationId: escalate_api_v1_bank_applications__application_id__escalate_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EscalateIn'
       responses:
         '200':
           description: Successful Response
@@ -1592,6 +1648,7 @@ components:
       - CHECKING
       - NEED_INFO
       - SCORING
+      - PENDING_APPROVAL
       - MANUAL_REVIEW
       - APPROVED
       - COUNTER_OFFER
@@ -1721,6 +1778,7 @@ components:
           type: string
           enum:
           - SYSTEM
+          - MANAGER
           - UNDERWRITER
           title: Decided By
         reasons:
@@ -1821,6 +1879,16 @@ components:
       - code
       - message
       title: ErrorOut
+    EscalateIn:
+      properties:
+        comment:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Comment
+      type: object
+      title: EscalateIn
     EventOut:
       properties:
         id:
