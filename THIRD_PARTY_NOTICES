@@ -3,10 +3,22 @@ THIRD_PARTY_NOTICES — сторонние компоненты, модели, �
 
 == Библиотеки ==
 
-@alfalab/core-components 50.37.0
+--- Веб (web/), точные версии — в web/package-lock.json ---
+
+@alfalab/core-components 50.37.0 — MIT — https://github.com/core-ds/core-components
   Дизайн-система Альфа-Банка (React-компоненты, токены, темы).
-  Лицензия: MIT
-  Источник: https://github.com/core-ds/core-components
+@alfalab/core-components-config 1.1.0 — MIT — https://github.com/core-ds/core-components
+@alfalab/core-components-stack-context 1.0.1 — MIT — https://github.com/core-ds/core-components
+React, React DOM 18.3.1 — MIT — https://github.com/facebook/react
+Vite 7.3.7, @vitejs/plugin-react 5.2.0 (сборка) — MIT — https://github.com/vitejs/vite
+TypeScript 5.9.3 (сборка) — Apache-2.0 — https://github.com/microsoft/TypeScript
+postcss-mixins 12.1.2 (сборка) — MIT — https://github.com/postcss/postcss-mixins
+ESLint 10.13.0, @eslint/js, typescript-eslint, eslint-plugin-react-hooks, eslint-plugin-react-refresh, globals (разработка) — MIT — https://github.com/eslint/eslint
+
+--- Сервисы интеграций и скоринга (services/integrations, services/scoring), версии — в их uv.lock ---
+
+Те же библиотеки, что у ядра: FastAPI, Uvicorn, pydantic, pydantic-settings, HTTPX, pytest.
+PyYAML в скоринге используется во время работы: правила читаются из services/scoring/rules/*.yaml.
 
 --- Ядро (services/core), точные версии — в services/core/uv.lock ---
 
@@ -26,6 +38,8 @@ uv (сборка) — MIT / Apache-2.0 — https://github.com/astral-sh/uv
 
 PostgreSQL 16 (образ postgres:16.4-alpine) — PostgreSQL License — https://www.postgresql.org
 Python 3.12 (образ python:3.12-slim) — PSF License — https://www.python.org
+Node.js 22 (образ node:22.21.1-alpine, только сборка веба) — MIT — https://nodejs.org
+nginx 1.28 (образ nginx:1.28.0-alpine, раздача веба и прокси к ядру) — BSD-2-Clause — https://nginx.org
 
 == Модели ==
 
@@ -39,5 +53,6 @@ Python 3.12 (образ python:3.12-slim) — PSF License — https://www.python
 
 ЕГРЮЛ / ЕГРИП, ФНС «Прозрачный бизнес», бюро кредитных историй, выписка по расчётному счёту, простая электронная подпись, выдача денежных средств.
 Реальные сервисы не вызываются, все ответы формируются локальными моками.
-До готовности сервисов B и C ядро использует встроенные заглушки: services/core/app/clients/stub_data.py.
+Моки ЕГРЮЛ, ФНС, БКИ и выписки — сервис интеграций (services/integrations), данные — data/synthetic/*.json.
+У ядра есть свои упрощённые заглушки для тестов и разработки без соседних сервисов: services/core/app/clients/stub_data.py.
 Подписание (код подтверждения в интерфейсе вместо SMS) и выдача денег смоделированы в ядре без реальных операций.
