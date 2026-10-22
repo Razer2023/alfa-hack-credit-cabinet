@@ -6,6 +6,7 @@ from fastapi.responses import JSONResponse
 
 from app.checks import check_application
 from app.companies import company_profile, load_companies
+from app.enrichment import load_enrichment
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 
@@ -13,13 +14,14 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     load_companies()
+    load_enrichment()
     yield
 
 
 app = FastAPI(
     title="Данные и интеграции",
     version="0.1.0",
-    description="Моки ЕГРЮЛ, ФНС и выписки по счёту. Профиль компании и проверка полноты заявки. Область B.",
+    description="Моки ЕГРЮЛ, ФНС, БКИ и выписки по счёту. Профиль компании и проверка заявки. Область B.",
     lifespan=lifespan,
 )
 
@@ -48,7 +50,7 @@ def profile(inn: str):
 @app.post(
     "/api/v1/checks",
     tags=["Проверки"],
-    summary="Полнота и корректность заявки",
+    summary="Полнота заявки и данные ЕГРЮЛ, ФНС и БКИ",
 )
 def checks(body: dict):
     return check_application(body)

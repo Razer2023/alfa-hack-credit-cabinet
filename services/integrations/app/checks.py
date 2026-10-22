@@ -1,8 +1,10 @@
-"""Полнота и корректность заявки (S4.1).
+"""Полнота и корректность заявки (S4.1) и обогащение из моков (S4.2).
 
 Пустые обязательные поля отвечают теми же текстами, что заглушка ядра:
 ядро показывает их клиенту и переводит заявку в NEED_INFO.
 """
+
+from app.enrichment import enrichment_for
 
 REQUIRED = (
     ("amount", "Укажите сумму кредита"),
@@ -61,14 +63,9 @@ def missing_items(snapshot: dict) -> list[dict]:
 
 def check_application(snapshot: dict) -> dict:
     missing = missing_items(snapshot)
-    # Одинаковая заглушка для всех ИНН. Разные ЕГРЮЛ, ФНС и БКИ — история S4.2.
-    # Ключ enrichment нужен ядру, иначе шаг проверки падает.
+    inn = snapshot.get("inn")
     return {
         "complete": not missing,
         "missing": missing,
-        "enrichment": {
-            "egrul": {"status": "ACTIVE", "liquidation": False},
-            "fns": {"tax_debt": 0, "mass_address": False},
-            "bki": {"max_overdue_days": 0, "active_loans": 0, "total_debt": 0},
-        },
+        "enrichment": enrichment_for(inn if isinstance(inn, str) else ""),
     }

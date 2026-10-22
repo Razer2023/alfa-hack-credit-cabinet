@@ -80,10 +80,11 @@ POST /api/v1/checks
 
 ## Ответ владельца области
 
-Принято. S3.1 и S4.1 сделаны. S4.2 (разные моки ЕГРЮЛ, ФНС и БКИ по трём ИНН) ещё нет: в ответе проверки enrichment пока одинаковый для всех, с нулевой кредитной историей.
+Принято. S3.1, S4.1 и S4.2 сделаны в сервисе.
 
-- S3.1: `GET /api/v1/companies/{inn}/profile` и `GET /health`. Три демо-ИНН в `data/synthetic/companies.json`, те же значения, что в заглушке ядра.
+- S3.1: `GET /api/v1/companies/{inn}/profile` и `GET /health`. Три демо-ИНН в `data/synthetic/companies.json`, те же значения, что в заглушке ядра. Выписка по счёту — поля `revenue_year` и `avg_monthly_turnover` с источником `BANK_ACCOUNT`.
 - S4.1: `POST /api/v1/checks` проверяет сумму, срок, цель, компанию и формат ИНН. Пустые поля отвечают текстами заглушки.
+- S4.2: `data/synthetic/enrichment.json` — ЕГРЮЛ, ФНС («Прозрачный бизнес») и БКИ. У «Вектор Трейд» просрочка 45 дней, как в заглушке. Неизвестный ИНН получает нулевую кредитную историю.
 
 Образ: `docker build -f services/integrations/Dockerfile .` из корня. Локальный запуск только этого сервиса: `services/integrations/docker-compose.yml`. В корневой `docker-compose.yml` сервис не добавлял — это остаётся за ядром, вместе с `CORE_INTEGRATIONS_MODE=http`.
 

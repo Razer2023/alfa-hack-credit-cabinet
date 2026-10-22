@@ -6,7 +6,8 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     UV_LINK_MODE=copy \
     UV_PYTHON_DOWNLOADS=never \
     PATH="/app/.venv/bin:$PATH" \
-    INTEGRATIONS_COMPANIES_PATH=/app/data/synthetic/companies.json
+    INTEGRATIONS_COMPANIES_PATH=/app/data/synthetic/companies.json \
+    INTEGRATIONS_ENRICHMENT_PATH=/app/data/synthetic/enrichment.json
 
 COPY --from=ghcr.io/astral-sh/uv:0.13.4 /uv /usr/local/bin/uv
 
@@ -17,6 +18,7 @@ RUN uv sync --frozen --no-dev --no-install-project
 
 COPY services/integrations/app ./app
 COPY data/synthetic/companies.json ./data/synthetic/companies.json
+COPY data/synthetic/enrichment.json ./data/synthetic/enrichment.json
 
 RUN useradd --system --uid 10001 integrations
 USER integrations

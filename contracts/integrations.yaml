@@ -3,7 +3,7 @@ info:
   title: Данные и интеграции
   description: >
     Моки ЕГРЮЛ, ФНС и выписки по счёту. Профиль компании по ИНН (S3.1)
-    и проверка полноты заявки (S4.1). Разные данные БКИ по компаниям — S4.2.
+    проверка полноты заявки (S4.1) и моки ЕГРЮЛ, ФНС и БКИ (S4.2).
     Область B. Ядро вызывает сервис при CORE_INTEGRATIONS_MODE=http.
   version: 0.1.0
 paths:
@@ -63,11 +63,11 @@ paths:
     post:
       tags:
         - Проверки
-      summary: Полнота и корректность заявки
+      summary: Полнота заявки и данные ЕГРЮЛ, ФНС и БКИ
       description: >
         Ядро присылает снимок заявки. Если complete=false, клиенту показывают
-        missing[].message. enrichment пока одинаковый для всех ИНН:
-        отдельные моки ЕГРЮЛ, ФНС и БКИ — S4.2.
+        missing[].message. enrichment.bki нужен скорингу: у трёх демо-ИНН
+        разные кредитные истории.
       operationId: checkApplication
       requestBody:
         required: true
@@ -106,8 +106,8 @@ paths:
                     mass_address: false
                   bki:
                     max_overdue_days: 0
-                    active_loans: 0
-                    total_debt: 0
+                    active_loans: 1
+                    total_debt: 400000
 components:
   schemas:
     Health:

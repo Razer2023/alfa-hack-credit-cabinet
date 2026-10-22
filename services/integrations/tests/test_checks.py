@@ -26,7 +26,11 @@ def test_full_application_is_complete():
     body = client.post("/api/v1/checks", json=application()).json()
     assert body["complete"] is True
     assert body["missing"] == []
-    assert body["enrichment"]["bki"]["max_overdue_days"] == 0
+    assert body["enrichment"]["bki"] == {
+        "max_overdue_days": 0,
+        "active_loans": 1,
+        "total_debt": 400_000,
+    }
 
 
 def test_missing_purpose_matches_core_stub():
