@@ -1,6 +1,7 @@
 import uuid
 from datetime import datetime
-from typing import Literal
+from enum import StrEnum
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -84,6 +85,123 @@ class OfferOut(BaseModel):
     created_at: datetime
 
 
+# --- Данные внутри заявки -----------------------------------------------------------------
+# Формат задают сервисы B и C и само ядро; схемы только описывают его для контракта.
+# Open — можно получить больше полей, чем описано: неизвестные поля сохраняются в ответе.
+
+
+class Open(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+
+class DataSource(StrEnum):
+    EGRUL = "EGRUL"
+    FNS = "FNS"
+    BANK_ACCOUNT = "BANK_ACCOUNT"
+
+
+class CompanyField(BaseModel):
+    value: str | int | float | bool
+    source: DataSource = Field(description="Откуда значение: ЕГРЮЛ, ФНС или выписка по счёту")
+
+
+class ApplicationForm(BaseModel):
+    company: dict[str, CompanyField] | None = Field(
+        None,
+        description="Поля компании по ИНН (сервис B): name, ogrn, registration_date, okved, address, director, "
+        "employees, tax_regime, revenue_year, avg_monthly_turnover; набор может расширяться",
+    )
+    extra: dict[str, Any] = Field(default_factory=dict, description="Сведения, которые ввёл клиент")
+
+
+class InfoItem(BaseModel):
+    field: str
+    message: str
+
+
+class NeedInfo(BaseModel):
+    items: list[InfoItem]
+    comment: str | None = None
+    requested_by: Role = Field(description="SYSTEM — автоматическая проверка, MANAGER или UNDERWRITER — сотрудник")
+
+
+class Reason(BaseModel):
+    code: str
+    text: str = Field(description="Текст для клиента")
+
+
+DecisionResult = Literal["APPROVE", "COUNTER_OFFER", "REJECT", "MANUAL_REVIEW"]
+
+
+class Decision(BaseModel):
+    result: DecisionResult
+    decided_by: Literal["SYSTEM", "UNDERWRITER"]
+    reasons: list[Reason] = Field(default_factory=list)
+    comment: str | None = None
+
+
+class EgrulData(Open):
+    status: str
+    liquidation: bool
+
+
+class FnsData(Open):
+    tax_debt: int
+    mass_address: bool
+
+
+class BkiData(Open):
+    max_overdue_days: int
+    active_loans: int
+    total_debt: int
+
+
+class Enrichment(Open):
+    """Данные внешних проверок от сервиса B."""
+
+    egrul: EgrulData
+    fns: FnsData
+    bki: BkiData
+
+
+class Factor(Open):
+    code: str
+    title: str
+    impact: int = Field(description="Баллы фактора: плюс повышает оценку, минус снижает")
+    value: str | None = Field(None, description="Значение фактора для андеррайтера, например «8,4 года»")
+
+
+class ScoringOffer(Open):
+    amount: int
+    term_months: int
+    rate: float
+
+
+class ScoringMetrics(Open):
+    limit: int | None = None
+    monthly_free_cash_flow: int | None = None
+    existing_debt_payment: int | None = None
+    new_payment: int | None = None
+    dscr: float | None = None
+    min_dscr: float | None = None
+
+
+class ScoringResult(Open):
+    """Ответ сервиса C на заявку."""
+
+    result: DecisionResult
+    score: int
+    risk_class: str
+    model_version: str
+    factors: list[Factor] = Field(default_factory=list)
+    reasons: list[Reason] = Field(default_factory=list)
+    offers: list[ScoringOffer] = Field(default_factory=list)
+    metrics: ScoringMetrics | None = None
+
+
+# --- Заявка -------------------------------------------------------------------------------
+
+
 class ApplicationOut(BaseModel):
     id: uuid.UUID
     number: str
@@ -93,9 +211,9 @@ class ApplicationOut(BaseModel):
     amount: int | None
     term_months: int | None
     purpose: str | None
-    form: dict = Field(description="company — поля по ИНН с источником; extra — сведения, введённые клиентом")
-    need_info: dict | None = Field(description="Что банк просит дополнить (в статусе NEED_INFO)")
-    decision: dict | None
+    form: ApplicationForm
+    need_info: NeedInfo | None = Field(description="Что банк просит дополнить (в статусе NEED_INFO)")
+    decision: Decision | None
     offers: list[OfferOut]
     company: CompanyOut
     created_at: datetime
@@ -105,8 +223,8 @@ class ApplicationOut(BaseModel):
 
 
 class ApplicationBankOut(ApplicationOut):
-    enrichment: dict | None
-    scoring: dict | None
+    enrichment: Enrichment | None
+    scoring: ScoringResult | None
     assignee_id: uuid.UUID | None
 
 
@@ -166,11 +284,6 @@ class DecisionIn(BaseModel):
     term_months: int | None = Field(None, gt=0, le=120)
     rate: float | None = Field(None, gt=0, lt=100)
     comment: str | None = Field(None, max_length=1000)
-
-
-class InfoItem(BaseModel):
-    field: str
-    message: str
 
 
 class InfoRequestIn(BaseModel):

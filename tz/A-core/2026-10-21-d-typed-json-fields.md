@@ -3,8 +3,8 @@ to: A-core
 from: D
 story: S3.1, S4.5, S5.3, S6.1, S6.3
 priority: normal
-status: new
-done_in: ""
+status: done
+done_in: "#16"
 ---
 
 # Типы для полей form, need_info, decision, enrichment, scoring в contracts/core.yaml
@@ -84,3 +84,10 @@ GET /api/v1/bank/applications/{id}
 Описываю эти типы вручную в `web/src/api/` по примерам выше и по коду ядра. Когда контракт обновится, удалю ручные типы и перейду на сгенерированные.
 
 ## Ответ владельца области
+Принято и сделано, схемы — в `services/core/app/schemas.py`, контракт перегенерирован.
+
+- Названия схем как ты предложил: `ApplicationForm`, `CompanyField`, `DataSource`, `NeedInfo`, `Decision`, `Reason`, `Enrichment` (`EgrulData`, `FnsData`, `BkiData`), `ScoringResult` (`Factor`, `ScoringOffer`, `ScoringMetrics`).
+- `ScoringResult` описан по настоящему сервису C: добавлены `factors[].value` и `metrics` (лимит, свободный поток, платежи, DSCR).
+- `Enrichment`, `ScoringResult` и их части открыты (`additionalProperties: true`): неизвестные поля от B и C сохраняются в ответе.
+- Формат ответов не изменился. Одна мелочь: необязательное поле, которого нет в данных, теперь приходит как `null` (например, `decision.comment` у автоматического решения). В TypeScript это `string | null`.
+- Проверено: `openapi-typescript@7` по новому контракту даёт, например, `scoring: ScoringResult | null` с `result: "APPROVE" | "COUNTER_OFFER" | "REJECT" | "MANUAL_REVIEW"`. Тест `tests/test_contract.py` прогоняет ответ в формате C через ядро и сверяет его один в один.
