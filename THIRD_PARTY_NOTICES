@@ -13,6 +13,7 @@ React, React DOM 18.3.1 — MIT — https://github.com/facebook/react
 Vite 7.3.7, @vitejs/plugin-react 5.2.0 (сборка) — MIT — https://github.com/vitejs/vite
 TypeScript 5.9.3 (сборка) — Apache-2.0 — https://github.com/microsoft/TypeScript
 postcss-mixins 12.1.2 (сборка) — MIT — https://github.com/postcss/postcss-mixins
+openapi-typescript 7.13.0 (генерация типов из contracts/core.yaml) — MIT — https://github.com/openapi-ts/openapi-typescript
 ESLint 10.13.0, @eslint/js, typescript-eslint, eslint-plugin-react-hooks, eslint-plugin-react-refresh, globals (разработка) — MIT — https://github.com/eslint/eslint
 
 --- Сервисы интеграций и скоринга (services/integrations, services/scoring), версии — в их uv.lock ---

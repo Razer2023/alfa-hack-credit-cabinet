@@ -1,0 +1,21 @@
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 88px 1fr;
+  gap: var(--gap-8);
+  padding: var(--gap-8) 0;
+  border-bottom: 1px solid var(--color-light-neutral-300);
+}
+
+.item:last-child {
+  border-bottom: none;
+}
+
+.time {
+  white-space: nowrap;
+}
