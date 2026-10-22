@@ -1,0 +1,17 @@
+{
+  "7701234567": {
+    "egrul": {"status": "ACTIVE", "liquidation": false},
+    "fns": {"tax_debt": 0, "mass_address": false},
+    "bki": {"max_overdue_days": 0, "active_loans": 1, "total_debt": 400000}
+  },
+  "7702345678": {
+    "egrul": {"status": "ACTIVE", "liquidation": false},
+    "fns": {"tax_debt": 0, "mass_address": false},
+    "bki": {"max_overdue_days": 0, "active_loans": 2, "total_debt": 3500000}
+  },
+  "7703456789": {
+    "egrul": {"status": "ACTIVE", "liquidation": false},
+    "fns": {"tax_debt": 0, "mass_address": false},
+    "bki": {"max_overdue_days": 45, "active_loans": 3, "total_debt": 6000000}
+  }
+}

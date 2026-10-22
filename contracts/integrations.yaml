@@ -1,0 +1,230 @@
+openapi: 3.1.0
+info:
+  title: Данные и интеграции
+  description: >
+    Моки ЕГРЮЛ, ФНС и выписки по счёту. Профиль компании по ИНН (S3.1)
+    проверка полноты заявки (S4.1) и моки ЕГРЮЛ, ФНС и БКИ (S4.2).
+    Область B. Ядро вызывает сервис при CORE_INTEGRATIONS_MODE=http.
+  version: 0.1.0
+paths:
+  /health:
+    get:
+      tags:
+        - Служебное
+      summary: Сервис жив
+      operationId: health
+      responses:
+        "200":
+          description: Процесс отвечает
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /api/v1/companies/{inn}/profile:
+    get:
+      tags:
+        - Компании
+      summary: Профиль компании по ИНН
+      description: >
+        Анкета из ЕГРЮЛ, ФНС и выписки по счёту. У каждого поля есть источник:
+        веб показывает его бейджем. Неизвестный ИНН — 404.
+      operationId: companyProfile
+      parameters:
+        - name: inn
+          in: path
+          required: true
+          description: ИНН юридического лица (10 цифр в демо-данных)
+          schema:
+            type: string
+            examples: ["7701234567"]
+      responses:
+        "200":
+          description: Профиль найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompanyProfile"
+              example:
+                inn: "7701234567"
+                fields:
+                  name:
+                    value: "ООО «Кофейня на Лесной»"
+                    source: EGRUL
+                  revenue_year:
+                    value: 24000000
+                    source: BANK_ACCOUNT
+        "404":
+          description: Компания не найдена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+  /api/v1/checks:
+    post:
+      tags:
+        - Проверки
+      summary: Полнота заявки и данные ЕГРЮЛ, ФНС и БКИ
+      description: >
+        Ядро присылает снимок заявки. Если complete=false, клиенту показывают
+        missing[].message. enrichment.bki нужен скорингу: у трёх демо-ИНН
+        разные кредитные истории.
+      operationId: checkApplication
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CheckRequest"
+            example:
+              application_id: "11111111-1111-1111-1111-111111111111"
+              inn: "7701234567"
+              application:
+                product_code: EXPRESS
+                amount: 2000000
+                term_months: 12
+                purpose: "Закупка товара"
+              company:
+                name: "ООО «Кофейня на Лесной»"
+                revenue_year: 24000000
+              extra: {}
+      responses:
+        "200":
+          description: Результат проверки. Ошибки полноты тоже приходят с кодом 200.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CheckResult"
+              example:
+                complete: true
+                missing: []
+                enrichment:
+                  egrul:
+                    status: ACTIVE
+                    liquidation: false
+                  fns:
+                    tax_debt: 0
+                    mass_address: false
+                  bki:
+                    max_overdue_days: 0
+                    active_loans: 1
+                    total_debt: 400000
+components:
+  schemas:
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          examples: ["ok"]
+    CompanyProfile:
+      type: object
+      required: [inn, fields]
+      properties:
+        inn:
+          type: string
+        fields:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/CompanyField"
+          description: >
+            Поля анкеты. Обязательны для демо name и revenue_year
+            (выручка за год нужна скорингу).
+    CompanyField:
+      type: object
+      required: [value, source]
+      properties:
+        value:
+          description: Строка или целое число (сотрудники, выручка, оборот — в рублях, без копеек).
+          oneOf:
+            - type: string
+            - type: integer
+        source:
+          type: string
+          enum: [EGRUL, FNS, BANK_ACCOUNT]
+    CheckRequest:
+      type: object
+      properties:
+        application_id:
+          type: string
+        inn:
+          type: string
+        application:
+          type: object
+          additionalProperties: true
+        company:
+          type: object
+          additionalProperties: true
+        extra:
+          type: object
+          additionalProperties: true
+    CheckResult:
+      type: object
+      required: [complete, missing, enrichment]
+      properties:
+        complete:
+          type: boolean
+        missing:
+          type: array
+          items:
+            $ref: "#/components/schemas/MissingField"
+        enrichment:
+          $ref: "#/components/schemas/Enrichment"
+    MissingField:
+      type: object
+      required: [field, message]
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    Enrichment:
+      type: object
+      required: [egrul, fns, bki]
+      properties:
+        egrul:
+          $ref: "#/components/schemas/EgrulCheck"
+        fns:
+          $ref: "#/components/schemas/FnsCheck"
+        bki:
+          $ref: "#/components/schemas/BkiCheck"
+    EgrulCheck:
+      type: object
+      required: [status, liquidation]
+      properties:
+        status:
+          type: string
+          examples: ["ACTIVE"]
+        liquidation:
+          type: boolean
+    FnsCheck:
+      type: object
+      required: [tax_debt, mass_address]
+      description: ФНС, сервис «Прозрачный бизнес»
+      properties:
+        tax_debt:
+          type: integer
+          description: Недоимка, рубли
+        mass_address:
+          type: boolean
+    BkiCheck:
+      type: object
+      required: [max_overdue_days, active_loans, total_debt]
+      properties:
+        max_overdue_days:
+          type: integer
+        active_loans:
+          type: integer
+        total_debt:
+          type: integer
+          description: Действующие обязательства, рубли
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          examples: ["not_found"]
+        message:
+          type: string
+          examples: ["Компания не найдена"]
