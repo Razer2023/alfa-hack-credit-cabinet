@@ -1,0 +1,20 @@
+.list {
+  margin: 0;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(140px, 40%) 1fr;
+  gap: var(--gap-12);
+  padding: var(--gap-8) 0;
+  border-bottom: 1px solid var(--color-light-neutral-300);
+}
+
+.row:last-child {
+  border-bottom: none;
+}
+
+.value {
+  margin: 0;
+  overflow-wrap: anywhere;
+}

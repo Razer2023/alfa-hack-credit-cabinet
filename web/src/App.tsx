@@ -1,25 +1,81 @@
-import { useState } from 'react';
-import { Tab, Tabs, type TabsProps } from '@alfalab/core-components/tabs';
+import { useEffect } from 'react';
+import { Button } from '@alfalab/core-components/button';
+import { Typography } from '@alfalab/core-components/typography';
 
+import { getToken } from './api/client';
+import { useAuth, useUser } from './auth/AuthContext';
+import { AuthProvider } from './auth/AuthProvider';
+import { EventToast } from './components/EventToast';
+import { openEventStream } from './events';
 import { Layout } from './layout/Layout';
-import { BankHome } from './pages/BankHome';
-import { ClientHome } from './pages/ClientHome';
+import { BankCard } from './pages/bank/BankCard';
+import { BankHome } from './pages/bank/BankHome';
+import { ApplicationPage } from './pages/client/ApplicationPage';
+import { ClientHome } from './pages/client/ClientHome';
+import { LoginPage } from './pages/LoginPage';
+import { matchRoute, navigate, useRoute } from './router';
 
-// Пока нет входа, интерфейс переключается вручную. После подключения API
-// его будет выбирать роль пользователя: CLIENT — кабинет клиента, MANAGER / UNDERWRITER — банк.
 export function App() {
-  const [area, setArea] = useState<TabsProps['selectedId']>('client');
+  return (
+    <AuthProvider>
+      <Shell />
+    </AuthProvider>
+  );
+}
+
+// Интерфейс выбирает роль: CLIENT — кабинет клиента, MANAGER / UNDERWRITER — рабочее место банка
+function Shell() {
+  const { user, logout } = useAuth();
+
+  // Одно соединение SSE на всё время входа: статусы обновляются без перезагрузки (S4.5)
+  useEffect(() => {
+    const token = getToken();
+    if (!user || !token) return;
+    return openEventStream(token);
+  }, [user]);
+
+  if (!user) {
+    return (
+      <Layout>
+        <LoginPage />
+      </Layout>
+    );
+  }
 
   return (
-    <Layout>
-      <Tabs view='primary' size='s' selectedId={area} onChange={(_, { selectedId }) => setArea(selectedId)}>
-        <Tab id='client' title='Клиент'>
-          <ClientHome />
-        </Tab>
-        <Tab id='bank' title='Банк'>
-          <BankHome />
-        </Tab>
-      </Tabs>
+    <Layout
+      actions={
+        <>
+          <Typography.Text view='primary-small' color='secondary'>
+            {user.company?.name ?? user.full_name}
+          </Typography.Text>
+          <Button
+            view='secondary'
+            size={32}
+            onClick={() => {
+              logout();
+              navigate('/');
+            }}
+          >
+            Выйти
+          </Button>
+        </>
+      }
+    >
+      <EventToast />
+      <Routes />
     </Layout>
   );
+}
+
+function Routes() {
+  const user = useUser();
+  const path = useRoute();
+
+  if (user.role === 'CLIENT') {
+    const application = matchRoute('/applications/:id', path);
+    return application ? <ApplicationPage key={application.id} id={application.id} /> : <ClientHome />;
+  }
+  const card = matchRoute('/bank/:id', path);
+  return card ? <BankCard key={card.id} id={card.id} /> : <BankHome />;
 }

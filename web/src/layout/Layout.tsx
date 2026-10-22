@@ -5,18 +5,22 @@ import styles from './Layout.module.css';
 
 type LayoutProps = {
   children: ReactNode;
+  actions?: ReactNode;
 };
 
-export function Layout({ children }: LayoutProps) {
+export function Layout({ children, actions }: LayoutProps) {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <Typography.Title tag='div' view='small' font='system' weight='bold'>
-          Кредитный кабинет
-        </Typography.Title>
-        <Typography.Text view='primary-small' color='secondary'>
-          для малого и микробизнеса
-        </Typography.Text>
+        <div className={styles.brand}>
+          <Typography.Title tag='div' view='small' font='system' weight='bold'>
+            Кредитный кабинет
+          </Typography.Title>
+          <Typography.Text view='primary-small' color='secondary'>
+            для малого и микробизнеса
+          </Typography.Text>
+        </div>
+        {actions && <div className={styles.actions}>{actions}</div>}
       </header>
 
       <main className={styles.main}>{children}</main>

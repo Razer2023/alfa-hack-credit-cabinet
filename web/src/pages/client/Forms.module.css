@@ -1,0 +1,37 @@
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--gap-12);
+}
+
+.inn {
+  flex: 1 1 220px;
+  max-width: 320px;
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: var(--gap-16);
+}
+
+.wide {
+  grid-column: 1 / -1;
+}
+
+.payment {
+  margin-top: var(--gap-16);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-24);
+  padding: var(--gap-16);
+  border-radius: var(--border-radius-8);
+  background: var(--color-light-neutral-100);
+}
+
+.offers {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: var(--gap-16);
+}

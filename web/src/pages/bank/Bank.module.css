@@ -1,0 +1,59 @@
+.row {
+  cursor: pointer;
+}
+
+.amount {
+  text-align: right;
+  white-space: nowrap;
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap-12);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--gap-16);
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.score {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-24);
+}
+
+/* Ячейки таблицы дизайн-системы — в одну строку с многоточием; названия факторов переносим */
+td.wrap {
+  white-space: normal;
+}
+
+.positive {
+  color: var(--color-light-text-positive);
+}
+
+.negative {
+  color: var(--color-light-text-negative);
+}
+
+.choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-8);
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--gap-12);
+}

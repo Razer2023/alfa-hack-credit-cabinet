@@ -31,6 +31,12 @@ jobs:
       - name: Зависимости из lock-файла
         run: npm ci --no-audit --no-fund
 
+      - name: Типы API совпадают с контрактом ядра
+        run: |
+          npm run gen:api
+          git diff --exit-code -- src/api/schema.d.ts \
+            || (echo "::error::Контракт ядра изменился: выполните 'npm run gen:api' в web и закоммитьте src/api/schema.d.ts" && exit 1)
+
       - name: Линтер
         run: npm run lint
 

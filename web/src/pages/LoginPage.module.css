@@ -1,0 +1,9 @@
+.wrapper {
+  max-width: 420px;
+  margin: var(--gap-40) auto 0;
+}
+
+.demo {
+  margin: var(--gap-8) 0 0;
+  padding-left: var(--gap-20);
+}
