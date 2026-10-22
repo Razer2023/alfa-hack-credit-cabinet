@@ -1,0 +1,14 @@
+# Только сервис B. Корневой docker-compose.yml — ядро и Postgres, его ведёт область A.
+# Запуск из этой папки: docker compose up --build
+# Профиль: http://localhost:8000/api/v1/companies/7701234567/profile
+
+name: integrations
+
+services:
+  integrations:
+    build:
+      context: ../..
+      dockerfile: services/integrations/Dockerfile
+    ports:
+      - "8000:8000"
+    restart: unless-stopped

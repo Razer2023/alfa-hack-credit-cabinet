@@ -1,0 +1,38 @@
+{
+  "7701234567": {
+    "name": {"value": "ООО «Кофейня на Лесной»", "source": "EGRUL"},
+    "ogrn": {"value": "1207700123456", "source": "EGRUL"},
+    "registration_date": {"value": "2020-03-12", "source": "EGRUL"},
+    "okved": {"value": "56.10 — Деятельность ресторанов и кафе", "source": "EGRUL"},
+    "address": {"value": "г. Москва, ул. Лесная, д. 5", "source": "EGRUL"},
+    "director": {"value": "Иванова Мария Сергеевна", "source": "EGRUL"},
+    "employees": {"value": 12, "source": "FNS"},
+    "tax_regime": {"value": "УСН", "source": "FNS"},
+    "revenue_year": {"value": 24000000, "source": "BANK_ACCOUNT"},
+    "avg_monthly_turnover": {"value": 2000000, "source": "BANK_ACCOUNT"}
+  },
+  "7702345678": {
+    "name": {"value": "ООО «СтройМонтаж»", "source": "EGRUL"},
+    "ogrn": {"value": "1187700234567", "source": "EGRUL"},
+    "registration_date": {"value": "2018-06-01", "source": "EGRUL"},
+    "okved": {"value": "43.39 — Работы завершающие и отделочные", "source": "EGRUL"},
+    "address": {"value": "г. Москва, Варшавское ш., д. 118", "source": "EGRUL"},
+    "director": {"value": "Петров Алексей Викторович", "source": "EGRUL"},
+    "employees": {"value": 35, "source": "FNS"},
+    "tax_regime": {"value": "ОСНО", "source": "FNS"},
+    "revenue_year": {"value": 30000000, "source": "BANK_ACCOUNT"},
+    "avg_monthly_turnover": {"value": 2500000, "source": "BANK_ACCOUNT"}
+  },
+  "7703456789": {
+    "name": {"value": "ООО «Вектор Трейд»", "source": "EGRUL"},
+    "ogrn": {"value": "1217700345678", "source": "EGRUL"},
+    "registration_date": {"value": "2021-09-20", "source": "EGRUL"},
+    "okved": {"value": "46.73 — Торговля оптовая лесоматериалами и стройматериалами", "source": "EGRUL"},
+    "address": {"value": "г. Москва, ул. Складочная, д. 1", "source": "EGRUL"},
+    "director": {"value": "Сидоров Игорь Павлович", "source": "EGRUL"},
+    "employees": {"value": 9, "source": "FNS"},
+    "tax_regime": {"value": "УСН", "source": "FNS"},
+    "revenue_year": {"value": 18000000, "source": "BANK_ACCOUNT"},
+    "avg_monthly_turnover": {"value": 1500000, "source": "BANK_ACCOUNT"}
+  }
+}

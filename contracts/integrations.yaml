@@ -1,0 +1,104 @@
+openapi: 3.1.0
+info:
+  title: Данные и интеграции
+  description: >
+    Моки ЕГРЮЛ, ФНС и выписки по счёту. Профиль компании по ИНН (S3.1).
+    Область B. Ядро вызывает сервис при CORE_INTEGRATIONS_MODE=http.
+  version: 0.1.0
+paths:
+  /health:
+    get:
+      tags:
+        - Служебное
+      summary: Сервис жив
+      operationId: health
+      responses:
+        "200":
+          description: Процесс отвечает
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Health"
+  /api/v1/companies/{inn}/profile:
+    get:
+      tags:
+        - Компании
+      summary: Профиль компании по ИНН
+      description: >
+        Анкета из ЕГРЮЛ, ФНС и выписки по счёту. У каждого поля есть источник:
+        веб показывает его бейджем. Неизвестный ИНН — 404.
+      operationId: companyProfile
+      parameters:
+        - name: inn
+          in: path
+          required: true
+          description: ИНН юридического лица (10 цифр в демо-данных)
+          schema:
+            type: string
+            examples: ["7701234567"]
+      responses:
+        "200":
+          description: Профиль найден
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CompanyProfile"
+              example:
+                inn: "7701234567"
+                fields:
+                  name:
+                    value: "ООО «Кофейня на Лесной»"
+                    source: EGRUL
+                  revenue_year:
+                    value: 24000000
+                    source: BANK_ACCOUNT
+        "404":
+          description: Компания не найдена
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+components:
+  schemas:
+    Health:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          examples: ["ok"]
+    CompanyProfile:
+      type: object
+      required: [inn, fields]
+      properties:
+        inn:
+          type: string
+        fields:
+          type: object
+          additionalProperties:
+            $ref: "#/components/schemas/CompanyField"
+          description: >
+            Поля анкеты. Обязательны для демо name и revenue_year
+            (выручка за год нужна скорингу).
+    CompanyField:
+      type: object
+      required: [value, source]
+      properties:
+        value:
+          description: Строка или целое число (сотрудники, выручка, оборот — в рублях, без копеек).
+          oneOf:
+            - type: string
+            - type: integer
+        source:
+          type: string
+          enum: [EGRUL, FNS, BANK_ACCOUNT]
+    Error:
+      type: object
+      required: [code, message]
+      properties:
+        code:
+          type: string
+          examples: ["not_found"]
+        message:
+          type: string
+          examples: ["Компания не найдена"]

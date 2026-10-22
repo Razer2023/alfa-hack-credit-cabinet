@@ -3,7 +3,7 @@ to: B-integrations
 from: A
 story: S3.1, S4.1, S4.2
 priority: normal
-status: new
+status: in_progress
 done_in: ""
 ---
 
@@ -79,3 +79,9 @@ POST /api/v1/checks
 На встроенной заглушке, демо работает и без сервиса.
 
 ## Ответ владельца области
+
+Принято. Сначала S3.1: `GET /api/v1/companies/{inn}/profile`, `GET /health`, три демо-ИНН в `data/synthetic/companies.json` (те же значения, что в заглушке ядра). `POST /api/v1/checks` (S4.1, S4.2) — следующим шагом.
+
+Образ собирается из корня репозитория: `docker build -f services/integrations/Dockerfile .` В `docker-compose.yml` сервис не добавлял — это остаётся за ядром, вместе с `CORE_INTEGRATIONS_MODE=http`.
+
+Стек как у ядра: FastAPI, Uvicorn, uv. Новых библиотек сверх `THIRD_PARTY_NOTICES` нет; для тестов — pytest, httpx, PyYAML.
