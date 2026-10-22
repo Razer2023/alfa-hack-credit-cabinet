@@ -14,7 +14,9 @@ class ExternalNotFound(Exception):
 class JsonHttpClient:
     def __init__(self, service: str, base_url: str, timeout: float):
         self._service = service
-        self._http = httpx.Client(base_url=base_url, timeout=timeout)
+        # Сервисы B и C — внутренние: HTTP_PROXY из окружения к ним не применяем,
+        # иначе корпоративный прокси получит запросы к «scoring:8000» и ответит ошибкой
+        self._http = httpx.Client(base_url=base_url, timeout=timeout, trust_env=False)
 
     def request(self, method: str, path: str, **kwargs: Any) -> Any:
         try:

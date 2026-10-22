@@ -49,3 +49,41 @@ jobs:
         run: docker build -t core:ci services/core
       - name: Проверка docker-compose.yml
         run: docker compose config --quiet
+
+  # Вся система как у жюри: docker compose up на PostgreSQL и настоящих сервисах B и C + три сценария
+  e2e:
+    name: core-e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.13.4"
+
+      - name: Запуск всех сервисов
+        run: |
+          cp .env.example .env
+          docker compose up -d --build --wait --wait-timeout 300
+
+      - name: Три демо-сценария
+        working-directory: services/core
+        run: |
+          uv sync --frozen
+          uv run python ../../deploy/e2e/scenarios.py http://localhost:8080/api/v1
+
+      - name: Веб отдаёт страницу и проксирует API
+        run: |
+          page=$(curl -fsS http://localhost:3000/)
+          [[ "$page" == *"<div id=\"root\""* || "$page" == *"<html"* ]] || { echo "::error::веб не отдаёт страницу"; exit 1; }
+          code=$(curl -sS -o /dev/null -w "%{http_code}" -X POST http://localhost:3000/api/v1/auth/login \
+            -H 'Content-Type: application/json' -d '{"login":"x","password":"x"}')
+          [[ "$code" == "401" ]] || { echo "::error::nginx веба не проксирует /api/ на ядро (код $code)"; exit 1; }
+
+      - name: Логи при ошибке
+        if: failure()
+        run: docker compose logs --no-color --tail 200
+
+      - name: Остановка
+        if: always()
+        run: docker compose down -v
