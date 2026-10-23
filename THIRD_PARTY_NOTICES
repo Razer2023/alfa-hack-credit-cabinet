@@ -9,6 +9,8 @@ THIRD_PARTY_NOTICES — сторонние компоненты, модели, �
   Дизайн-система Альфа-Банка (React-компоненты, токены, темы).
 @alfalab/core-components-config 1.1.0 — MIT — https://github.com/core-ds/core-components
 @alfalab/core-components-stack-context 1.0.1 — MIT — https://github.com/core-ds/core-components
+@alfalab/icons-logotype 2.37.0 — MIT — https://github.com/core-ds/icons
+  Статическая SVG-копия AlfaBankLIcon в web/src/assets/alfa-mark.svg; используется в прототипе по согласованному дизайну.
 React, React DOM 18.3.1 — MIT — https://github.com/facebook/react
 Vite 7.3.7, @vitejs/plugin-react 5.2.0 (сборка) — MIT — https://github.com/vitejs/vite
 TypeScript 5.9.3 (сборка) — Apache-2.0 — https://github.com/microsoft/TypeScript
