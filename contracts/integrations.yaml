@@ -3,7 +3,8 @@ info:
   title: Данные и интеграции
   description: >
     Моки ЕГРЮЛ, ФНС и выписки по счёту. Профиль компании по ИНН (S3.1)
-    проверка полноты заявки (S4.1) и моки ЕГРЮЛ, ФНС и БКИ (S4.2).
+    проверка полноты заявки (S4.1), моки ЕГРЮЛ, ФНС и БКИ (S4.2),
+    запрос и хранение документов (S4.4, S4.7), синтетический массив для дашборда.
     Область B. Ядро вызывает сервис при CORE_INTEGRATIONS_MODE=http.
   version: 0.1.0
 paths:
@@ -108,6 +109,121 @@ paths:
                     max_overdue_days: 0
                     active_loans: 1
                     total_debt: 400000
+  /api/v1/dashboard/applications:
+    get:
+      tags:
+        - Дашборд
+      summary: Синтетические заявки для дашборда узких мест
+      description: >
+        Не журнал ядра. Массив заранее посчитанных длительностей этапов,
+        чтобы дашборд было на чём показать. Живые данные — область A (S8.1).
+      operationId: dashboardApplications
+      responses:
+        "200":
+          description: Список синтетических заявок
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DashboardApplication"
+  /api/v1/document-requests:
+    post:
+      tags:
+        - Документы
+      summary: Запросить документы у клиента
+      operationId: createDocumentRequest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DocumentRequestIn"
+      responses:
+        "201":
+          description: Запрос создан
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentRequest"
+        "400":
+          description: Некорректный запрос
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+    get:
+      tags:
+        - Документы
+      summary: Запросы документов
+      operationId: listDocumentRequests
+      parameters:
+        - name: application_id
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Список запросов
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/DocumentRequest"
+  /api/v1/document-requests/{request_id}/items/{code}:
+    post:
+      tags:
+        - Документы
+      summary: Загрузить файл по пункту запроса
+      description: Тело — сам файл. Заголовок X-Filename — имя. Content-Type — application/pdf, image/jpeg или image/png. Не больше 5 МБ.
+      operationId: uploadDocument
+      parameters:
+        - name: request_id
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: code
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/pdf:
+            schema:
+              type: string
+              format: binary
+          image/jpeg:
+            schema:
+              type: string
+              format: binary
+          image/png:
+            schema:
+              type: string
+              format: binary
+      responses:
+        "200":
+          description: Запрос после загрузки
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DocumentRequest"
+        "400":
+          description: Файл не принят
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
+        "404":
+          description: Запрос или пункт не найдены
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Error"
 components:
   schemas:
     Health:
@@ -228,3 +344,99 @@ components:
         message:
           type: string
           examples: ["Компания не найдена"]
+    DashboardApplication:
+      type: object
+      required: [number, inn, company, product_code, amount, result, stage_minutes]
+      properties:
+        number:
+          type: string
+        inn:
+          type: string
+        company:
+          type: string
+        product_code:
+          type: string
+        amount:
+          type: integer
+        result:
+          type: string
+          enum: [APPROVED, ISSUED, COUNTER_OFFER, REJECTED, MANUAL_REVIEW]
+        stage_minutes:
+          $ref: "#/components/schemas/StageMinutes"
+    StageMinutes:
+      type: object
+      required: [checking, scoring, manual_review, signing]
+      description: Сколько минут заявка провела на этапе. Ноль — этап не было.
+      properties:
+        checking:
+          type: integer
+        scoring:
+          type: integer
+        manual_review:
+          type: integer
+        signing:
+          type: integer
+    DocumentRequestIn:
+      type: object
+      required: [application_id, inn, items]
+      properties:
+        application_id:
+          type: string
+        inn:
+          type: string
+        comment:
+          type: string
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: "#/components/schemas/DocumentItemIn"
+    DocumentItemIn:
+      type: object
+      required: [code, title]
+      properties:
+        code:
+          type: string
+          description: Латиница в нижнем регистре, до 40 символов
+        title:
+          type: string
+    DocumentRequest:
+      type: object
+      required: [id, application_id, inn, status, items]
+      properties:
+        id:
+          type: string
+        application_id:
+          type: string
+        inn:
+          type: string
+        comment:
+          type: string
+          nullable: true
+        status:
+          type: string
+          enum: [OPEN, COMPLETE]
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/DocumentItem"
+    DocumentItem:
+      type: object
+      required: [code, title, status]
+      properties:
+        code:
+          type: string
+        title:
+          type: string
+        status:
+          type: string
+          enum: [WAITING, RECEIVED]
+        filename:
+          type: string
+          nullable: true
+        content_type:
+          type: string
+          nullable: true
+        size:
+          type: integer
+          nullable: true

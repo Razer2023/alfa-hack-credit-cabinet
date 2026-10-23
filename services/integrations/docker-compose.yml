@@ -9,6 +9,13 @@ services:
     build:
       context: ../..
       dockerfile: services/integrations/Dockerfile
+    environment:
+      INTEGRATIONS_DOCUMENTS_DIR: /data/documents
     ports:
       - "8000:8000"
+    volumes:
+      - integrations-docs:/data/documents
     restart: unless-stopped
+
+volumes:
+  integrations-docs:
