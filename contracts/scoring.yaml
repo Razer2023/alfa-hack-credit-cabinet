@@ -118,6 +118,31 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorOut'
+  /api/v1/offers/check:
+    post:
+      tags:
+      - decisions
+      summary: Проверка условий, которые вписал сотрудник банка (S5.4)
+      operationId: offer_check_api_v1_offers_check_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferCheckIn'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfferCheckOut'
+        '422':
+          description: Неизвестный продукт или некорректная заявка
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
 components:
   schemas:
     ApplicationIn:
@@ -171,6 +196,31 @@ components:
       additionalProperties: true
       type: object
       title: BkiIn
+    CheckOut:
+      properties:
+        code:
+          type: string
+          title: Code
+          examples:
+          - DSCR_TOO_LOW
+        level:
+          type: string
+          enum:
+          - error
+          - warning
+          title: Level
+          description: error — условия не проходят политику банка, warning — проверить
+            не удалось
+        text:
+          type: string
+          title: Text
+          description: Текст для сотрудника банка
+      type: object
+      required:
+      - code
+      - level
+      - text
+      title: CheckOut
     CompanyIn:
       properties:
         revenue_year:
@@ -269,7 +319,7 @@ components:
           type: string
           title: Model Version
           examples:
-          - scorecard-1.0+products-1.0
+          - scorecard-1.1+products-1.0
         factors:
           items:
             $ref: '#/components/schemas/FactorOut'
@@ -450,6 +500,94 @@ components:
       - min_dscr
       title: MetricsOut
       description: Расчёт платёжеспособности для карточки андеррайтера.
+    OfferCheckIn:
+      properties:
+        application_id:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Application Id
+        inn:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Inn
+          examples:
+          - '7702345678'
+        application:
+          $ref: '#/components/schemas/ApplicationIn'
+        company:
+          $ref: '#/components/schemas/CompanyIn'
+          default: {}
+        extra:
+          additionalProperties: true
+          type: object
+          title: Extra
+          default: {}
+        enrichment:
+          $ref: '#/components/schemas/EnrichmentIn'
+          default:
+            egrul:
+              liquidation: false
+              status: ACTIVE
+            fns:
+              mass_address: false
+              tax_debt: 0.0
+        terms:
+          $ref: '#/components/schemas/TermsIn'
+      additionalProperties: true
+      type: object
+      required:
+      - application
+      - terms
+      title: OfferCheckIn
+      description: Та же заявка, что для /decisions, плюс условия, которые вписал
+        сотрудник.
+    OfferCheckOut:
+      properties:
+        allowed:
+          type: boolean
+          title: Allowed
+          description: Нет ни одной ошибки (warning не мешает)
+        terms:
+          $ref: '#/components/schemas/OfferOut'
+          description: Проверенные условия; ставка подставлена, если не была указана
+        monthly_payment:
+          type: integer
+          title: Monthly Payment
+        checks:
+          items:
+            $ref: '#/components/schemas/CheckOut'
+          type: array
+          title: Checks
+        suggestion:
+          anyOf:
+          - $ref: '#/components/schemas/SuggestionOut'
+          - type: 'null'
+          description: Если сумма не проходит — сколько можно дать на этот срок. Null,
+            если сумма проходит или посчитать нельзя
+        score:
+          type: integer
+          title: Score
+        risk_class:
+          type: string
+          title: Risk Class
+        model_version:
+          type: string
+          title: Model Version
+        metrics:
+          $ref: '#/components/schemas/MetricsOut'
+      type: object
+      required:
+      - allowed
+      - terms
+      - monthly_payment
+      - checks
+      - score
+      - risk_class
+      - model_version
+      - metrics
+      title: OfferCheckOut
     OfferOut:
       properties:
         amount:
@@ -602,6 +740,57 @@ components:
       - code
       - text
       title: ReasonOut
+    SuggestionOut:
+      properties:
+        amount:
+          type: integer
+          title: Amount
+          description: Максимальная допустимая сумма на этот срок и ставку
+          examples:
+          - 2600000
+        term_months:
+          type: integer
+          title: Term Months
+        rate:
+          type: number
+          title: Rate
+      type: object
+      required:
+      - amount
+      - term_months
+      - rate
+      title: SuggestionOut
+    TermsIn:
+      properties:
+        amount:
+          type: integer
+          maximum: 1000000000.0
+          exclusiveMinimum: 0.0
+          title: Amount
+          examples:
+          - 10000000
+        term_months:
+          type: integer
+          maximum: 120.0
+          exclusiveMinimum: 0.0
+          title: Term Months
+          examples:
+          - 12
+        rate:
+          anyOf:
+          - type: number
+            exclusiveMaximum: 100.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Rate
+          description: '% годовых; не указана — ставка по классу риска'
+          examples:
+          - 18.9
+      type: object
+      required:
+      - amount
+      - term_months
+      title: TermsIn
     ValidationError:
       properties:
         loc:

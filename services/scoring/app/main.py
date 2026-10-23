@@ -4,9 +4,19 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from app.calc import payment_schedule
-from app.engine import UnknownProduct, decide
+from app.engine import UnknownProduct, check_offer, decide
 from app.rules import get_rules
-from app.schemas import DecisionIn, DecisionOut, ErrorOut, HealthOut, PaymentIn, PaymentOut, ProductOut
+from app.schemas import (
+    DecisionIn,
+    DecisionOut,
+    ErrorOut,
+    HealthOut,
+    OfferCheckIn,
+    OfferCheckOut,
+    PaymentIn,
+    PaymentOut,
+    ProductOut,
+)
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
 log = logging.getLogger("scoring")
@@ -71,5 +81,21 @@ def make_decision(body: DecisionIn):
     log.info(
         "Заявка %s ИНН %s: %s, балл %s, класс %s",
         body.application_id, body.inn, out["result"], out["score"], out["risk_class"],
+    )
+    return out
+
+
+@app.post(
+    f"{API_PREFIX}/offers/check",
+    response_model=OfferCheckOut,
+    responses={422: {"model": ErrorOut, "description": "Неизвестный продукт или некорректная заявка"}},
+    tags=["decisions"],
+    summary="Проверка условий, которые вписал сотрудник банка (S5.4)",
+)
+def offer_check(body: OfferCheckIn):
+    out = check_offer(body, get_rules())
+    log.info(
+        "Заявка %s: проверка условий %s ₽ / %s мес. — %s",
+        body.application_id, body.terms.amount, body.terms.term_months, "ок" if out["allowed"] else "не проходят",
     )
     return out
