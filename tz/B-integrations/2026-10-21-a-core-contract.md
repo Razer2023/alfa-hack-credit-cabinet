@@ -85,6 +85,9 @@ POST /api/v1/checks
 - S3.1: `GET /api/v1/companies/{inn}/profile` и `GET /health`. Три демо-ИНН в `data/synthetic/companies.json`, те же значения, что в заглушке ядра. Выписка по счёту — поля `revenue_year` и `avg_monthly_turnover` с источником `BANK_ACCOUNT`.
 - S4.1: `POST /api/v1/checks` проверяет сумму, срок, цель, компанию и формат ИНН. Пустые поля отвечают текстами заглушки.
 - S4.2: `data/synthetic/enrichment.json` — ЕГРЮЛ, ФНС («Прозрачный бизнес») и БКИ. У «Вектор Трейд» просрочка 45 дней, как в заглушке. Неизвестный ИНН получает нулевую кредитную историю.
+- Синтетика для дашборда: `GET /api/v1/dashboard/applications`, файл `data/synthetic/dashboard.json`. Это не журнал ядра. Живой дашборд S8.1 остаётся у области A.
+- S4.4 и S4.7: `POST /api/v1/document-requests` и загрузка файла в каталог сервиса (`INTEGRATIONS_DOCUMENTS_DIR`). В корневой compose том не добавлял — это файл области A. В `services/integrations/docker-compose.yml` том есть.
+- S4.8 OCR не делал: история вне MVP.
 
 Образ: `docker build -f services/integrations/Dockerfile .` из корня. Локальный запуск только этого сервиса: `services/integrations/docker-compose.yml`. В корневой `docker-compose.yml` сервис не добавлял — это остаётся за ядром, вместе с `CORE_INTEGRATIONS_MODE=http`.
 

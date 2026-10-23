@@ -1,0 +1,506 @@
+[
+  {
+    "number": "K-10000001",
+    "inn": "7701234567",
+    "company": "ООО «Кофейня на Лесной»",
+    "product_code": "EXPRESS",
+    "amount": 2000000,
+    "result": "APPROVED",
+    "stage_minutes": {
+      "checking": 8,
+      "scoring": 4,
+      "manual_review": 0,
+      "signing": 15
+    }
+  },
+  {
+    "number": "K-10000002",
+    "inn": "7702345678",
+    "company": "ООО «СтройМонтаж»",
+    "product_code": "WORKING_CAPITAL",
+    "amount": 10000000,
+    "result": "COUNTER_OFFER",
+    "stage_minutes": {
+      "checking": 14,
+      "scoring": 6,
+      "manual_review": 0,
+      "signing": 25
+    }
+  },
+  {
+    "number": "K-10000003",
+    "inn": "7703456789",
+    "company": "ООО «Вектор Трейд»",
+    "product_code": "EXPRESS",
+    "amount": 3000000,
+    "result": "MANUAL_REVIEW",
+    "stage_minutes": {
+      "checking": 11,
+      "scoring": 5,
+      "manual_review": 240,
+      "signing": 0
+    }
+  },
+  {
+    "number": "K-10000004",
+    "inn": "7701000004",
+    "company": "ООО «Северная Лавка»",
+    "product_code": "WORKING_CAPITAL",
+    "amount": 13300000,
+    "result": "APPROVED",
+    "stage_minutes": {
+      "checking": 15,
+      "scoring": 9,
+      "manual_review": 0,
+      "signing": 50
+    }
+  },
+  {
+    "number": "K-10000005",
+    "inn": "7701000005",
+    "company": "ООО «Тихий Двор»",
+    "product_code": "INVESTMENT",
+    "amount": 23400000,
+    "result": "ISSUED",
+    "stage_minutes": {
+      "checking": 4,
+      "scoring": 7,
+      "manual_review": 0,
+      "signing": 14
+    }
+  },
+  {
+    "number": "K-10000006",
+    "inn": "7701000006",
+    "company": "ООО «Речной Причал»",
+    "product_code": "EXPRESS",
+    "amount": 1900000,
+    "result": "APPROVED",
+    "stage_minutes": {
+      "checking": 25,
+      "scoring": 5,
+      "manual_review": 0,
+      "signing": 80
+    }
+  },
+  {
+    "number": "K-10000007",
+    "inn": "7701000007",
+    "company": "ООО «Полевая Пекарня»",
+    "product_code": "INVESTMENT",
+    "amount": 23600000,
+    "result": "MANUAL_REVIEW",
+    "stage_minutes": {
+      "checking": 25,
+      "scoring": 1,
+      "manual_review": 350,
+      "signing": 0
+    }
+  },
+  {
+    "number": "K-10000008",
+    "inn": "7701000008",
+    "company": "ООО «Горный Склад»",
+    "product_code": "EXPRESS",
+    "amount": 1200000,
+    "result": "APPROVED",
+    "stage_minutes": {
+      "checking": 32,
+      "scoring": 10,
+      "manual_review": 0,
+      "signing": 53
+    }
+  },
+  {
+    "number": "K-10000009",
+    "inn": "7701000009",
+    "company": "ООО «Луговой Двор»",
+    "product_code": "WORKING_CAPITAL",
+    "amount": 14300000,
+    "result": "REJECTED",
+    "stage_minutes": {
+      "checking": 6,
+      "scoring": 5,
+      "manual_review": 77,
+      "signing": 0
+    }
+  },
+  {
+    "number": "K-10000010",
+    "inn": "7701000010",
+    "company": "ООО «Синий Контур»",
+    "product_code": "WORKING_CAPITAL",
+    "amount": 14900000,
+    "result": "REJECTED",
+    "stage_minutes": {
+      "checking": 24,
+      "scoring": 1,
+      "manual_review": 0,
+      "signing": 0
+    }
+  },
+  {
+    "number": "K-10000011",
+    "inn": "7701000011",
+    "company": "ООО «Медный Ключ»",
+    "product_code": "WORKING_CAPITAL",
+    "amount": 26700000,
+    "result": "MANUAL_REVIEW",
+    "stage_minutes": {
+      "checking": 12,
+      "scoring": 12,
+      "manual_review": 325,
+      "signing": 0
+    }
+  },
+  {
+    "number": "K-10000012",
+    "inn": "7701000012",
+    "company": "ООО «Белая Полка»",
+    "product_code": "INVESTMENT",
+    "amount": 30100000,
+    "result": "REJECTED",
+    "stage_minutes": {
+      "checking": 40,
+      "scoring": 11,
+      "manual_review": 81,
+      "signing": 0
+    }
+  },
+  {
+    "number": "K-10000013",
+    "inn": "7701000013",
+    "company": "ООО «Дальняя Верфь»",
+    "product_code": "INVESTMENT",
+    "amount": 4000000,
+    "result": "APPROVED",
+    "stage_minutes": {
+      "checking": 22,
+      "scoring": 12,
+      "manual_review": 0,
+      "signing": 50
+    }
+  },
+  {
+    "number": "K-10000014",
+    "inn": "7701000014",
+    "company": "ООО «Ясный Контур»",
+    "product_code": "WORKING_CAPITAL",
+    "amount": 5900000,
+    "result": "REJECTED",
+    "stage_minutes": {
+      "checking": 12,
+      "scoring": 5,
+      "manual_review": 0,
+      "signing": 0
+    }
+  },
+  {
+    "number": "K-10000015",
+    "inn": "7701000015",
+    "company": "ООО «Тёплый Цех»",
+    "product_code": "EXPRESS",
+    "amount": 4800000,
+    "result": "MANUAL_REVIEW",
+    "stage_minutes": {
+      "checking": 23,
+      "scoring": 10,
+      "manual_review": 369,
+      "signing": 0
+    }
+  },
+  {
+    "number": "K-10000016",
+    "inn": "7701000016",
+    "company": "ООО «Ровный Край»",
+    "product_code": "EXPRESS",
+    "amount": 1400000,
+    "result": "COUNTER_OFFER",
+    "stage_minutes": {
+      "checking": 41,
+      "scoring": 1,
+      "manual_review": 0,
+      "signing": 75
+    }
+  },
+  {
+    "number": "K-10000017",
+    "inn": "7701000017",
+    "company": "ООО «Лесной Двор»",
+    "product_code": "EXPRESS",
+    "amount": 800000,
+    "result": "MANUAL_REVIEW",
+    "stage_minutes": {
+      "checking": 18,
+      "scoring": 11,
+      "manual_review": 406,
+      "signing": 0
+    }
+  },
+  {
+    "number": "K-10000018",
+    "inn": "7701000018",
+    "company": "ООО «Новая Смена»",
+    "product_code": "INVESTMENT",
+    "amount": 5100000,
+    "result": "APPROVED",
+    "stage_minutes": {
+      "checking": 23,
+      "scoring": 5,
+      "manual_review": 0,
+      "signing": 40
+    }
+  },
+  {
+    "number": "K-10000019",
+    "inn": "7701000019",
+    "company": "ООО «Первый Стан»",
+    "product_code": "WORKING_CAPITAL",
+    "amount": 20300000,
+    "result": "ISSUED",
+    "stage_minutes": {
+      "checking": 34,
+      "scoring": 7,
+      "manual_review": 0,
+      "signing": 70
+    }
+  },
+  {
+    "number": "K-10000020",
+    "inn": "7701000020",
+    "company": "ООО «Второй Контур»",
+    "product_code": "EXPRESS",
+    "amount": 1200000,
+    "result": "COUNTER_OFFER",
+    "stage_minutes": {
+      "checking": 14,
+      "scoring": 11,
+      "manual_review": 0,
+      "signing": 45
+    }
+  },
+  {
+    "number": "K-10000021",
+    "inn": "7701000021",
+    "company": "ООО «Тихая Гавань»",
+    "product_code": "EXPRESS",
+    "amount": 3700000,
+    "result": "ISSUED",
+    "stage_minutes": {
+      "checking": 19,
+      "scoring": 7,
+      "manual_review": 0,
+      "signing": 71
+    }
+  },
+  {
+    "number": "K-10000022",
+    "inn": "7701000022",
+    "company": "ООО «Светлый Ангар»",
+    "product_code": "WORKING_CAPITAL",
+    "amount": 25100000,
+    "result": "APPROVED",
+    "stage_minutes": {
+      "checking": 15,
+      "scoring": 2,
+      "manual_review": 0,
+      "signing": 76
+    }
+  },
+  {
+    "number": "K-10000023",
+    "inn": "7701000023",
+    "company": "ООО «Круглый Стол»",
+    "product_code": "INVESTMENT",
+    "amount": 32300000,
+    "result": "APPROVED",
+    "stage_minutes": {
+      "checking": 21,
+      "scoring": 1,
+      "manual_review": 0,
+      "signing": 36
+    }
+  },
+  {
+    "number": "K-10000024",
+    "inn": "7701000024",
+    "company": "ООО «Малый Причал»",
+    "product_code": "EXPRESS",
+    "amount": 2500000,
+    "result": "COUNTER_OFFER",
+    "stage_minutes": {
+      "checking": 23,
+      "scoring": 8,
+      "manual_review": 0,
+      "signing": 25
+    }
+  },
+  {
+    "number": "K-10000025",
+    "inn": "7701000025",
+    "company": "ООО «Высокий Берег»",
+    "product_code": "WORKING_CAPITAL",
+    "amount": 19600000,
+    "result": "APPROVED",
+    "stage_minutes": {
+      "checking": 38,
+      "scoring": 11,
+      "manual_review": 0,
+      "signing": 33
+    }
+  },
+  {
+    "number": "K-10000026",
+    "inn": "7701000026",
+    "company": "ООО «Нижний Склад»",
+    "product_code": "EXPRESS",
+    "amount": 4400000,
+    "result": "ISSUED",
+    "stage_minutes": {
+      "checking": 31,
+      "scoring": 12,
+      "manual_review": 0,
+      "signing": 9
+    }
+  },
+  {
+    "number": "K-10000027",
+    "inn": "7701000027",
+    "company": "ООО «Правый Берег»",
+    "product_code": "INVESTMENT",
+    "amount": 4600000,
+    "result": "COUNTER_OFFER",
+    "stage_minutes": {
+      "checking": 5,
+      "scoring": 7,
+      "manual_review": 0,
+      "signing": 66
+    }
+  },
+  {
+    "number": "K-10000028",
+    "inn": "7701000028",
+    "company": "ООО «Левый Цех»",
+    "product_code": "EXPRESS",
+    "amount": 2900000,
+    "result": "COUNTER_OFFER",
+    "stage_minutes": {
+      "checking": 35,
+      "scoring": 1,
+      "manual_review": 0,
+      "signing": 38
+    }
+  },
+  {
+    "number": "K-10000029",
+    "inn": "7701000029",
+    "company": "ООО «Осенний Двор»",
+    "product_code": "WORKING_CAPITAL",
+    "amount": 29800000,
+    "result": "REJECTED",
+    "stage_minutes": {
+      "checking": 39,
+      "scoring": 1,
+      "manual_review": 0,
+      "signing": 0
+    }
+  },
+  {
+    "number": "K-10000030",
+    "inn": "7701000030",
+    "company": "ООО «Зимний Ангар»",
+    "product_code": "EXPRESS",
+    "amount": 2600000,
+    "result": "ISSUED",
+    "stage_minutes": {
+      "checking": 19,
+      "scoring": 2,
+      "manual_review": 0,
+      "signing": 44
+    }
+  },
+  {
+    "number": "K-10000031",
+    "inn": "7701000031",
+    "company": "ООО «Весенняя Лавка»",
+    "product_code": "EXPRESS",
+    "amount": 1400000,
+    "result": "APPROVED",
+    "stage_minutes": {
+      "checking": 23,
+      "scoring": 12,
+      "manual_review": 0,
+      "signing": 25
+    }
+  },
+  {
+    "number": "K-10000032",
+    "inn": "7701000032",
+    "company": "ООО «Летний Контур»",
+    "product_code": "WORKING_CAPITAL",
+    "amount": 5400000,
+    "result": "MANUAL_REVIEW",
+    "stage_minutes": {
+      "checking": 39,
+      "scoring": 6,
+      "manual_review": 173,
+      "signing": 0
+    }
+  },
+  {
+    "number": "K-10000033",
+    "inn": "7701000033",
+    "company": "ООО «Быстрый Двор»",
+    "product_code": "EXPRESS",
+    "amount": 1900000,
+    "result": "MANUAL_REVIEW",
+    "stage_minutes": {
+      "checking": 7,
+      "scoring": 4,
+      "manual_review": 438,
+      "signing": 0
+    }
+  },
+  {
+    "number": "K-10000034",
+    "inn": "7701000034",
+    "company": "ООО «Медленный Цех»",
+    "product_code": "EXPRESS",
+    "amount": 400000,
+    "result": "APPROVED",
+    "stage_minutes": {
+      "checking": 8,
+      "scoring": 7,
+      "manual_review": 0,
+      "signing": 51
+    }
+  },
+  {
+    "number": "K-10000035",
+    "inn": "7701000035",
+    "company": "ООО «Ровная Полка»",
+    "product_code": "EXPRESS",
+    "amount": 4300000,
+    "result": "COUNTER_OFFER",
+    "stage_minutes": {
+      "checking": 43,
+      "scoring": 3,
+      "manual_review": 0,
+      "signing": 72
+    }
+  },
+  {
+    "number": "K-10000036",
+    "inn": "7701000036",
+    "company": "ООО «Длинный Склад»",
+    "product_code": "EXPRESS",
+    "amount": 2500000,
+    "result": "REJECTED",
+    "stage_minutes": {
+      "checking": 16,
+      "scoring": 9,
+      "manual_review": 0,
+      "signing": 0
+    }
+  }
+]
