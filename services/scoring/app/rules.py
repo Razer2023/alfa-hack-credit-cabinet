@@ -113,6 +113,21 @@ class Affordability(Strict):
     term_step: int = Field(gt=0)
 
 
+class ManualOffer(Strict):
+    fallback_limit_share: float = Field(gt=0, le=1)
+
+
+OFFER_CHECK_CODES = (
+    "AMOUNT_BELOW_PRODUCT",
+    "AMOUNT_OVER_PRODUCT",
+    "TERM_OUT_OF_PRODUCT",
+    "RATE_BELOW_MIN",
+    "AMOUNT_OVER_LIMIT",
+    "DSCR_TOO_LOW",
+    "NO_FINANCIAL_DATA",
+)
+
+
 class Scorecard(Strict):
     version: str
     base_score: int
@@ -121,6 +136,8 @@ class Scorecard(Strict):
     stop_factors: StopFactors
     manual_review: ManualReview
     affordability: Affordability
+    manual_offer: ManualOffer
+    offer_checks: dict[str, str]
     reasons: dict[str, str]
 
     @model_validator(mode="after")
@@ -131,7 +148,17 @@ class Scorecard(Strict):
         scores = [c.min_score for c in self.risk_classes]
         if scores != sorted(scores, reverse=True) or scores[-1] != 0:
             raise ValueError("классы риска — по убыванию min_score, последний с min_score: 0")
+        missing_checks = set(OFFER_CHECK_CODES) - set(self.offer_checks)
+        if missing_checks:
+            raise ValueError(f"нет текстов offer_checks: {sorted(missing_checks)}")
         return self
+
+    @property
+    def best_rate_adjustment(self) -> float:
+        return min(c.rate_adjustment for c in self.risk_classes)
+
+    def offer_check(self, code: str, level: str = "error", **params) -> dict:
+        return {"code": code, "level": level, "text": self.offer_checks[code].format(**params)}
 
     def risk_class(self, score: int) -> RiskClass:
         return next(c for c in self.risk_classes if score >= c.min_score)

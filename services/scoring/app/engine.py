@@ -1,4 +1,4 @@
-"""Кредитное решение (S5.1, S5.2, S6.1).
+"""Кредитное решение (S5.1, S5.2, S6.1) и проверка условий сотрудника банка (S5.4).
 
 Порядок проверок — как в кредитном конвейере банка:
 1. Стоп-факторы → отказ без расчётов.
@@ -16,7 +16,7 @@ from math import floor
 
 from app.calc import annuity_payment, max_amount_for_payment
 from app.rules import Product, RiskClass, Rules
-from app.schemas import DecisionIn
+from app.schemas import DecisionIn, OfferCheckIn
 
 MIN_SCORE, MAX_SCORE = 300, 900
 
@@ -252,3 +252,80 @@ def _affordable_offer(req, product: Product, risk: RiskClass, metrics: dict, rul
     if affordable < product.min_amount:
         return result("REJECT", [card.reason("CANNOT_AFFORD_MIN")])
     return result("COUNTER_OFFER", reasons, [{"amount": affordable, "term_months": max_term, "rate": rate}])
+
+
+def check_offer(req: OfferCheckIn, rules: Rules, today: date | None = None) -> dict:
+    """S5.4: проходят ли условия, которые вписал сотрудник банка, кредитную политику.
+
+    Проверяются те же ограничения, что при автоматическом контрпредложении:
+    рамки продукта, минимальная ставка, лимит по выручке и DSCR.
+    Решение, можно ли подтвердить условия с ошибками (например, андеррайтеру с комментарием), принимает ядро.
+    """
+    today = today or date.today()
+    card = rules.scorecard
+    product = rules.catalog.get(req.application.product_code)
+    if product is None:
+        raise UnknownProduct(req.application.product_code)
+
+    terms = req.terms
+    facts = collect_facts(req, today)
+    facts.amount = terms.amount  # фактор «сумма к выручке» — по условиям сотрудника
+    score, _ = score_factors(facts, rules)
+    risk = card.risk_class(score)
+    rate = terms.rate if terms.rate is not None else round(product.base_rate + risk.rate_adjustment, 2)
+    payment = annuity_payment(terms.amount, terms.term_months, rate)
+
+    checks: list[dict] = []
+    if terms.amount < product.min_amount:
+        checks.append(card.offer_check("AMOUNT_BELOW_PRODUCT", min_amount=_num(product.min_amount)))
+    if terms.amount > product.max_amount:
+        checks.append(card.offer_check("AMOUNT_OVER_PRODUCT", max_amount=_num(product.max_amount)))
+    if not product.min_term_months <= terms.term_months <= product.max_term_months:
+        checks.append(card.offer_check(
+            "TERM_OUT_OF_PRODUCT", min_term=product.min_term_months, max_term=product.max_term_months))
+    min_rate = round(product.base_rate + card.best_rate_adjustment, 2)
+    if rate < min_rate:
+        checks.append(card.offer_check("RATE_BELOW_MIN", min_rate=f"{min_rate:g}".replace(".", ",")))
+
+    aff = card.affordability
+    share = risk.limit_share or card.manual_offer.fallback_limit_share
+    limit = round_down(facts.revenue * share, aff.amount_step) if facts.revenue else None
+    if limit is not None and terms.amount > limit:
+        checks.append(card.offer_check("AMOUNT_OVER_LIMIT", limit=_num(limit)))
+
+    metrics = {"limit": limit, "monthly_free_cash_flow": None, "existing_debt_payment": None,
+               "new_payment": payment, "dscr": None, "min_dscr": aff.min_dscr}
+    budget = None
+    if facts.monthly_turnover is not None and facts.total_debt is not None:
+        fcf = facts.monthly_turnover * aff.free_cash_flow_share
+        existing = facts.total_debt * aff.existing_debt_monthly_share
+        budget = fcf / aff.min_dscr - existing
+        dscr = round(fcf / (existing + payment), 2)
+        metrics |= {"monthly_free_cash_flow": round(fcf), "existing_debt_payment": round(existing), "dscr": dscr}
+        if dscr < aff.min_dscr:
+            checks.append(card.offer_check(
+                "DSCR_TOO_LOW", dscr=f"{dscr:.2f}".replace(".", ","), min_dscr=f"{aff.min_dscr:g}".replace(".", ",")))
+    else:
+        checks.append(card.offer_check("NO_FINANCIAL_DATA", level="warning"))
+
+    suggestion = None
+    amount_problem = {"AMOUNT_OVER_PRODUCT", "AMOUNT_OVER_LIMIT", "DSCR_TOO_LOW"} & {c["code"] for c in checks}
+    if amount_problem and budget is not None:
+        caps = [product.max_amount, max_amount_for_payment(budget, terms.term_months, rate)]
+        if limit is not None:
+            caps.append(limit)
+        best = round_down(min(caps), aff.amount_step)
+        if best >= product.min_amount:
+            suggestion = {"amount": best, "term_months": terms.term_months, "rate": rate}
+
+    return {
+        "allowed": not any(c["level"] == "error" for c in checks),
+        "terms": {"amount": terms.amount, "term_months": terms.term_months, "rate": rate},
+        "monthly_payment": payment,
+        "checks": checks,
+        "suggestion": suggestion,
+        "score": score,
+        "risk_class": risk.code,
+        "model_version": rules.model_version,
+        "metrics": metrics,
+    }

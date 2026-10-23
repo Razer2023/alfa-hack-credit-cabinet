@@ -3,8 +3,8 @@ to: C-scoring
 from: A
 story: S1.1, S3.2, S5.1, S5.2, S6.1
 priority: normal
-status: in_progress
-done_in: ""
+status: done
+done_in: "#13"
 ---
 
 # Сервис scoring: что от него ждёт ядро

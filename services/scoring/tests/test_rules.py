@@ -24,7 +24,7 @@ def edit(path, change):
 
 
 def test_shipped_rules_valid(rules_dir):
-    assert load_rules(rules_dir).model_version == "scorecard-1.0+products-1.0"
+    assert load_rules(rules_dir).model_version == "scorecard-1.1+products-1.0"
 
 
 def test_unsorted_bins_rejected(rules_dir):

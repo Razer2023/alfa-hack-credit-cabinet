@@ -124,10 +124,55 @@ class DecisionOut(BaseModel):
     result: DecisionResult
     score: int = Field(examples=[740])
     risk_class: str = Field(examples=["A"])
-    model_version: str = Field(examples=["scorecard-1.0+products-1.0"])
+    model_version: str = Field(examples=["scorecard-1.1+products-1.0"])
     factors: list[FactorOut]
     reasons: list[ReasonOut]
     offers: list[OfferOut] = Field(description="APPROVE — одно, COUNTER_OFFER — одно или несколько, иначе пусто")
+    metrics: MetricsOut
+
+
+# --- Проверка условий сотрудника банка (S5.4) ---
+
+
+class TermsIn(BaseModel):
+    amount: int = Field(gt=0, le=1_000_000_000, examples=[10000000])
+    term_months: int = Field(gt=0, le=120, examples=[12])
+    rate: float | None = Field(
+        None, gt=0, lt=100, description="% годовых; не указана — ставка по классу риска", examples=[18.9]
+    )
+
+
+class OfferCheckIn(DecisionIn):
+    """Та же заявка, что для /decisions, плюс условия, которые вписал сотрудник."""
+
+    terms: TermsIn
+
+
+class CheckOut(BaseModel):
+    code: str = Field(examples=["DSCR_TOO_LOW"])
+    level: Literal["error", "warning"] = Field(
+        description="error — условия не проходят политику банка, warning — проверить не удалось"
+    )
+    text: str = Field(description="Текст для сотрудника банка")
+
+
+class SuggestionOut(BaseModel):
+    amount: int = Field(description="Максимальная допустимая сумма на этот срок и ставку", examples=[2600000])
+    term_months: int
+    rate: float
+
+
+class OfferCheckOut(BaseModel):
+    allowed: bool = Field(description="Нет ни одной ошибки (warning не мешает)")
+    terms: OfferOut = Field(description="Проверенные условия; ставка подставлена, если не была указана")
+    monthly_payment: int
+    checks: list[CheckOut]
+    suggestion: SuggestionOut | None = Field(
+        None, description="Если сумма не проходит — сколько можно дать на этот срок. Null, если сумма проходит или посчитать нельзя"
+    )
+    score: int
+    risk_class: str
+    model_version: str
     metrics: MetricsOut
 
 
