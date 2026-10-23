@@ -366,6 +366,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/bank/applications/{application_id}/offer-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Проверить условия до решения (S5.4)
+         * @description Прогоняет условия сотрудника через скоринг по той же политике, что и автоматическое решение. Ничего не меняет в заявке: веб показывает предупреждения, пока сотрудник вводит условия.
+         */
+        post: operations["offer_check_api_v1_bank_applications__application_id__offer_check_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/bank/applications/{application_id}/escalate": {
         parameters: {
             query?: never;
@@ -699,6 +719,16 @@ export interface components {
             reasons?: components["schemas"]["Reason"][];
             /** Comment */
             comment?: string | null;
+            /**
+             * Checks
+             * @description Проверка условий сотрудника по политике банка (S5.4)
+             */
+            checks?: components["schemas"]["OfferCheckItem"][] | null;
+            /**
+             * Override
+             * @description Условия выданы андеррайтером с отступлением от политики
+             */
+            override?: boolean | null;
         };
         /** DecisionIn */
         DecisionIn: {
@@ -852,6 +882,63 @@ export interface components {
             /** @description SYSTEM — автоматическая проверка, MANAGER или UNDERWRITER — сотрудник */
             requested_by: components["schemas"]["Role"];
         };
+        /** OfferCheckIn */
+        OfferCheckIn: {
+            /** Amount */
+            amount: number;
+            /** Term Months */
+            term_months: number;
+            /**
+             * Rate
+             * @description Не указана — ставка по классу риска
+             */
+            rate?: number | null;
+        };
+        /** OfferCheckItem */
+        OfferCheckItem: {
+            /** Code */
+            code: string;
+            /**
+             * Level
+             * @description error — нарушает политику банка, warning — к сведению
+             * @enum {string}
+             */
+            level: "error" | "warning";
+            /**
+             * Text
+             * @description Текст для сотрудника банка
+             */
+            text: string;
+        } & {
+            [key: string]: unknown;
+        };
+        /**
+         * OfferCheckOut
+         * @description Ответ скоринга на проверку условий (сервис C).
+         */
+        OfferCheckOut: {
+            /**
+             * Allowed
+             * @description Ошибок нет — условия можно подтвердить (warning не мешает)
+             */
+            allowed: boolean;
+            terms?: components["schemas"]["OfferTerms"] | null;
+            /** Monthly Payment */
+            monthly_payment?: number | null;
+            /** Checks */
+            checks?: components["schemas"]["OfferCheckItem"][];
+            /** @description Сколько можно дать на этот срок, если сумма не проходит */
+            suggestion?: components["schemas"]["OfferTerms"] | null;
+            /** Score */
+            score?: number | null;
+            /** Risk Class */
+            risk_class?: string | null;
+            /** Model Version */
+            model_version?: string | null;
+            metrics?: components["schemas"]["ScoringMetrics"] | null;
+        } & {
+            [key: string]: unknown;
+        };
         /**
          * OfferKind
          * @enum {string}
@@ -885,6 +972,17 @@ export interface components {
          * @enum {string}
          */
         OfferStatus: "PROPOSED" | "ACCEPTED" | "DECLINED";
+        /** OfferTerms */
+        OfferTerms: {
+            /** Amount */
+            amount: number;
+            /** Term Months */
+            term_months: number;
+            /** Rate */
+            rate?: number | null;
+        } & {
+            [key: string]: unknown;
+        };
         /** PaymentCalcIn */
         PaymentCalcIn: {
             /** Product Code */
@@ -2353,6 +2451,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApplicationBankOut"];
+                };
+            };
+            /** @description Нужно войти */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Недостаточно прав */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Действие недоступно в текущем статусе */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    offer_check_api_v1_bank_applications__application_id__offer_check_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OfferCheckIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["OfferCheckOut"];
                 };
             };
             /** @description Нужно войти */

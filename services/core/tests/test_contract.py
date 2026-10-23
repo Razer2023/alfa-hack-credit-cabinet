@@ -59,6 +59,8 @@ def test_scoring_response_passes_through_unchanged(login, monkeypatch):
         "decided_by": "SYSTEM",
         "reasons": [{"code": "BKI_OVERDUE", "text": "Просрочка 45 дн. в БКИ"}],
         "comment": None,
+        "checks": None,
+        "override": None,
     }
     assert card["form"]["company"]["employees"] == {"value": 9, "source": "FNS"}
 

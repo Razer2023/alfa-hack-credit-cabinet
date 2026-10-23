@@ -18,6 +18,10 @@ class ScoringClient(Protocol):
         """{"result": "APPROVE" | "COUNTER_OFFER" | "REJECT" | "MANUAL_REVIEW", "score", "risk_class",
         "model_version", "factors": [...], "reasons": [...], "offers": [{"amount", "term_months", "rate"}]}"""
 
+    def check_offer(self, request: dict) -> dict:
+        """Проходят ли условия сотрудника политику банка (S5.4). Запрос — как для decide, плюс "terms".
+        {"allowed": bool, "terms", "monthly_payment", "checks": [{"code", "level", "text"}], "suggestion", ...}"""
+
 
 class HttpScoringClient:
     def __init__(self, base_url: str, timeout: float):
@@ -35,6 +39,9 @@ class HttpScoringClient:
 
     def decide(self, request: dict) -> dict:
         return self._client.request("POST", "/api/v1/decisions", json=request)
+
+    def check_offer(self, request: dict) -> dict:
+        return self._client.request("POST", "/api/v1/offers/check", json=request)
 
 
 def annuity_payment(amount: int, term_months: int, rate: float) -> int:
@@ -96,4 +103,17 @@ class StubScoringClient:
             "score": 720,
             "risk_class": "A",
             "offers": [{"amount": amount, "term_months": term, "rate": rate}],
+        }
+
+    def check_offer(self, request: dict) -> dict:
+        # Заглушка политику не проверяет: настоящие правила — в сервисе C
+        terms = request["terms"]
+        rate = terms.get("rate") or self.get_product(request["application"]["product_code"])["base_rate"]
+        payment = annuity_payment(terms["amount"], terms["term_months"], rate)
+        return {
+            "allowed": True,
+            "terms": {"amount": terms["amount"], "term_months": terms["term_months"], "rate": rate},
+            "monthly_payment": payment,
+            "checks": [],
+            "suggestion": None,
         }

@@ -1102,6 +1102,61 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/bank/applications/{application_id}/offer-check:
+    post:
+      tags:
+      - 'Банк: заявки'
+      summary: Проверить условия до решения (S5.4)
+      description: 'Прогоняет условия сотрудника через скоринг по той же политике, что и автоматическое решение. Ничего не
+        меняет в заявке: веб показывает предупреждения, пока сотрудник вводит условия.'
+      operationId: offer_check_api_v1_bank_applications__application_id__offer_check_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OfferCheckIn'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfferCheckOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/bank/applications/{application_id}/escalate:
     post:
       tags:
@@ -1791,6 +1846,20 @@ components:
           - type: string
           - type: 'null'
           title: Comment
+        checks:
+          anyOf:
+          - items:
+              $ref: '#/components/schemas/OfferCheckItem'
+            type: array
+          - type: 'null'
+          title: Checks
+          description: Проверка условий сотрудника по политике банка (S5.4)
+        override:
+          anyOf:
+          - type: boolean
+          - type: 'null'
+          title: Override
+          description: Условия выданы андеррайтером с отступлением от политики
       type: object
       required:
       - result
@@ -2082,6 +2151,104 @@ components:
       - items
       - requested_by
       title: NeedInfo
+    OfferCheckIn:
+      properties:
+        amount:
+          type: integer
+          maximum: 1000000000.0
+          exclusiveMinimum: 0.0
+          title: Amount
+        term_months:
+          type: integer
+          maximum: 120.0
+          exclusiveMinimum: 0.0
+          title: Term Months
+        rate:
+          anyOf:
+          - type: number
+            exclusiveMaximum: 100.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Rate
+          description: Не указана — ставка по классу риска
+      type: object
+      required:
+      - amount
+      - term_months
+      title: OfferCheckIn
+    OfferCheckItem:
+      properties:
+        code:
+          type: string
+          title: Code
+        level:
+          type: string
+          enum:
+          - error
+          - warning
+          title: Level
+          description: error — нарушает политику банка, warning — к сведению
+        text:
+          type: string
+          title: Text
+          description: Текст для сотрудника банка
+      additionalProperties: true
+      type: object
+      required:
+      - code
+      - level
+      - text
+      title: OfferCheckItem
+    OfferCheckOut:
+      properties:
+        allowed:
+          type: boolean
+          title: Allowed
+          description: Ошибок нет — условия можно подтвердить (warning не мешает)
+        terms:
+          anyOf:
+          - $ref: '#/components/schemas/OfferTerms'
+          - type: 'null'
+        monthly_payment:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Monthly Payment
+        checks:
+          items:
+            $ref: '#/components/schemas/OfferCheckItem'
+          type: array
+          title: Checks
+        suggestion:
+          anyOf:
+          - $ref: '#/components/schemas/OfferTerms'
+          - type: 'null'
+          description: Сколько можно дать на этот срок, если сумма не проходит
+        score:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Score
+        risk_class:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Risk Class
+        model_version:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Model Version
+        metrics:
+          anyOf:
+          - $ref: '#/components/schemas/ScoringMetrics'
+          - type: 'null'
+      additionalProperties: true
+      type: object
+      required:
+      - allowed
+      title: OfferCheckOut
+      description: Ответ скоринга на проверку условий (сервис C).
     OfferKind:
       type: string
       enum:
@@ -2132,6 +2299,25 @@ components:
       - ACCEPTED
       - DECLINED
       title: OfferStatus
+    OfferTerms:
+      properties:
+        amount:
+          type: integer
+          title: Amount
+        term_months:
+          type: integer
+          title: Term Months
+        rate:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Rate
+      additionalProperties: true
+      type: object
+      required:
+      - amount
+      - term_months
+      title: OfferTerms
     PaymentCalcIn:
       properties:
         product_code:
