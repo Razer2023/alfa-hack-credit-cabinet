@@ -7,8 +7,9 @@ from sqlalchemy.orm import Session
 from app import service
 from app.db import get_session
 from app.deps import BANK_ROLES, bank_application, require
+from app.errors import DomainError
 from app.models import Application, ApplicationStatus, Role, User
-from app.schemas import ApplicationBankOut, DecisionIn, EscalateIn, EventOut, InfoRequestIn
+from app.schemas import ApplicationBankOut, DecisionIn, EscalateIn, EventOut, InfoRequestIn, OfferCheckIn, OfferCheckOut
 from app.service import Actor
 from app.views import bank_view, events_for
 
@@ -69,6 +70,25 @@ def decide(
     service.decide_manual(session, app, Actor.of(user), body.model_dump())
     session.commit()
     return bank_view(app, user)
+
+
+@router.post(
+    "/{application_id}/offer-check",
+    response_model=OfferCheckOut,
+    summary="Проверить условия до решения (S5.4)",
+    description=(
+        "Прогоняет условия сотрудника через скоринг по той же политике, что и автоматическое решение. "
+        "Ничего не меняет в заявке: веб показывает предупреждения, пока сотрудник вводит условия."
+    ),
+)
+def offer_check(
+    body: OfferCheckIn,
+    app: Application = Depends(bank_application),
+    user: User = Staff,
+):
+    if not app.enrichment:
+        raise DomainError("not_checked_yet", "Заявка ещё не прошла проверки — условия оценить нельзя", 409)
+    return service.check_terms(app, body.model_dump())
 
 
 @router.post("/{application_id}/escalate", response_model=ApplicationBankOut, summary="Передать андеррайтеру")

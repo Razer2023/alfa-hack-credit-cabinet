@@ -133,11 +133,19 @@ class Reason(BaseModel):
 DecisionResult = Literal["APPROVE", "COUNTER_OFFER", "REJECT", "MANUAL_REVIEW"]
 
 
+class OfferCheckItem(Open):
+    code: str
+    level: Literal["error", "warning"] = Field(description="error — нарушает политику банка, warning — к сведению")
+    text: str = Field(description="Текст для сотрудника банка")
+
+
 class Decision(BaseModel):
     result: DecisionResult
     decided_by: Literal["SYSTEM", "MANAGER", "UNDERWRITER"]
     reasons: list[Reason] = Field(default_factory=list)
     comment: str | None = None
+    checks: list[OfferCheckItem] | None = Field(None, description="Проверка условий сотрудника по политике банка (S5.4)")
+    override: bool | None = Field(None, description="Условия выданы андеррайтером с отступлением от политики")
 
 
 class EgrulData(Open):
@@ -196,6 +204,32 @@ class ScoringResult(Open):
     factors: list[Factor] = Field(default_factory=list)
     reasons: list[Reason] = Field(default_factory=list)
     offers: list[ScoringOffer] = Field(default_factory=list)
+    metrics: ScoringMetrics | None = None
+
+
+class OfferTerms(Open):
+    amount: int
+    term_months: int
+    rate: float | None = None
+
+
+class OfferCheckIn(BaseModel):
+    amount: int = Field(gt=0, le=1_000_000_000)
+    term_months: int = Field(gt=0, le=120)
+    rate: float | None = Field(None, gt=0, lt=100, description="Не указана — ставка по классу риска")
+
+
+class OfferCheckOut(Open):
+    """Ответ скоринга на проверку условий (сервис C)."""
+
+    allowed: bool = Field(description="Ошибок нет — условия можно подтвердить (warning не мешает)")
+    terms: OfferTerms | None = None
+    monthly_payment: int | None = None
+    checks: list[OfferCheckItem] = Field(default_factory=list)
+    suggestion: OfferTerms | None = Field(None, description="Сколько можно дать на этот срок, если сумма не проходит")
+    score: int | None = None
+    risk_class: str | None = None
+    model_version: str | None = None
     metrics: ScoringMetrics | None = None
 
 

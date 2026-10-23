@@ -17,7 +17,7 @@ from app.clients import get_integrations, get_scoring
 from app.clients.base import ExternalNotFound, ExternalServiceError
 from app.db import SessionLocal, utcnow
 from app.models import Application, ApplicationStatus as S, Role
-from app.service import SYSTEM, active_offer, record_event, transition
+from app.service import SYSTEM, active_offer, record_event, snapshot, transition
 from app.statemachine import AUTOMATIC
 
 log = logging.getLogger(__name__)
@@ -31,23 +31,6 @@ DECISIONS = {
     "MANUAL_REVIEW": S.MANUAL_REVIEW,
 }
 MAX_RETRY_DELAY_SECONDS = 60
-
-
-def snapshot(app: Application) -> dict:
-    """Данные заявки для внешних сервисов (контракты B и C)."""
-    company = {name: field["value"] for name, field in (app.form.get("company") or {}).items()}
-    return {
-        "application_id": str(app.id),
-        "inn": app.company.inn,
-        "application": {
-            "product_code": app.product_code,
-            "amount": app.amount,
-            "term_months": app.term_months,
-            "purpose": app.purpose,
-        },
-        "company": company,
-        "extra": app.form.get("extra", {}),
-    }
 
 
 def step(session: Session, app: Application) -> None:

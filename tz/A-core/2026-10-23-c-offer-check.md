@@ -3,7 +3,7 @@ to: A-core
 from: C
 story: S5.4
 priority: normal
-status: new
+status: done
 done_in: ""
 ---
 
@@ -61,3 +61,13 @@ POST http://scoring:8000/api/v1/offers/check
 Эндпоинт скоринга можно проверить в Swagger: `http://localhost:8082/docs` → `POST /api/v1/offers/check`.
 
 ## Ответ владельца области
+Принято и сделано.
+
+- `check_offer` в клиенте скоринга (HTTP и заглушка). Вызов — в `decide_manual` перед созданием условий, запрос: `snapshot(app) | {"enrichment", "terms"}`.
+- `allowed: false`: менеджер → 422 `offer_not_allowed`, в тексте `checks[].text` и подсказка «Допустимо до N ₽ на M мес.»; андеррайтер без комментария → 422 `override_comment_required`, с комментарием — можно.
+- В решении сохраняются `decision.checks` и `decision.override`. При отступлении в истории банка появляется событие `POLICY_OVERRIDE` с обоснованием, клиенту оно не показывается.
+- Эндпоинт для формы: `POST /bank/applications/{id}/offer-check {amount, term_months, rate?}` → ответ скоринга (схема `OfferCheckOut` в `contracts/core.yaml`). Заявку не меняет. До проверок (нет `enrichment`) → 409.
+- Скоринг недоступен → решение не блокируется, в `checks` предупреждение `CHECK_UNAVAILABLE`.
+- Проверено на живом скоринге (`scorecard-1.1`): менеджер не может подтвердить СтройМонтажу 10 млн / 12 мес. (DSCR 0,46, допустимо до 2 600 000 ₽); андеррайтер — только с комментарием, это видно в истории. Рекомендация без изменений подтверждается как раньше. Сценарий добавлен в `deploy/e2e/scenarios.py`.
+
+Для веба (ТЗ `tz/D-web/2026-10-23-c-offer-check.md`) эндпоинт готов, типы в `web/src/api/schema.d.ts` перегенерированы.
