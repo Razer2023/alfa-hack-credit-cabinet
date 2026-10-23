@@ -1,0 +1,69 @@
+/* Hallmark · brand-led application summary · corp tokens · static brand watermark */
+@import '@alfalab/core-components/vars/typography.css';
+.card {
+  min-width: 0;
+  overflow: clip;
+  border-radius: var(--border-radius-24);
+  background: var(--color-light-base-bg-primary);
+}
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  overflow: clip;
+  padding: var(--gap-32);
+  background: var(--color-light-accent-primary-press);
+}
+
+.watermark {
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  user-select: none;
+  height: calc(var(--gap-128) * 2.5);
+  width: auto;
+  right: var(--gap-24);
+  bottom: var(--gap-56-neg);
+  opacity: 0.12;
+}
+
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--gap-12);
+}
+
+.status {
+  padding: var(--gap-8) var(--gap-12);
+  border-radius: var(--border-radius-8);
+  background: color-mix(in srgb, var(--color-light-text-primary) 15%, transparent);
+}
+
+.amount {
+  margin: var(--gap-32) 0 var(--gap-12);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.caption { margin-top: var(--gap-24); }
+
+.next {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--gap-24);
+  padding: var(--gap-24) var(--gap-32);
+}
+
+.explanation { min-width: 0; }
+.next > button { flex-shrink: 0; }
+.explanation p { margin-top: var(--gap-8); }
+
+@media (max-width: 600px) {
+  .amount { @mixin headline-system-mobile_large; }
+  .hero { padding: var(--gap-24); }
+  .next { padding: var(--gap-24); flex-direction: column; align-items: flex-start; }
+  .watermark { right: var(--gap-16-neg); }
+}

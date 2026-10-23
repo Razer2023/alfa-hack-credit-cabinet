@@ -8,6 +8,7 @@ import { Typography } from '@alfalab/core-components/typography';
 import { api, errorMessage } from '../../api/client';
 import type { Application, ApplicationEvent, Product } from '../../api/types';
 import { EventList } from '../../components/EventList';
+import { ApplicationSummary } from '../../components/ApplicationSummary';
 import { StatusLabel } from '../../components/StatusLabel';
 import { Tracker } from '../../components/Tracker';
 import { useApplicationEvents } from '../../events';
@@ -92,6 +93,8 @@ export function ApplicationPage({ id }: ApplicationPageProps) {
 
       <div className={styles.grid}>
         <section>
+          <ApplicationSummary application={application} productName={product?.name ?? application.product_code} />
+          <Gap size={24} />
           <StatusContent application={application} product={product} onChange={onChange} />
         </section>
         <aside>

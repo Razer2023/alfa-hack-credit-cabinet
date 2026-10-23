@@ -26,6 +26,7 @@ export function App() {
 // Интерфейс выбирает роль: CLIENT — кабинет клиента, MANAGER / UNDERWRITER — рабочее место банка
 function Shell() {
   const { user, logout } = useAuth();
+  const path = useRoute();
 
   // Одно соединение SSE на всё время входа: статусы обновляются без перезагрузки (S4.5)
   useEffect(() => {
@@ -44,6 +45,10 @@ function Shell() {
 
   return (
     <Layout
+      navigation={user.role === 'CLIENT' && <>
+        <Button view={path === '/products' ? 'transparent' : 'secondary'} size={40} href='#/' aria-current={path === '/' ? 'page' : undefined}>Обзор</Button>
+        <Button view={path === '/products' ? 'secondary' : 'transparent'} size={40} href='#/products' aria-current={path === '/products' ? 'page' : undefined}>Кредитные продукты</Button>
+      </>}
       actions={
         <>
           <Typography.Text view='primary-small' color='secondary'>
