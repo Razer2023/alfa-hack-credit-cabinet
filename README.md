@@ -28,6 +28,10 @@ docker compose up --build
   ```
   Её же на каждом PR выполняет CI (`core-e2e`): поднимает весь compose и проходит сценарии.
 
+## Продукт
+- [User Story Map и статус историй](docs/product/story-map.md)
+- [Развитие: что не вошло в MVP](docs/product/roadmap.md)
+
 ## Архитектура и контракты
 - [Ядро: конвейер, безопасность, ограничения](docs/architecture/core.md)
 - [Статусы заявки (диаграмма)](docs/architecture/statuses.md)
