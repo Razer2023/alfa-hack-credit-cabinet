@@ -6,7 +6,7 @@ import { Spinner } from '@alfalab/core-components/spinner';
 import { Typography } from '@alfalab/core-components/typography';
 
 import { api, errorMessage } from '../../api/client';
-import type { Application, ApplicationEvent, Product } from '../../api/types';
+import type { Application, ApplicationEvent, Product, ProductMatch } from '../../api/types';
 import { ApplicationSummary } from '../../components/ApplicationSummary';
 import { Money } from '../../components/Money';
 import { StatusLabel } from '../../components/StatusLabel';
@@ -16,6 +16,7 @@ import { formatDateTime } from '../../format';
 import { navigate, useRoute } from '../../router';
 import styles from './ClientHome.module.css';
 import { ProductCard } from './ProductCard';
+import { type MatchRequest, ProductMatcher } from './ProductMatcher';
 
 const TERMINAL = new Set(['ISSUED', 'REJECTED', 'CANCELLED']);
 
@@ -27,6 +28,7 @@ export function ClientHome() {
   const [error, setError] = useState<string | null>(null);
   const [history, setHistory] = useState<{ id: string; events: ApplicationEvent[] } | null>(null);
   const [historyError, setHistoryError] = useState<string | null>(null);
+  const [match, setMatch] = useState<{ request: MatchRequest; matches: ProductMatch[] } | null>(null);
 
   const loadApplications = useCallback(() => {
     api<Application[]>('/applications').then(setApplications).catch((e) => setError(errorMessage(e)));
@@ -56,6 +58,14 @@ export function ClientHome() {
     setError(null);
     try {
       const created = await api<Application>('/applications', { method: 'POST', body: { product_code: product.code } });
+      // Что клиент указал в подборе, сразу попадает в черновик; сумму и срок — только если они в рамках продукта
+      const picked = match?.matches.find((item) => item.product.code === product.code);
+      if (match && picked) {
+        const body = picked.fits
+          ? { purpose: match.request.purpose, amount: match.request.amount ?? undefined, term_months: match.request.term_months ?? undefined }
+          : { purpose: match.request.purpose };
+        await api<Application>(`/applications/${created.id}`, { method: 'PATCH', body });
+      }
       navigate(`/applications/${created.id}`);
     } catch (e) {
       setError(errorMessage(e));
@@ -86,10 +96,12 @@ export function ClientHome() {
       {showProducts ? (
         <>
           {products.length === 0 && !error && <Spinner preset={24} visible={true} />}
+          <ProductMatcher onResult={setMatch} />
           <div className={styles.catalog}>
-            {products.map((product) => (
+            {(match ? match.matches.map((item) => item.product) : products).map((product) => (
               <ProductCard key={product.code} product={product} loading={creating === product.code}
-                disabled={creating !== null} onApply={() => apply(product)} />
+                disabled={creating !== null} onApply={() => apply(product)}
+                match={match?.matches.find((item) => item.product.code === product.code)} />
             ))}
           </div>
         </>

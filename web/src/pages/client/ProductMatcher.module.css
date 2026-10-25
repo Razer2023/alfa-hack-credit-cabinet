@@ -1,0 +1,27 @@
+/* Подбор продукта по цели (S1.2) */
+.matcher {
+  margin-bottom: var(--gap-24);
+  padding: var(--gap-24);
+  border-radius: var(--border-radius-24);
+  background: var(--color-light-base-bg-primary);
+}
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap-8);
+  margin-top: var(--gap-16);
+}
+
+.fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 280px));
+  gap: var(--gap-12);
+  margin-top: var(--gap-16);
+}
+
+@media (max-width: 600px) {
+  .fields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

@@ -55,6 +55,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/products/purposes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Цели кредита для подбора продукта (S1.2) */
+        get: operations["purposes_api_v1_products_purposes_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/products/match": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Подбор продукта по цели (S1.2) */
+        post: operations["match_api_v1_products_match_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/calc/payment": {
         parameters: {
             query?: never;
@@ -1328,6 +1362,42 @@ export interface components {
             /** Inn */
             inn: string;
         };
+        /** ProductMatchIn */
+        ProductMatchIn: {
+            /**
+             * Purpose
+             * @description Цель кредита: из списка /products/purposes или своя
+             */
+            purpose: string;
+            /** Amount */
+            amount?: number | null;
+            /** Term Months */
+            term_months?: number | null;
+        };
+        /** ProductMatchOut */
+        ProductMatchOut: {
+            product: components["schemas"]["ProductOut"];
+            /**
+             * Purpose Match
+             * @description Продукт предназначен для этой цели
+             */
+            purpose_match: boolean;
+            /**
+             * Fits
+             * @description Цель совпадает, сумма и срок в рамках продукта
+             */
+            fits: boolean;
+            /**
+             * Recommended
+             * @description Лучший вариант: подходит и с самой низкой ставкой
+             */
+            recommended: boolean;
+            /**
+             * Notes
+             * @description Почему подходит или что не так — тексты для клиента
+             */
+            notes: string[];
+        };
         /** ProductOut */
         ProductOut: {
             /** Code */
@@ -1346,6 +1416,12 @@ export interface components {
             max_term_months: number;
             /** Base Rate */
             base_rate: number;
+            /**
+             * Purposes
+             * @description Цели, под которые подходит продукт (S1.2)
+             * @default []
+             */
+            purposes: string[];
         };
         /** Reason */
         Reason: {
@@ -1645,6 +1721,113 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    purposes_api_v1_products_purposes_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": string[];
+                };
+            };
+            /** @description Нужно войти */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Недостаточно прав */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Действие недоступно в текущем статусе */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    match_api_v1_products_match_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ProductMatchIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ProductMatchOut"][];
+                };
+            };
+            /** @description Нужно войти */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Недостаточно прав */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Действие недоступно в текущем статусе */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

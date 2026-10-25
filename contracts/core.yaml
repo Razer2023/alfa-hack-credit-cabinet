@@ -116,6 +116,90 @@ paths:
                 $ref: '#/components/schemas/ErrorOut'
       security:
       - HTTPBearer: []
+  /api/v1/products/purposes:
+    get:
+      tags:
+      - Справочники
+      summary: Цели кредита для подбора продукта (S1.2)
+      operationId: purposes_api_v1_products_purposes_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  type: string
+                type: array
+                title: Response Purposes Api V1 Products Purposes Get
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+      security:
+      - HTTPBearer: []
+  /api/v1/products/match:
+    post:
+      tags:
+      - Справочники
+      summary: Подбор продукта по цели (S1.2)
+      operationId: match_api_v1_products_match_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductMatchIn'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/ProductMatchOut'
+                type: array
+                title: Response Match Api V1 Products Match Post
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
   /api/v1/calc/payment:
     post:
       tags:
@@ -3241,6 +3325,62 @@ components:
       required:
       - inn
       title: PrefillIn
+    ProductMatchIn:
+      properties:
+        purpose:
+          type: string
+          maxLength: 100
+          minLength: 1
+          title: Purpose
+          description: 'Цель кредита: из списка /products/purposes или своя'
+        amount:
+          anyOf:
+          - type: integer
+            maximum: 1000000000.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Amount
+        term_months:
+          anyOf:
+          - type: integer
+            maximum: 120.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Term Months
+      type: object
+      required:
+      - purpose
+      title: ProductMatchIn
+    ProductMatchOut:
+      properties:
+        product:
+          $ref: '#/components/schemas/ProductOut'
+        purpose_match:
+          type: boolean
+          title: Purpose Match
+          description: Продукт предназначен для этой цели
+        fits:
+          type: boolean
+          title: Fits
+          description: Цель совпадает, сумма и срок в рамках продукта
+        recommended:
+          type: boolean
+          title: Recommended
+          description: 'Лучший вариант: подходит и с самой низкой ставкой'
+        notes:
+          items:
+            type: string
+          type: array
+          title: Notes
+          description: Почему подходит или что не так — тексты для клиента
+      type: object
+      required:
+      - product
+      - purpose_match
+      - fits
+      - recommended
+      - notes
+      title: ProductMatchOut
     ProductOut:
       properties:
         code:
@@ -3267,6 +3407,13 @@ components:
         base_rate:
           type: number
           title: Base Rate
+        purposes:
+          items:
+            type: string
+          type: array
+          title: Purposes
+          description: Цели, под которые подходит продукт (S1.2)
+          default: []
       type: object
       required:
       - code

@@ -499,6 +499,55 @@ def message_view(message: Message) -> dict:
     }
 
 
+# --- подбор продукта по цели (S1.2) -------------------------------------------------------
+
+
+def _same_purpose(a: str, b: str) -> bool:
+    # «Закупка» и «Закупка товара» — одна цель: короткая формулировка совпадает с началом длинной
+    a, b = a.strip().casefold(), b.strip().casefold()
+    return a.startswith(b) or b.startswith(a)
+
+
+def product_purposes(products: list[dict]) -> list[str]:
+    """Цели из каталога без повторов: из похожих формулировок остаётся более подробная."""
+    goals: list[str] = []
+    for product in products:
+        for purpose in product.get("purposes", []):
+            same = next((g for g in goals if _same_purpose(g, purpose)), None)
+            if same is None:
+                goals.append(purpose)
+            elif len(purpose) > len(same):
+                goals[goals.index(same)] = purpose
+    return goals
+
+
+def match_products(products: list[dict], purpose: str, amount: int | None, term_months: int | None) -> list[dict]:
+    """Правила подбора прозрачны: цель из каталога, сумма и срок в рамках продукта, затем ставка."""
+    result = []
+    for product in products:
+        purpose_match = any(_same_purpose(p, purpose) for p in product.get("purposes", []))
+        notes = [f"Подходит для цели «{purpose.strip()}»"] if purpose_match else ["Продукт для других целей"]
+        fits = purpose_match
+        if amount is not None and not product["min_amount"] <= amount <= product["max_amount"]:
+            fits = False
+            limit = "ниже минимума" if amount < product["min_amount"] else "выше максимума"
+            notes.append(
+                f"Сумма {_rub(amount)} {limit}: продукт от {_rub(product['min_amount'])} до {_rub(product['max_amount'])}"
+            )
+        if term_months is not None and not product["min_term_months"] <= term_months <= product["max_term_months"]:
+            fits = False
+            notes.append(f"Срок — от {product['min_term_months']} до {product['max_term_months']} мес.")
+        result.append({"product": product, "purpose_match": purpose_match, "fits": fits, "notes": notes})
+
+    best = min((r for r in result if r["fits"]), key=lambda r: r["product"]["base_rate"], default=None)
+    for item in result:
+        item["recommended"] = item is best
+    if best is not None and sum(r["fits"] for r in result) > 1:
+        best["notes"].append("Самая низкая ставка среди подходящих")
+    # Сначала лучший, затем подходящие, затем совпавшие по цели, остальные — в порядке каталога
+    return sorted(result, key=lambda r: (not r["recommended"], not r["fits"], not r["purpose_match"]))
+
+
 # --- предоценка (S2.1) --------------------------------------------------------------------
 # Тот же путь, что у заявки: профиль и проверки в B, решение в C — но без сохранения результата.
 
