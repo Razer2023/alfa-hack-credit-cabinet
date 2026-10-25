@@ -18,8 +18,12 @@
 .brand {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
-  gap: var(--gap-8);
+  border-radius: var(--border-radius-12);
+}
+
+.brand:focus-visible {
+  outline: 2px solid var(--color-light-accent-primary);
+  outline-offset: 2px;
 }
 
 .actions {

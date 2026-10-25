@@ -14,12 +14,10 @@ export function Layout({ children, actions, navigation }: LayoutProps) {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <div className={styles.brand}>
+        {/* Логотип ведёт на главную: клиенту — обзор заявок, сотруднику — очередь */}
+        <a href='#/' className={styles.brand} aria-label='Альфа-Банк — на главную'>
           <span className={styles.symbol}><img src={alfaMark} alt='' /></span>
-          <Typography.Title tag='div' view='small' font='system' weight='bold'>
-            Кредитный кабинет
-          </Typography.Title>
-        </div>
+        </a>
         {navigation && <nav className={styles.navigation} aria-label='Разделы кабинета'>{navigation}</nav>}
         {actions && <div className={styles.actions}>{actions}</div>}
       </header>
