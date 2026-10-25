@@ -124,7 +124,7 @@ class DecisionOut(BaseModel):
     result: DecisionResult
     score: int = Field(examples=[740])
     risk_class: str = Field(examples=["A"])
-    model_version: str = Field(examples=["scorecard-1.1+products-1.0"])
+    model_version: str = Field(examples=["scorecard-1.2+products-1.0"])
     factors: list[FactorOut]
     reasons: list[ReasonOut]
     offers: list[OfferOut] = Field(description="APPROVE — одно, COUNTER_OFFER — одно или несколько, иначе пусто")

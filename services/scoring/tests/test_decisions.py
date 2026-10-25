@@ -126,6 +126,9 @@ def test_low_score_rejected(rules):
         bki={"max_overdue_days": 10, "active_loans": 5, "total_debt": 3_000_000},
     )
     assert r["risk_class"] == "D" and r["result"] == "REJECT" and codes(r) == ["LOW_SCORE"]
+    # S6.3: клиент видит, что сильнее всего снизило оценку, — два худших фактора по баллам
+    text = r["reasons"][0]["text"]
+    assert "Сильнее всего на оценку повлияли: высокая долговая нагрузка, сумма кредита велика относительно выручки" in text
 
 
 # --- Контрпредложения ---
@@ -152,3 +155,24 @@ def test_same_amount_longer_term_preferred(rules):
 def test_cannot_afford_min_rejected(rules):
     r = run(rules, "7702345678", "INVESTMENT", 3_000_000, 12, company={"avg_monthly_turnover": 600_000})
     assert r["result"] == "REJECT" and codes(r) == ["CANNOT_AFFORD_MIN"]
+
+
+# --- Согласованность контрпредложения (предоценка спрашивает максимум продукта) ---
+
+
+def test_counter_offer_does_not_depend_on_overasking(rules):
+    """Сколько бы клиент ни попросил сверх возможного, предложение одно и то же — по классу предлагаемой суммы."""
+    asked_10m = run(rules, "7702345678", "WORKING_CAPITAL", 10_000_000, 12)
+    asked_max = run(rules, "7702345678", "WORKING_CAPITAL", 30_000_000, 36)
+    assert asked_max["risk_class"] == "B"  # запрос 30 млн портит фактор «сумма к выручке»
+    assert asked_max["offers"] == asked_10m["offers"] == [{"amount": 6_600_000, "term_months": 36, "rate": 18.9}]
+
+
+def test_rescored_offer_passes_offer_check(rules):
+    from app.engine import check_offer
+    from app.schemas import OfferCheckIn
+
+    for amount, term in [(30_000_000, 36), (20_000_000, 24), (10_000_000, 12)]:
+        [offer] = run(rules, "7702345678", "WORKING_CAPITAL", amount, term)["offers"]
+        request = make_request("7702345678", "WORKING_CAPITAL", amount, term) | {"terms": offer}
+        assert check_offer(OfferCheckIn.model_validate(request), rules, TODAY)["allowed"], (amount, offer)

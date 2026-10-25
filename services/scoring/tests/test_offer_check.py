@@ -96,7 +96,7 @@ def test_api(api):
     request["terms"] = {"amount": 10_000_000, "term_months": 12}
     body = api.post("/api/v1/offers/check", json=request).json()
     assert body["allowed"] is False and body["checks"][0]["code"] == "DSCR_TOO_LOW"
-    assert body["model_version"].startswith("scorecard-1.1")
+    assert body["model_version"].startswith("scorecard-1.2")
 
 
 def test_api_unknown_product(api):

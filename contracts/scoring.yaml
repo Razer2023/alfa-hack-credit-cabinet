@@ -319,7 +319,7 @@ components:
           type: string
           title: Model Version
           examples:
-          - scorecard-1.1+products-1.0
+          - scorecard-1.2+products-1.0
         factors:
           items:
             $ref: '#/components/schemas/FactorOut'

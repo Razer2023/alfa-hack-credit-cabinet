@@ -62,6 +62,7 @@ class Bin(Strict):
 
 class Factor(Strict):
     title: str
+    client_text: str
     unit: Literal["years", "rub", "days", "count", "share", "flag"]
     bins: list[Bin] = Field(min_length=1)
 

@@ -2,16 +2,18 @@
 # Код только считает значения факторов и применяет правила, все числа — здесь.
 # Любое изменение весов или порогов — новая version: она уходит в ответ как model_version
 # и остаётся в заявке, поэтому всегда видно, по каким правилам принято решение.
-version: scorecard-1.1
+version: scorecard-1.2
 
 # Сумма баллов = base_score + баллы каждого фактора. Шкала 300–900, как у кредитных бюро.
 base_score: 520
 
 # Корзины факторов: первая корзина, у которой значение < lt, даёт свои баллы.
+# client_text — как фактор называется для клиента в причине отказа (S6.3).
 # Корзина без lt — «всё остальное». Обоснование весов — services/scoring/README.md.
 factors:
   BUSINESS_AGE:
     title: Возраст бизнеса
+    client_text: небольшой срок работы бизнеса
     unit: years
     bins:
       - {lt: 1, points: -40}
@@ -22,6 +24,7 @@ factors:
 
   REVENUE:
     title: Годовая выручка
+    client_text: небольшая выручка
     unit: rub
     bins:
       - {lt: 6000000, points: -20}
@@ -31,6 +34,7 @@ factors:
 
   BKI_OVERDUE:
     title: Максимальная просрочка в БКИ
+    client_text: просрочки в кредитной истории
     unit: days
     bins:
       - {lt: 1, points: 60}
@@ -41,6 +45,7 @@ factors:
 
   ACTIVE_LOANS:
     title: Действующие кредиты
+    client_text: много действующих кредитов
     unit: count
     bins:
       - {lt: 2, points: 20}
@@ -50,6 +55,7 @@ factors:
 
   DEBT_LOAD:
     title: Долговая нагрузка (долг к выручке)
+    client_text: высокая долговая нагрузка
     unit: share
     bins:
       - {lt: 0.10, points: 40}
@@ -59,6 +65,7 @@ factors:
 
   LOAN_TO_REVENUE:
     title: Запрошенная сумма к выручке
+    client_text: сумма кредита велика относительно выручки
     unit: share
     bins:
       - {lt: 0.20, points: 30}
@@ -68,6 +75,7 @@ factors:
 
   EMPLOYEES:
     title: Численность сотрудников
+    client_text: мало сотрудников
     unit: count
     bins:
       - {lt: 5, points: -10}
@@ -76,6 +84,7 @@ factors:
 
   TAX_DEBT:
     title: Задолженность по налогам
+    client_text: задолженность по налогам
     unit: rub
     bins:
       - {lt: 1, points: 10}
@@ -83,6 +92,7 @@ factors:
 
   MASS_ADDRESS:
     title: Адрес массовой регистрации
+    client_text: адрес массовой регистрации
     unit: flag
     bins:
       - {lt: 1, points: 0}
@@ -142,6 +152,7 @@ reasons:
   NO_REVENUE_DATA: Не хватает данных о выручке — заявку посмотрит специалист
   NO_BKI_DATA: Нет данных кредитной истории — заявку посмотрит специалист
   LOW_SCORE: Финансовые показатели пока не соответствуют требованиям банка
+  LOW_SCORE_FACTORS: "Финансовые показатели пока не соответствуют требованиям банка. Сильнее всего на оценку повлияли: {factors}"
   BORDERLINE_SCORE: Показатели на границе требований — заявку посмотрит специалист
   BELOW_PRODUCT_MIN: Сумма меньше минимальной по продукту {product} ({min_amount} ₽)
   AMOUNT_OVER_PRODUCT: Сумма больше максимальной по продукту {product} ({max_amount} ₽)
