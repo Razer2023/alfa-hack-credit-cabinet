@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button } from '@alfalab/core-components/button';
 import { Gap } from '@alfalab/core-components/gap';
 import { Plate } from '@alfalab/core-components/plate';
@@ -6,8 +6,9 @@ import { Textarea } from '@alfalab/core-components/textarea';
 import { Typography } from '@alfalab/core-components/typography';
 
 import { api, errorMessage } from '../../api/client';
-import type { Application, Product } from '../../api/types';
+import type { Application, DocumentItem, DocumentRequest, Product } from '../../api/types';
 import { CompanyStep } from './CompanyStep';
+import { DocumentUpload } from './DocumentUpload';
 import { LoanFields } from './LoanFields';
 import { type LoanTerms, termsError } from './loanTerms';
 
@@ -25,7 +26,10 @@ export function NeedInfoForm({ application, product, onChange }: NeedInfoFormPro
   const items = needInfo?.items ?? [];
   const asksCompany = items.some((item) => item.field === 'company');
   const asksLoan = items.some((item) => LOAN_FIELDS.has(item.field));
-  const questions = items.filter((item) => item.field !== 'company' && !LOAN_FIELDS.has(item.field));
+  const documents = items.filter((item) => item.document);
+  const questions = items.filter(
+    (item) => !item.document && item.field !== 'company' && !LOAN_FIELDS.has(item.field),
+  );
 
   const [terms, setTerms] = useState<LoanTerms>({
     amount: application.amount,
@@ -36,11 +40,30 @@ export function NeedInfoForm({ application, product, onChange }: NeedInfoFormPro
   const [comment, setComment] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Статус загрузки по каждому запрошенному документу: ключ — «запрос:код»
+  const [uploads, setUploads] = useState<Record<string, DocumentItem>>({});
+
+  function rememberUploads(requests: DocumentRequest[]) {
+    setUploads((current) => {
+      const next = { ...current };
+      for (const request of requests) for (const doc of request.items) next[`${request.id}:${doc.code}`] = doc;
+      return next;
+    });
+  }
+
+  const hasDocuments = documents.length > 0;
+  useEffect(() => {
+    if (!hasDocuments) return;
+    api<DocumentRequest[]>(`/applications/${application.id}/documents`).then(rememberUploads).catch(() => undefined);
+  }, [application.id, hasDocuments]);
 
   const errors = termsError(product, terms);
   const missingAnswer = questions.some((item) => !answers[item.field]?.trim());
   const missingCompany = asksCompany && !application.form.company;
-  const disabled = missingAnswer || missingCompany || Boolean(errors.amount || errors.term);
+  const uploadOf = (item: (typeof documents)[number]) =>
+    item.document ? uploads[`${item.document.request_id}:${item.document.code}`] : undefined;
+  const missingDocument = documents.some((item) => uploadOf(item)?.status !== 'RECEIVED');
+  const disabled = missingAnswer || missingCompany || missingDocument || Boolean(errors.amount || errors.term);
 
   async function submit() {
     setBusy(true);
@@ -64,7 +87,7 @@ export function NeedInfoForm({ application, product, onChange }: NeedInfoFormPro
   return (
     <Plate view='attention' rounded={true} border={true} title='Банку нужны дополнительные данные'>
       <ul>
-        {items.map((item) => (
+        {items.filter((item) => !item.document).map((item) => (
           <li key={item.field}>
             <Typography.Text view='primary-medium'>{item.message}</Typography.Text>
           </li>
@@ -76,6 +99,25 @@ export function NeedInfoForm({ application, product, onChange }: NeedInfoFormPro
         </Typography.Text>
       )}
 
+      {hasDocuments && (
+        <>
+          <Gap size={8} />
+          <Typography.Text view='primary-medium' weight='bold' tag='p' defaultMargins={false}>
+            Загрузите документы
+          </Typography.Text>
+          {documents.map((item) => (
+            <div key={item.field}>
+              <Gap size={12} />
+              <DocumentUpload
+                applicationId={application.id}
+                item={item}
+                uploaded={uploadOf(item)}
+                onUploaded={(request) => rememberUploads([request])}
+              />
+            </div>
+          ))}
+        </>
+      )}
       {asksCompany && (
         <>
           <Gap size={16} />

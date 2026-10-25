@@ -73,4 +73,6 @@ def test_need_info_shape(login):
     manager.post(f"/bank/applications/{app_['id']}/info-request", request)
 
     need_info = vector.get(f"/applications/{app_['id']}").json()["need_info"]
-    assert need_info == {**request, "requested_by": "MANAGER"}
+    # У вопроса нет документа: reason и document — null (они есть у запрошенных документов, S4.4)
+    items = [item | {"reason": None, "document": None} for item in request["items"]]
+    assert need_info == {**request, "items": items, "requested_by": "MANAGER"}

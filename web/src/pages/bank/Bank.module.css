@@ -57,3 +57,31 @@ td.wrap {
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: var(--gap-12);
 }
+
+/* Документы (S4.4, S4.7) */
+.ask {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) auto;
+  gap: var(--gap-12);
+  align-items: start;
+  margin-bottom: var(--gap-12);
+}
+
+@media (max-width: 900px) {
+  .ask {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.documentRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--gap-12);
+  padding: var(--gap-8) 0;
+  border-bottom: 1px solid var(--color-light-neutral-300);
+}
+
+.documentRow:last-child {
+  border-bottom: none;
+}

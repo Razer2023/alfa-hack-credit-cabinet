@@ -1,8 +1,9 @@
 """Кабинет клиента: заявка от черновика до выдачи."""
 
 import uuid
+from urllib.parse import unquote
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Header, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -18,6 +19,7 @@ from app.schemas import (
     CancelIn,
     CodeConfirmIn,
     CodeRequestOut,
+    DocumentRequestOut,
     EventOut,
     InfoProvideIn,
     PrefillIn,
@@ -159,3 +161,45 @@ def sign_confirm(
 @router.get("/{application_id}/events", response_model=list[EventOut], summary="История заявки для трекера (S4.5)")
 def events(app: Application = Depends(client_application), user: User = Client, session: Session = Depends(get_session)):
     return events_for(session, user, application=app)
+
+
+@router.get(
+    "/{application_id}/documents",
+    response_model=list[DocumentRequestOut],
+    summary="Документы, которые запросил банк (S4.7)",
+)
+def documents(app: Application = Depends(client_application), session: Session = Depends(get_session)):
+    return service.list_documents(session, app)
+
+
+@router.post(
+    "/{application_id}/documents/{request_id}/{code}",
+    response_model=DocumentRequestOut,
+    summary="Загрузить файл по запросу банка (S4.7)",
+    description=(
+        "Тело запроса — сам файл (PDF, JPEG или PNG до 5 МБ), тип — в Content-Type, "
+        "имя файла — в заголовке X-Filename (URL-encoded)."
+    ),
+    openapi_extra={
+        "requestBody": {
+            "required": True,
+            "content": {t: {"schema": {"type": "string", "format": "binary"}} for t in ("application/pdf", "image/jpeg", "image/png")},
+        }
+    },
+)
+async def upload(
+    request_id: str,
+    code: str,
+    request: Request,
+    content_type: str = Header("application/octet-stream"),
+    x_filename: str = Header("document"),
+    app: Application = Depends(client_application),
+    user: User = Client,
+    session: Session = Depends(get_session),
+):
+    payload = await request.body()
+    result = service.upload_document(
+        session, app, Actor.of(user), request_id, code, unquote(x_filename), content_type, payload
+    )
+    session.commit()
+    return result
