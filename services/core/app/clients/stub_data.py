@@ -85,3 +85,11 @@ PRODUCTS: list[dict] = [
         "purposes": ["Оборудование", "Ремонт", "Новая точка"],
     },
 ]
+
+# Маленький срез синтетического массива для дашборда (data/synthetic/dashboard.json в сервисе B)
+DASHBOARD: list[dict] = [
+    {"number": "K-10000001", "result": "ISSUED", "stage_minutes": {"checking": 8, "scoring": 4, "manual_review": 0, "signing": 15}},
+    {"number": "K-10000002", "result": "COUNTER_OFFER", "stage_minutes": {"checking": 12, "scoring": 6, "manual_review": 0, "signing": 0}},
+    {"number": "K-10000003", "result": "REJECTED", "stage_minutes": {"checking": 20, "scoring": 5, "manual_review": 300, "signing": 0}},
+    {"number": "K-10000004", "result": "APPROVED", "stage_minutes": {"checking": 30, "scoring": 8, "manual_review": 420, "signing": 60}},
+]

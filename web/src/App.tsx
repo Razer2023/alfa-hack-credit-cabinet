@@ -10,6 +10,7 @@ import { openEventStream } from './events';
 import { Layout } from './layout/Layout';
 import { BankCard } from './pages/bank/BankCard';
 import { BankHome } from './pages/bank/BankHome';
+import { Dashboard } from './pages/bank/Dashboard';
 import { ApplicationPage } from './pages/client/ApplicationPage';
 import { ClientHome } from './pages/client/ClientHome';
 import { LoginPage } from './pages/LoginPage';
@@ -45,9 +46,12 @@ function Shell() {
 
   return (
     <Layout
-      navigation={user.role === 'CLIENT' && <>
+      navigation={user.role === 'CLIENT' ? <>
         <Button view={path === '/products' ? 'transparent' : 'secondary'} size={40} href='#/' aria-current={path === '/' ? 'page' : undefined}>Обзор</Button>
         <Button view={path === '/products' ? 'secondary' : 'transparent'} size={40} href='#/products' aria-current={path === '/products' ? 'page' : undefined}>Кредитные продукты</Button>
+      </> : <>
+        <Button view={path === '/dashboard' ? 'transparent' : 'secondary'} size={40} href='#/' aria-current={path === '/dashboard' ? undefined : 'page'}>Заявки</Button>
+        <Button view={path === '/dashboard' ? 'secondary' : 'transparent'} size={40} href='#/dashboard' aria-current={path === '/dashboard' ? 'page' : undefined}>Узкие места</Button>
       </>}
       actions={
         <>
@@ -81,6 +85,7 @@ function Routes() {
     const application = matchRoute('/applications/:id', path);
     return application ? <ApplicationPage key={application.id} id={application.id} /> : <ClientHome />;
   }
+  if (path === '/dashboard') return <Dashboard />;
   const card = matchRoute('/bank/:id', path);
   return card ? <BankCard key={card.id} id={card.id} /> : <BankHome />;
 }

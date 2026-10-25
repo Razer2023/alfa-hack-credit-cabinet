@@ -1902,6 +1902,58 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/bank/dashboard:
+    get:
+      tags:
+      - 'Банк: дашборд'
+      summary: Где заявки теряют время (S8.1)
+      operationId: bottlenecks_api_v1_bank_dashboard_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: source
+        in: query
+        required: false
+        schema:
+          enum:
+          - LIVE
+          - DEMO
+          type: string
+          description: LIVE — журнал ядра, DEMO — синтетический массив сервиса B
+          default: LIVE
+          title: Source
+        description: LIVE — журнал ядра, DEMO — синтетический массив сервиса B
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
   /api/v1/events:
     get:
       tags:
@@ -2491,6 +2543,133 @@ components:
       - work_hours
       title: ContactOut
       description: Сотрудник банка, который ведёт заявку (S4.9).
+    DashboardOut:
+      properties:
+        source:
+          type: string
+          enum:
+          - LIVE
+          - DEMO
+          title: Source
+          description: LIVE — журнал ядра, DEMO — синтетический массив сервиса B
+        generated_at:
+          type: string
+          format: date-time
+          title: Generated At
+        applications:
+          type: integer
+          title: Applications
+        stages:
+          items:
+            $ref: '#/components/schemas/DashboardStage'
+          type: array
+          title: Stages
+        by_status:
+          items:
+            $ref: '#/components/schemas/DashboardStatusCount'
+          type: array
+          title: By Status
+          description: Где заявки сейчас
+        bottleneck:
+          anyOf:
+          - $ref: '#/components/schemas/ApplicationStatus'
+          - type: 'null'
+          description: Этап банка или автоматики, где теряется больше всего времени
+        bottleneck_text:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Bottleneck Text
+      type: object
+      required:
+      - source
+      - generated_at
+      - applications
+      - stages
+      - by_status
+      - bottleneck_text
+      title: DashboardOut
+    DashboardStage:
+      properties:
+        code:
+          $ref: '#/components/schemas/ApplicationStatus'
+        title:
+          type: string
+          title: Title
+        owner:
+          type: string
+          enum:
+          - SYSTEM
+          - BANK
+          - CLIENT
+          title: Owner
+          description: 'Кто отвечает за этап: автоматика, банк или клиент'
+        sla:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Sla
+          description: Обещанный срок этапа
+        passed:
+          type: integer
+          title: Passed
+          description: Сколько заявок прошли этап
+        median_minutes:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Median Minutes
+        p90_minutes:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: P90 Minutes
+          description: 90 % заявок прошли этап быстрее
+        total_minutes:
+          type: number
+          title: Total Minutes
+          description: Суммарное время заявок на этапе, включая тех, кто ещё ждёт
+        in_progress:
+          type: integer
+          title: In Progress
+          description: Сколько заявок на этапе сейчас
+        longest_wait_minutes:
+          anyOf:
+          - type: number
+          - type: 'null'
+          title: Longest Wait Minutes
+          description: Сколько ждёт самая давняя заявка на этапе
+        over_sla:
+          type: integer
+          title: Over Sla
+          description: Сколько заявок вышли за обещанный срок
+      type: object
+      required:
+      - code
+      - title
+      - owner
+      - passed
+      - median_minutes
+      - total_minutes
+      - in_progress
+      - over_sla
+      title: DashboardStage
+    DashboardStatusCount:
+      properties:
+        code:
+          $ref: '#/components/schemas/ApplicationStatus'
+        title:
+          type: string
+          title: Title
+        count:
+          type: integer
+          title: Count
+      type: object
+      required:
+      - code
+      - title
+      - count
+      title: DashboardStatusCount
     DataSource:
       type: string
       enum:

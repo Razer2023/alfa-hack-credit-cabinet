@@ -444,3 +444,33 @@ class StatusReferenceOut(BaseModel):
     sla: str | None = None
     terminal: bool
     next: list[ApplicationStatus]
+
+
+class DashboardStage(BaseModel):
+    code: ApplicationStatus
+    title: str
+    owner: Literal["SYSTEM", "BANK", "CLIENT"] = Field(description="Кто отвечает за этап: автоматика, банк или клиент")
+    sla: str | None = Field(None, description="Обещанный срок этапа")
+    passed: int = Field(description="Сколько заявок прошли этап")
+    median_minutes: float | None
+    p90_minutes: float | None = Field(None, description="90 % заявок прошли этап быстрее")
+    total_minutes: float = Field(description="Суммарное время заявок на этапе, включая тех, кто ещё ждёт")
+    in_progress: int = Field(description="Сколько заявок на этапе сейчас")
+    longest_wait_minutes: float | None = Field(None, description="Сколько ждёт самая давняя заявка на этапе")
+    over_sla: int = Field(description="Сколько заявок вышли за обещанный срок")
+
+
+class DashboardStatusCount(BaseModel):
+    code: ApplicationStatus
+    title: str
+    count: int
+
+
+class DashboardOut(BaseModel):
+    source: Literal["LIVE", "DEMO"] = Field(description="LIVE — журнал ядра, DEMO — синтетический массив сервиса B")
+    generated_at: datetime
+    applications: int
+    stages: list[DashboardStage]
+    by_status: list[DashboardStatusCount] = Field(description="Где заявки сейчас")
+    bottleneck: ApplicationStatus | None = Field(None, description="Этап банка или автоматики, где теряется больше всего времени")
+    bottleneck_text: str | None
