@@ -410,6 +410,18 @@ class PrecheckOut(BaseModel):
     reasons: list[str] = Field(default_factory=list, description="Что влияет на оценку — человеческим языком")
 
 
+class MessageIn(BaseModel):
+    text: str = Field(min_length=1, max_length=2000)
+
+
+class MessageOut(BaseModel):
+    id: int
+    author_role: Role = Field(description="CLIENT — клиент, MANAGER / UNDERWRITER — сотрудник банка")
+    author_name: str
+    text: str
+    created_at: datetime
+
+
 class StatusReferenceOut(BaseModel):
     code: ApplicationStatus
     title: str

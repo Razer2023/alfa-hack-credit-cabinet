@@ -22,6 +22,8 @@ from app.schemas import (
     DocumentRequestOut,
     EventOut,
     InfoProvideIn,
+    MessageIn,
+    MessageOut,
     PrefillIn,
 )
 from app.service import Actor
@@ -203,3 +205,25 @@ async def upload(
     )
     session.commit()
     return result
+
+
+@router.get("/{application_id}/messages", response_model=list[MessageOut], summary="Переписка с банком (S4.10)")
+def messages(app: Application = Depends(client_application), session: Session = Depends(get_session)):
+    return [service.message_view(m) for m in service.list_messages(session, app)]
+
+
+@router.post(
+    "/{application_id}/messages",
+    response_model=MessageOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Написать менеджеру по заявке (S4.10)",
+)
+def send_message(
+    body: MessageIn,
+    app: Application = Depends(client_application),
+    user: User = Client,
+    session: Session = Depends(get_session),
+):
+    message = service.post_message(session, app, user, body.text)
+    session.commit()
+    return service.message_view(message)

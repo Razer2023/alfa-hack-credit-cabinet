@@ -175,3 +175,18 @@ class Confirmation(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+
+class Message(Base):
+    """Переписка клиента и банка внутри заявки (S4.10). Всё общение — в кабинете, без почты и мессенджеров."""
+
+    __tablename__ = "messages"
+
+    id: Mapped[int] = mapped_column(EventId, primary_key=True, autoincrement=True)
+    application_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("applications.id"), index=True)
+    author_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
+    author_role: Mapped[Role] = mapped_column(_enum(Role))
+    text: Mapped[str] = mapped_column(String(2000))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
+
+    author: Mapped[User] = relationship()

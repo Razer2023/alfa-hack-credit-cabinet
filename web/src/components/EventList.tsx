@@ -9,7 +9,8 @@ type EventListProps = {
 };
 
 // История заявки: новые события сверху
-export function EventList({ events }: EventListProps) {
+export function EventList({ events: all }: EventListProps) {
+  const events = all.filter((event) => event.type !== 'MESSAGE');
   if (events.length === 0) {
     return (
       <Typography.Text view='primary-small' color='secondary'>

@@ -2,7 +2,7 @@
 
 from urllib.parse import quote
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, status
 from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -20,6 +20,8 @@ from app.schemas import (
     EscalateIn,
     EventOut,
     InfoRequestIn,
+    MessageIn,
+    MessageOut,
     OfferCheckIn,
     OfferCheckOut,
 )
@@ -167,6 +169,28 @@ def download(
 ):
     return _file_response(*service.download_document(session, app, request_id, code))
 
+
+
+@router.get("/{application_id}/messages", response_model=list[MessageOut], summary="Переписка с клиентом (S4.10)")
+def messages(app: Application = Depends(bank_application), user: User = Staff, session: Session = Depends(get_session)):
+    return [service.message_view(m) for m in service.list_messages(session, app)]
+
+
+@router.post(
+    "/{application_id}/messages",
+    response_model=MessageOut,
+    status_code=status.HTTP_201_CREATED,
+    summary="Ответить клиенту в чате заявки (S4.10)",
+)
+def send_message(
+    body: MessageIn,
+    app: Application = Depends(bank_application),
+    user: User = Staff,
+    session: Session = Depends(get_session),
+):
+    message = service.post_message(session, app, user, body.text)
+    session.commit()
+    return service.message_view(message)
 
 def _file_response(payload: bytes, content_type: str, filename: str) -> Response:
     # Имя файла — по RFC 5987, чтобы кириллица не ломала заголовок

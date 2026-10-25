@@ -7,6 +7,7 @@ import { Typography } from '@alfalab/core-components/typography';
 
 import { api, errorMessage } from '../../api/client';
 import type { Application, ApplicationEvent, Product } from '../../api/types';
+import { ChatPanel } from '../../components/ChatPanel';
 import { EventList } from '../../components/EventList';
 import { ManagerContact } from '../../components/ManagerContact';
 import { ApplicationSummary } from '../../components/ApplicationSummary';
@@ -103,6 +104,12 @@ export function ApplicationPage({ id }: ApplicationPageProps) {
           {application.manager && (
             <>
               <ManagerContact manager={application.manager} />
+              <Gap size={16} />
+            </>
+          )}
+          {application.status.code !== 'DRAFT' && (
+            <>
+              <ChatPanel applicationId={application.id} basePath='/applications' title='Чат с банком' />
               <Gap size={16} />
             </>
           )}
