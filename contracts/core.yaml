@@ -839,6 +839,146 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/applications/{application_id}/documents:
+    get:
+      tags:
+      - 'Клиент: заявки'
+      summary: Документы, которые запросил банк (S4.7)
+      operationId: documents_api_v1_applications__application_id__documents_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentRequestOut'
+                title: Response Documents Api V1 Applications  Application Id  Documents Get
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/applications/{application_id}/documents/{request_id}/{code}:
+    post:
+      tags:
+      - 'Клиент: заявки'
+      summary: Загрузить файл по запросу банка (S4.7)
+      description: Тело запроса — сам файл (PDF, JPEG или PNG до 5 МБ), тип — в Content-Type, имя файла — в заголовке X-Filename
+        (URL-encoded).
+      operationId: upload_api_v1_applications__application_id__documents__request_id___code__post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: request_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Request Id
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Code
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      - name: content-type
+        in: header
+        required: false
+        schema:
+          type: string
+          default: application/octet-stream
+          title: Content-Type
+      - name: x-filename
+        in: header
+        required: false
+        schema:
+          type: string
+          default: document
+          title: X-Filename
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DocumentRequestOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      requestBody:
+        required: true
+        content:
+          application/pdf:
+            schema:
+              type: string
+              format: binary
+          image/jpeg:
+            schema:
+              type: string
+              format: binary
+          image/png:
+            schema:
+              type: string
+              format: binary
   /api/v1/bank/applications:
     get:
       tags:
@@ -1239,6 +1379,169 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ApplicationBankOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/bank/applications/{application_id}/document-request:
+    post:
+      tags:
+      - 'Банк: заявки'
+      summary: Запросить документы с пояснением, зачем каждый (S4.4)
+      description: Заявка уходит клиенту в статус NEED_INFO; дополнить её можно только после загрузки всех файлов.
+      operationId: document_request_api_v1_bank_applications__application_id__document_request_post
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DocumentRequestIn'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApplicationBankOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/bank/applications/{application_id}/documents:
+    get:
+      tags:
+      - 'Банк: заявки'
+      summary: Документы по заявке
+      operationId: documents_api_v1_bank_applications__application_id__documents_get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DocumentRequestOut'
+                title: Response Documents Api V1 Bank Applications  Application Id  Documents Get
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/v1/bank/applications/{application_id}/documents/{request_id}/{code}:
+    get:
+      tags:
+      - 'Банк: заявки'
+      summary: Скачать файл клиента
+      operationId: download_api_v1_bank_applications__application_id__documents__request_id___code__get
+      security:
+      - HTTPBearer: []
+      parameters:
+      - name: request_id
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Request Id
+      - name: code
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Code
+      - name: application_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Application Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/pdf: {}
+            image/jpeg: {}
+            image/png: {}
         '401':
           description: Нужно войти
           content:
@@ -1945,6 +2248,127 @@ components:
       required:
       - result
       title: DecisionIn
+    DocumentAsk:
+      properties:
+        title:
+          type: string
+          maxLength: 200
+          minLength: 1
+          title: Title
+          examples:
+          - Договор с заказчиком
+        reason:
+          type: string
+          maxLength: 500
+          minLength: 1
+          title: Reason
+          description: Зачем нужен документ — клиент увидит это пояснение (J9)
+      type: object
+      required:
+      - title
+      - reason
+      title: DocumentAsk
+    DocumentItemOut:
+      properties:
+        code:
+          type: string
+          title: Code
+        title:
+          type: string
+          title: Title
+        reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reason
+        status:
+          type: string
+          enum:
+          - WAITING
+          - RECEIVED
+          title: Status
+        filename:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Filename
+        content_type:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Content Type
+        size:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Size
+      additionalProperties: true
+      type: object
+      required:
+      - code
+      - title
+      - status
+      title: DocumentItemOut
+    DocumentRef:
+      properties:
+        request_id:
+          type: string
+          title: Request Id
+        code:
+          type: string
+          title: Code
+      type: object
+      required:
+      - request_id
+      - code
+      title: DocumentRef
+    DocumentRequestIn:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/DocumentAsk'
+          type: array
+          maxItems: 10
+          minItems: 1
+          title: Items
+        comment:
+          anyOf:
+          - type: string
+            maxLength: 1000
+          - type: 'null'
+          title: Comment
+      type: object
+      required:
+      - items
+      title: DocumentRequestIn
+    DocumentRequestOut:
+      properties:
+        id:
+          type: string
+          title: Id
+        comment:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Comment
+        status:
+          type: string
+          enum:
+          - OPEN
+          - COMPLETE
+          title: Status
+        items:
+          items:
+            $ref: '#/components/schemas/DocumentItemOut'
+          type: array
+          title: Items
+      additionalProperties: true
+      type: object
+      required:
+      - id
+      - status
+      - items
+      title: DocumentRequestOut
     EgrulData:
       properties:
         status:
@@ -2099,6 +2523,17 @@ components:
         message:
           type: string
           title: Message
+        reason:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Reason
+          description: Зачем банку это нужно (J9) — для запрошенных документов
+        document:
+          anyOf:
+          - $ref: '#/components/schemas/DocumentRef'
+          - type: 'null'
+          description: 'Если запрошен документ: куда загружать файл (S4.7)'
       type: object
       required:
       - field
@@ -2140,11 +2575,24 @@ components:
           title: Comment
       type: object
       title: InfoProvideIn
+    InfoQuestion:
+      properties:
+        field:
+          type: string
+          title: Field
+        message:
+          type: string
+          title: Message
+      type: object
+      required:
+      - field
+      - message
+      title: InfoQuestion
     InfoRequestIn:
       properties:
         items:
           items:
-            $ref: '#/components/schemas/InfoItem'
+            $ref: '#/components/schemas/InfoQuestion'
           type: array
           minItems: 1
           title: Items

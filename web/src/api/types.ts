@@ -19,3 +19,6 @@ export type CompanyField = Schemas['CompanyField'];
 export type DataSource = Schemas['DataSource'];
 export type ErrorOut = Schemas['ErrorOut'];
 export type DecisionIn = Schemas['DecisionIn'];
+export type InfoItem = Schemas['InfoItem'];
+export type DocumentRequest = Schemas['DocumentRequestOut'];
+export type DocumentItem = Schemas['DocumentItemOut'];

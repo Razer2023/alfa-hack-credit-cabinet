@@ -71,6 +71,43 @@ export async function api<T>(path: string, { method = 'GET', body }: RequestOpti
   return (await response.json()) as T;
 }
 
+/** Загрузка файла: тело — сам файл, имя — в заголовке X-Filename (S4.7). */
+export async function apiUpload<T>(path: string, file: File): Promise<T> {
+  const token = getToken();
+  const headers: Record<string, string> = {
+    'Content-Type': file.type || 'application/octet-stream',
+    'X-Filename': encodeURIComponent(file.name),
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
+  let response: Response;
+  try {
+    response = await fetch(BASE + path, { method: 'POST', headers, body: file });
+  } catch {
+    throw new ApiError(0, 'network', 'Нет связи с сервером. Проверьте подключение и попробуйте ещё раз');
+  }
+  if (response.status === 401 && token) onUnauthorized();
+  if (!response.ok) {
+    const error = (await response.json().catch(() => null)) as Partial<ErrorOut> | null;
+    throw new ApiError(response.status, error?.code ?? 'error', error?.message ?? 'Не удалось загрузить файл');
+  }
+  return (await response.json()) as T;
+}
+
+/** Скачать файл с авторизацией и отдать его браузеру. */
+export async function apiDownload(path: string, fallbackName: string): Promise<void> {
+  const token = getToken();
+  const response = await fetch(BASE + path, { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+  if (!response.ok) throw new ApiError(response.status, 'download', 'Не удалось скачать файл');
+  const disposition = response.headers.get('content-disposition') ?? '';
+  const encoded = /filename\*=UTF-8''([^;]+)/.exec(disposition)?.[1];
+  const url = URL.createObjectURL(await response.blob());
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = encoded ? decodeURIComponent(encoded) : fallbackName;
+  link.click();
+  URL.revokeObjectURL(url);
+}
+
 export function errorMessage(error: unknown): string {
   return error instanceof ApiError ? error.message : 'Что-то пошло не так, попробуйте ещё раз';
 }

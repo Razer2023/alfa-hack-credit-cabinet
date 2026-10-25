@@ -278,6 +278,43 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/applications/{application_id}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Документы, которые запросил банк (S4.7) */
+        get: operations["documents_api_v1_applications__application_id__documents_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/applications/{application_id}/documents/{request_id}/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Загрузить файл по запросу банка (S4.7)
+         * @description Тело запроса — сам файл (PDF, JPEG или PNG до 5 МБ), тип — в Content-Type, имя файла — в заголовке X-Filename (URL-encoded).
+         */
+        post: operations["upload_api_v1_applications__application_id__documents__request_id___code__post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/bank/applications": {
         parameters: {
             query?: never;
@@ -414,6 +451,60 @@ export interface paths {
         put?: never;
         /** Запросить данные у клиента (S4.4) */
         post: operations["info_request_api_v1_bank_applications__application_id__info_request_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/bank/applications/{application_id}/document-request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Запросить документы с пояснением, зачем каждый (S4.4)
+         * @description Заявка уходит клиенту в статус NEED_INFO; дополнить её можно только после загрузки всех файлов.
+         */
+        post: operations["document_request_api_v1_bank_applications__application_id__document_request_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/bank/applications/{application_id}/documents": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Документы по заявке */
+        get: operations["documents_api_v1_bank_applications__application_id__documents_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/bank/applications/{application_id}/documents/{request_id}/{code}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Скачать файл клиента */
+        get: operations["download_api_v1_bank_applications__application_id__documents__request_id___code__get"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -764,6 +855,71 @@ export interface components {
             /** Comment */
             comment?: string | null;
         };
+        /** DocumentAsk */
+        DocumentAsk: {
+            /**
+             * Title
+             * @example Договор с заказчиком
+             */
+            title: string;
+            /**
+             * Reason
+             * @description Зачем нужен документ — клиент увидит это пояснение (J9)
+             */
+            reason: string;
+        };
+        /** DocumentItemOut */
+        DocumentItemOut: {
+            /** Code */
+            code: string;
+            /** Title */
+            title: string;
+            /** Reason */
+            reason?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "WAITING" | "RECEIVED";
+            /** Filename */
+            filename?: string | null;
+            /** Content Type */
+            content_type?: string | null;
+            /** Size */
+            size?: number | null;
+        } & {
+            [key: string]: unknown;
+        };
+        /** DocumentRef */
+        DocumentRef: {
+            /** Request Id */
+            request_id: string;
+            /** Code */
+            code: string;
+        };
+        /** DocumentRequestIn */
+        DocumentRequestIn: {
+            /** Items */
+            items: components["schemas"]["DocumentAsk"][];
+            /** Comment */
+            comment?: string | null;
+        };
+        /** DocumentRequestOut */
+        DocumentRequestOut: {
+            /** Id */
+            id: string;
+            /** Comment */
+            comment?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "OPEN" | "COMPLETE";
+            /** Items */
+            items: components["schemas"]["DocumentItemOut"][];
+        } & {
+            [key: string]: unknown;
+        };
         /** EgrulData */
         EgrulData: {
             /** Status */
@@ -861,6 +1017,13 @@ export interface components {
             field: string;
             /** Message */
             message: string;
+            /**
+             * Reason
+             * @description Зачем банку это нужно (J9) — для запрошенных документов
+             */
+            reason?: string | null;
+            /** @description Если запрошен документ: куда загружать файл (S4.7) */
+            document?: components["schemas"]["DocumentRef"] | null;
         };
         /** InfoProvideIn */
         InfoProvideIn: {
@@ -877,10 +1040,17 @@ export interface components {
             /** Comment */
             comment?: string | null;
         };
+        /** InfoQuestion */
+        InfoQuestion: {
+            /** Field */
+            field: string;
+            /** Message */
+            message: string;
+        };
         /** InfoRequestIn */
         InfoRequestIn: {
             /** Items */
-            items: components["schemas"]["InfoItem"][];
+            items: components["schemas"]["InfoQuestion"][];
             /** Comment */
             comment?: string | null;
         };
@@ -2224,6 +2394,133 @@ export interface operations {
             };
         };
     };
+    documents_api_v1_applications__application_id__documents_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentRequestOut"][];
+                };
+            };
+            /** @description Нужно войти */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Недостаточно прав */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Действие недоступно в текущем статусе */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    upload_api_v1_applications__application_id__documents__request_id___code__post: {
+        parameters: {
+            query?: never;
+            header?: {
+                "content-type"?: string;
+                "x-filename"?: string;
+            };
+            path: {
+                request_id: string;
+                code: string;
+                application_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/pdf": string;
+                "image/jpeg": string;
+                "image/png": string;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentRequestOut"];
+                };
+            };
+            /** @description Нужно войти */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Недостаточно прав */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Действие недоступно в текущем статусе */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     queue_api_v1_bank_applications_get: {
         parameters: {
             query?: {
@@ -2667,6 +2964,188 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ApplicationBankOut"];
+                };
+            };
+            /** @description Нужно войти */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Недостаточно прав */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Действие недоступно в текущем статусе */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    document_request_api_v1_bank_applications__application_id__document_request_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DocumentRequestIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ApplicationBankOut"];
+                };
+            };
+            /** @description Нужно войти */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Недостаточно прав */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Действие недоступно в текущем статусе */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    documents_api_v1_bank_applications__application_id__documents_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                application_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DocumentRequestOut"][];
+                };
+            };
+            /** @description Нужно войти */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Недостаточно прав */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Действие недоступно в текущем статусе */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    download_api_v1_bank_applications__application_id__documents__request_id___code__get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+                code: string;
+                application_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/pdf": unknown;
+                    "image/jpeg": unknown;
+                    "image/png": unknown;
                 };
             };
             /** @description Нужно войти */

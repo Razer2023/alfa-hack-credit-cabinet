@@ -10,7 +10,7 @@ from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.clients import get_integrations, get_scoring
-from app.clients.base import ExternalNotFound, ExternalServiceError
+from app.clients.base import ExternalNotFound, ExternalRejected, ExternalServiceError
 from app.config import settings
 from app.db import as_utc, utcnow
 from app.errors import DomainError
@@ -84,11 +84,7 @@ def transition(
     message: str | None = None,
     payload: dict | None = None,
 ) -> ApplicationEvent:
-    roles = allowed_roles(app.status, to)
-    if roles is None:
-        raise DomainError("invalid_transition", f"Действие недоступно в статусе «{STATUS_INFO[app.status].title}»")
-    if actor.role not in roles:
-        raise DomainError("forbidden", "Недостаточно прав для этого действия", 403)
+    ensure_transition(app, to, actor)
     source = app.status
     app.status = to
     app.status_changed_at = utcnow()
@@ -104,6 +100,15 @@ def transition(
         from_status=source,
         to_status=to,
     )
+
+
+def ensure_transition(app: Application, to: S, actor: Actor) -> None:
+    """Проверка перехода без его выполнения — до обращения во внешние сервисы."""
+    roles = allowed_roles(app.status, to)
+    if roles is None:
+        raise DomainError("invalid_transition", f"Действие недоступно в статусе «{STATUS_INFO[app.status].title}»")
+    if actor.role not in roles:
+        raise DomainError("forbidden", "Недостаточно прав для этого действия", 403)
 
 
 def _require_status(app: Application, *statuses: S) -> None:
@@ -249,6 +254,7 @@ def confirm_code(
 
 def provide_info(session: Session, app: Application, actor: Actor, data: dict) -> None:
     _require_status(app, S.NEED_INFO)
+    _require_documents_uploaded(app)
     _apply_fields(app, data)
     requested = app.need_info
     app.need_info = None
@@ -449,6 +455,142 @@ def escalate(session: Session, app: Application, actor: Actor, comment: str | No
 def request_info(session: Session, app: Application, actor: Actor, items: list[dict], comment: str | None) -> None:
     app.need_info = {"items": items, "comment": comment, "requested_by": actor.role.value}
     transition(session, app, S.NEED_INFO, actor, "Банк попросил дополнить заявку", payload=app.need_info)
+
+
+# --- документы (S4.4, S4.7) ---------------------------------------------------------------
+# Файлы хранит сервис B, ядро ведёт сам запрос: что нужно, зачем (J9) и дошло ли до клиента.
+
+
+def request_documents(session: Session, app: Application, actor: Actor, asks: list[dict], comment: str | None) -> None:
+    """Сотрудник просит документы и для каждого пишет, зачем он нужен. Заявка уходит клиенту (NEED_INFO)."""
+    ensure_transition(app, S.NEED_INFO, actor)  # до создания запроса в B, чтобы не оставлять сирот
+    body = {
+        "application_id": str(app.id),
+        "inn": app.company.inn,
+        "comment": comment,
+        "items": [{"code": f"doc{n}", "title": ask["title"]} for n, ask in enumerate(asks, 1)],
+    }
+    try:
+        request = get_integrations().create_document_request(body)
+    except ExternalRejected as exc:
+        raise DomainError("document_request_rejected", exc.message, 422) from None
+    items = [
+        {
+            "field": f"document:{request['id']}:{item['code']}",
+            "message": item["title"],
+            "reason": ask["reason"],
+            "document": {"request_id": request["id"], "code": item["code"]},
+        }
+        for item, ask in zip(request["items"], asks, strict=True)
+    ]
+    app.need_info = {"items": items, "comment": comment, "requested_by": actor.role.value}
+    titles = ", ".join(ask["title"] for ask in asks)
+    transition(session, app, S.NEED_INFO, actor, f"Банк запросил документы: {titles}", payload=app.need_info)
+
+
+def _requested_documents(app: Application) -> list[dict]:
+    return [item for item in (app.need_info or {}).get("items", []) if item.get("document")]
+
+
+def _require_documents_uploaded(app: Application) -> None:
+    requested = _requested_documents(app)
+    if not requested:
+        return
+    status = {
+        (request["id"], item["code"]): item["status"]
+        for request in get_integrations().list_document_requests(str(app.id))
+        for item in request["items"]
+    }
+    missing = [
+        item["message"]
+        for item in requested
+        if status.get((item["document"]["request_id"], item["document"]["code"])) != "RECEIVED"
+    ]
+    if missing:
+        raise DomainError("documents_missing", f"Загрузите документы: {', '.join(missing)}", 422)
+
+
+def upload_document(
+    session: Session,
+    app: Application,
+    actor: Actor,
+    request_id: str,
+    code: str,
+    filename: str,
+    content_type: str,
+    payload: bytes,
+) -> dict:
+    _require_status(app, S.NEED_INFO)
+    item = next(
+        (i for i in _requested_documents(app) if i["document"] == {"request_id": request_id, "code": code}),
+        None,
+    )
+    if item is None:
+        raise DomainError("document_not_requested", "Банк не запрашивал такой документ", 404)
+    try:
+        request = get_integrations().upload_document(request_id, code, filename, content_type, payload)
+    except ExternalRejected as exc:
+        raise DomainError("document_rejected", exc.message, 422) from None
+    record_event(
+        session,
+        app,
+        actor,
+        "DOCUMENT_UPLOADED",
+        f"Загружен документ: {item['message']}",
+        payload={"request_id": request_id, "code": code, "filename": filename},
+    )
+    return _with_reasons(session, app, request)
+
+
+def list_documents(session: Session, app: Application) -> list[dict]:
+    requests = get_integrations().list_document_requests(str(app.id))
+    return [_with_reasons(session, app, request) for request in requests]
+
+
+def download_document(session: Session, app: Application, request_id: str, code: str) -> tuple[bytes, str, str]:
+    if request_id not in {r["id"] for r in get_integrations().list_document_requests(str(app.id))}:
+        raise DomainError("not_found", "Документ не найден", 404)
+    try:
+        payload, content_type, stored_name = get_integrations().download_document(request_id, code)
+    except ExternalNotFound:
+        raise DomainError("not_found", "Файл ещё не загружен", 404) from None
+    original = _document_journal(session, app)[1].get((request_id, code))
+    return payload, content_type, original or stored_name
+
+
+def _document_journal(session: Session, app: Application) -> tuple[dict, dict]:
+    """Сервис B хранит только название и имя файла латиницей. Пояснение «зачем» и исходное имя файла
+    (с кириллицей) ядро берёт из журнала заявки: (request_id, code) → reason / filename."""
+    reasons: dict[tuple[str, str], str | None] = {}
+    filenames: dict[tuple[str, str], str] = {}
+    events = session.scalars(
+        select(ApplicationEvent)
+        .where(ApplicationEvent.application_id == app.id)
+        .where((ApplicationEvent.to_status == S.NEED_INFO) | (ApplicationEvent.type == "DOCUMENT_UPLOADED"))
+        .order_by(ApplicationEvent.id)
+    )
+    for event in events:
+        payload = event.payload or {}
+        if event.type == "DOCUMENT_UPLOADED":
+            filenames[(payload["request_id"], payload["code"])] = payload["filename"]
+            continue
+        for item in payload.get("items", []):
+            if item.get("document"):
+                reasons[(item["document"]["request_id"], item["document"]["code"])] = item.get("reason")
+    return reasons, filenames
+
+
+def _with_reasons(session: Session, app: Application, request: dict) -> dict:
+    reasons, filenames = _document_journal(session, app)
+    items = [
+        item
+        | {
+            "reason": reasons.get((request["id"], item["code"])),
+            "filename": filenames.get((request["id"], item["code"]), item.get("filename")),
+        }
+        for item in request["items"]
+    ]
+    return request | {"items": items}
 
 
 # --- общее --------------------------------------------------------------------------------

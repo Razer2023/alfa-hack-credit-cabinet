@@ -1,6 +1,9 @@
 """Рабочее место банка: очередь заявок менеджера и карточка андеррайтера."""
 
+from urllib.parse import quote
+
 from fastapi import APIRouter, Depends, Query
+from fastapi.responses import Response
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -9,7 +12,17 @@ from app.db import get_session
 from app.deps import BANK_ROLES, bank_application, require
 from app.errors import DomainError
 from app.models import Application, ApplicationStatus, Role, User
-from app.schemas import ApplicationBankOut, DecisionIn, EscalateIn, EventOut, InfoRequestIn, OfferCheckIn, OfferCheckOut
+from app.schemas import (
+    ApplicationBankOut,
+    DecisionIn,
+    DocumentRequestIn,
+    DocumentRequestOut,
+    EscalateIn,
+    EventOut,
+    InfoRequestIn,
+    OfferCheckIn,
+    OfferCheckOut,
+)
 from app.service import Actor
 from app.views import bank_view, events_for
 
@@ -114,3 +127,48 @@ def info_request(
     service.request_info(session, app, Actor.of(user), items, body.comment)
     session.commit()
     return bank_view(app, user)
+
+
+@router.post(
+    "/{application_id}/document-request",
+    response_model=ApplicationBankOut,
+    summary="Запросить документы с пояснением, зачем каждый (S4.4)",
+    description="Заявка уходит клиенту в статус NEED_INFO; дополнить её можно только после загрузки всех файлов.",
+)
+def document_request(
+    body: DocumentRequestIn,
+    app: Application = Depends(bank_application),
+    user: User = Staff,
+    session: Session = Depends(get_session),
+):
+    asks = [ask.model_dump() for ask in body.items]
+    service.request_documents(session, app, Actor.of(user), asks, body.comment)
+    session.commit()
+    return bank_view(app, user)
+
+
+@router.get("/{application_id}/documents", response_model=list[DocumentRequestOut], summary="Документы по заявке")
+def documents(app: Application = Depends(bank_application), user: User = Staff, session: Session = Depends(get_session)):
+    return service.list_documents(session, app)
+
+
+@router.get(
+    "/{application_id}/documents/{request_id}/{code}",
+    summary="Скачать файл клиента",
+    response_class=Response,
+    responses={200: {"content": {"application/pdf": {}, "image/jpeg": {}, "image/png": {}}}},
+)
+def download(
+    request_id: str,
+    code: str,
+    app: Application = Depends(bank_application),
+    user: User = Staff,
+    session: Session = Depends(get_session),
+):
+    return _file_response(*service.download_document(session, app, request_id, code))
+
+
+def _file_response(payload: bytes, content_type: str, filename: str) -> Response:
+    # Имя файла — по RFC 5987, чтобы кириллица не ломала заголовок
+    disposition = f"attachment; filename*=UTF-8''{quote(filename)}"
+    return Response(content=payload, media_type=content_type, headers={"Content-Disposition": disposition})

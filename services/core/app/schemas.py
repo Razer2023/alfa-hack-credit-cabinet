@@ -127,9 +127,16 @@ class ApplicationForm(BaseModel):
     extra: dict[str, Any] = Field(default_factory=dict, description="Сведения, которые ввёл клиент")
 
 
+class DocumentRef(BaseModel):
+    request_id: str
+    code: str
+
+
 class InfoItem(BaseModel):
     field: str
     message: str
+    reason: str | None = Field(None, description="Зачем банку это нужно (J9) — для запрошенных документов")
+    document: DocumentRef | None = Field(None, description="Если запрошен документ: куда загружать файл (S4.7)")
 
 
 class NeedInfo(BaseModel):
@@ -338,9 +345,43 @@ class EscalateIn(BaseModel):
     comment: str | None = Field(None, max_length=1000)
 
 
+class InfoQuestion(BaseModel):
+    field: str
+    message: str
+
+
 class InfoRequestIn(BaseModel):
-    items: list[InfoItem] = Field(min_length=1)
+    items: list[InfoQuestion] = Field(min_length=1)
     comment: str | None = Field(None, max_length=1000)
+
+
+class DocumentAsk(BaseModel):
+    title: str = Field(min_length=1, max_length=200, examples=["Договор с заказчиком"])
+    reason: str = Field(
+        min_length=1, max_length=500, description="Зачем нужен документ — клиент увидит это пояснение (J9)"
+    )
+
+
+class DocumentRequestIn(BaseModel):
+    items: list[DocumentAsk] = Field(min_length=1, max_length=10)
+    comment: str | None = Field(None, max_length=1000)
+
+
+class DocumentItemOut(Open):
+    code: str
+    title: str
+    reason: str | None = None
+    status: Literal["WAITING", "RECEIVED"]
+    filename: str | None = None
+    content_type: str | None = None
+    size: int | None = None
+
+
+class DocumentRequestOut(Open):
+    id: str
+    comment: str | None = None
+    status: Literal["OPEN", "COMPLETE"]
+    items: list[DocumentItemOut]
 
 
 class StatusReferenceOut(BaseModel):

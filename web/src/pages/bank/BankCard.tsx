@@ -20,6 +20,8 @@ import { formatDateTime, formatMonths } from '../../format';
 import { navigate } from '../../router';
 import { OfferFacts } from '../client/OfferFacts';
 import { DecisionForm } from './DecisionForm';
+import { DocumentRequestForm } from './DocumentRequestForm';
+import { DocumentsPanel } from './DocumentsPanel';
 import { InfoRequestForm } from './InfoRequestForm';
 import styles from './Bank.module.css';
 
@@ -160,6 +162,16 @@ export function BankCard({ id }: BankCardProps) {
           <Gap size={16} />
         </>
       )}
+      {actions.includes('REQUEST_DOCUMENTS') && (
+        <>
+          <Plate view='common' rounded={true} border={true} title='Запросить документы' foldable={true} defaultFolded={true}>
+            <DocumentRequestForm application={application} onChange={onChange} />
+          </Plate>
+          <Gap size={16} />
+        </>
+      )}
+      <DocumentsPanel applicationId={application.id} version={events.length} />
+      <Gap size={16} />
 
       <div className={styles.grid}>
         <div>
