@@ -5,6 +5,7 @@ import { Plate } from '@alfalab/core-components/plate';
 import { Spinner } from '@alfalab/core-components/spinner';
 import { Typography } from '@alfalab/core-components/typography';
 
+import { Card } from '../../components/Card';
 import { api, errorMessage } from '../../api/client';
 import type { Application, ApplicationEvent, Product, ProductMatch } from '../../api/types';
 import { ApplicationSummary } from '../../components/ApplicationSummary';
@@ -141,10 +142,10 @@ export function ClientHome() {
           </aside>
         </div>
       ) : (
-        <Plate view='common' rounded={true} title='Начните с выбора кредита'
+        <Card title='Начните с выбора кредита'
           buttons={[<Button key='products' view='accent' size={48} href='#/products'>Посмотреть продукты</Button>]}>
           <Typography.Text view='primary-medium' color='secondary'>Здесь появятся ваши заявки, решения банка и следующие шаги.</Typography.Text>
-        </Plate>
+        </Card>
       )}
     </>
   );

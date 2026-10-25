@@ -5,6 +5,7 @@ import { Plate } from '@alfalab/core-components/plate';
 import { Spinner } from '@alfalab/core-components/spinner';
 import { Typography } from '@alfalab/core-components/typography';
 
+import { Card } from '../../components/Card';
 import { api, errorMessage } from '../../api/client';
 import type { Application, ApplicationEvent, Product } from '../../api/types';
 import { ChatPanel } from '../../components/ChatPanel';
@@ -114,15 +115,15 @@ export function ApplicationPage({ id }: ApplicationPageProps) {
         <aside>
           {application.status.code !== 'DRAFT' && application.status.code !== 'CANCELLED' && (
             <>
-              <Plate view='common' rounded={true} border={true} title='Путь заявки'>
+              <Card title='Путь заявки'>
                 <Tracker status={application.status.code} events={events} sla={application.status.sla} />
-              </Plate>
+              </Card>
               <Gap size={16} />
             </>
           )}
-          <Plate view='common' rounded={true} border={true} title='История'>
+          <Card title='История'>
             <EventList events={events} />
-          </Plate>
+          </Card>
         </aside>
       </div>
     </>
@@ -156,16 +157,16 @@ function StatusContent({ application, product, onChange }: StatusContentProps) {
     }
     case 'CANCELLED':
       return (
-        <Plate view='common' rounded={true} border={true} title='Заявка отменена'>
+        <Card title='Заявка отменена'>
           <Typography.Text view='primary-small' color='secondary'>
             Чтобы получить кредит, оформите новую заявку из каталога.
           </Typography.Text>
-        </Plate>
+        </Card>
       );
     default:
       // SUBMITTED, CHECKING, SCORING, MANUAL_REVIEW, SIGNED — ждём банк, статус обновится сам
       return (
-        <Plate view='common' rounded={true} border={true} title={application.status.title}>
+        <Card title={application.status.title}>
           <div className={styles.waiting}>
             <Spinner preset={24} visible={true} />
             <Typography.Text view='primary-medium'>{application.status.hint}</Typography.Text>
@@ -174,7 +175,7 @@ function StatusContent({ application, product, onChange }: StatusContentProps) {
           <Typography.Text view='primary-small' color='secondary'>
             Страницу обновлять не нужно — статус изменится автоматически.
           </Typography.Text>
-        </Plate>
+        </Card>
       );
   }
 }

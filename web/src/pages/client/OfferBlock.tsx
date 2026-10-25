@@ -4,6 +4,7 @@ import { Gap } from '@alfalab/core-components/gap';
 import { Plate } from '@alfalab/core-components/plate';
 import { Typography } from '@alfalab/core-components/typography';
 
+import { Card } from '../../components/Card';
 import { api, errorMessage } from '../../api/client';
 import type { Application, CodeRequest, Offer } from '../../api/types';
 import { CodeConfirm } from '../../components/CodeConfirm';
@@ -58,7 +59,7 @@ export function OfferBlock({ application, onChange }: OfferBlockProps) {
   if (application.status.code === 'COUNTER_OFFER') {
     const proposed = application.offers.filter((offer) => offer.status === 'PROPOSED');
     return (
-      <Plate view='common' rounded={true} border={true} title='Банк предлагает другие условия'>
+      <Card title='Банк предлагает другие условия'>
         {reasons.map((reason) => (
           <Typography.Text key={reason.code} view='primary-medium' tag='p' defaultMargins={false}>
             {reason.text}
@@ -90,7 +91,7 @@ export function OfferBlock({ application, onChange }: OfferBlockProps) {
           Отказаться
         </Button>
         {errorText}
-      </Plate>
+      </Card>
     );
   }
 

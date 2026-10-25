@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@alfalab/core-components/button';
-import { Plate } from '@alfalab/core-components/plate';
 import { Status } from '@alfalab/core-components/status';
 import { Typography } from '@alfalab/core-components/typography';
 
+import { Card } from '../../components/Card';
 import { api, apiDownload, errorMessage } from '../../api/client';
 import type { DocumentRequest } from '../../api/types';
 import styles from './Bank.module.css';
@@ -36,7 +36,7 @@ export function DocumentsPanel({ applicationId, version }: DocumentsPanelProps) 
   }
 
   return (
-    <Plate view='common' rounded={true} border={true} title='Документы клиента'>
+    <Card title='Документы клиента'>
       {error && (
         <Typography.Text view='primary-small' color='negative' tag='p' defaultMargins={false}>
           {error}
@@ -71,6 +71,6 @@ export function DocumentsPanel({ applicationId, version }: DocumentsPanelProps) 
           </div>
         )),
       )}
-    </Plate>
+    </Card>
   );
 }
