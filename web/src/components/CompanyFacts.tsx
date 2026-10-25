@@ -4,6 +4,7 @@ import { Status } from '@alfalab/core-components/status';
 import type { CompanyField } from '../api/types';
 import { COMPANY_FIELDS, SOURCE_LABEL, formatCompanyValue } from '../format';
 import { FactList } from './FactList';
+import { Term } from './Term';
 
 type CompanyFactsProps = {
   company: Record<string, CompanyField>;
@@ -17,9 +18,11 @@ export function CompanyFacts({ company }: CompanyFactsProps) {
       <>
         {formatCompanyValue(field, value)}
         <Gap size={4} />
-        <Status view='muted-alt' color='blue' size={20}>
-          {SOURCE_LABEL[source]}
-        </Status>
+        <Term name={SOURCE_LABEL[source]}>
+          <Status view='muted-alt' color='blue' size={20}>
+            {SOURCE_LABEL[source]}
+          </Status>
+        </Term>
       </>
     ),
   }));

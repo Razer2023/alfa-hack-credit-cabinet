@@ -1,0 +1,19 @@
+/* Подсказки к терминам (S3.5): пунктир показывает, что слово можно нажать */
+.term {
+  padding: 0;
+  border: none;
+  border-bottom: 1px dashed currentColor;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: help;
+}
+
+.term:focus-visible {
+  outline: 2px solid var(--color-light-accent-primary);
+  outline-offset: 2px;
+}
+
+.content {
+  max-width: 320px;
+}

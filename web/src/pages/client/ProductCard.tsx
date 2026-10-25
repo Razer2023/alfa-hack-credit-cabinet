@@ -5,6 +5,7 @@ import { Typography } from '@alfalab/core-components/typography';
 
 import type { Product, ProductMatch } from '../../api/types';
 import alfaMark from '../../assets/alfa-mark.svg';
+import { Term } from '../../components/Term';
 import { formatRub } from '../../format';
 import { PrecheckPanel } from './PrecheckPanel';
 import styles from './ProductCard.module.css';
@@ -51,11 +52,11 @@ export function ProductCard({ product, loading, disabled, onApply, match }: Prod
       </div>
       <dl className={styles.terms}>
         <div>
-          <dt><Typography.Text view='primary-small' color='secondary'>Ставка</Typography.Text></dt>
+          <dt><Typography.Text view='primary-small' color='secondary'><Term>Ставка</Term></Typography.Text></dt>
           <dd><Typography.Text view='primary-medium' weight='bold'>от {product.base_rate}% годовых</Typography.Text></dd>
         </div>
         <div>
-          <dt><Typography.Text view='primary-small' color='secondary'>Срок</Typography.Text></dt>
+          <dt><Typography.Text view='primary-small' color='secondary'><Term>Срок</Term></Typography.Text></dt>
           <dd><Typography.Text view='primary-medium' weight='bold'>{product.min_term_months}–{product.max_term_months} мес.</Typography.Text></dd>
         </div>
       </dl>

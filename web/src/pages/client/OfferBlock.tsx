@@ -8,6 +8,7 @@ import { api, errorMessage } from '../../api/client';
 import type { Application, CodeRequest, Offer } from '../../api/types';
 import { CodeConfirm } from '../../components/CodeConfirm';
 import { OfferFacts } from './OfferFacts';
+import { Term } from '../../components/Term';
 import styles from './Forms.module.css';
 
 type OfferBlockProps = {
@@ -63,6 +64,9 @@ export function OfferBlock({ application, onChange }: OfferBlockProps) {
             {reason.text}
           </Typography.Text>
         ))}
+        <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
+          Это <Term name='Контрпредложение'>контрпредложение</Term>: условия можно принять или отказаться.
+        </Typography.Text>
         <Gap size={16} />
         <div className={styles.offers}>
           {proposed.map((offer) => (
