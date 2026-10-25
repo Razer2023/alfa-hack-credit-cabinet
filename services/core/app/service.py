@@ -358,6 +358,9 @@ def decide_manual(session: Session, app: Application, actor: Actor, data: dict) 
     }
     if result == "COUNTER_OFFER" and not (data.get("amount") or data.get("term_months") or recommended):
         raise DomainError("counter_terms_required", "Для контрпредложения укажите сумму или срок", 422)
+    kind = OfferKind.COUNTER if result == "COUNTER_OFFER" else OfferKind.STANDARD
+    target = S.COUNTER_OFFER if kind == OfferKind.COUNTER else S.APPROVED
+    ensure_transition(app, target, actor)  # сначала права, потом проверка условий в скоринге
 
     # S5.4: условия сотрудника проходят ту же политику, что и автоматическое решение
     check = check_terms(app, terms)
@@ -365,7 +368,6 @@ def decide_manual(session: Session, app: Application, actor: Actor, data: dict) 
     if override:
         _require_override_right(actor, check, comment)
 
-    kind = OfferKind.COUNTER if result == "COUNTER_OFFER" else OfferKind.STANDARD
     offer = add_offer(session, app, terms, kind, actor.role)
     # Сотрудник подтвердил рекомендацию скоринга — клиент видит её объяснение (почему другие условия)
     scoring = app.scoring or {}
@@ -379,7 +381,6 @@ def decide_manual(session: Session, app: Application, actor: Actor, data: dict) 
         "checks": checks,
         "override": override,
     }
-    target = S.COUNTER_OFFER if kind == OfferKind.COUNTER else S.APPROVED
     message = "Банк подтвердил одобрение" if target == S.APPROVED else "Банк предложил другие условия"
     transition(session, app, target, actor, message, payload={"offer_id": str(offer.id), "amount": offer.amount})
     if override:
@@ -568,6 +569,10 @@ def match_products(
 # --- предоценка (S2.1) --------------------------------------------------------------------
 # Тот же путь, что у заявки: профиль и проверки в B, решение в C — но без сохранения результата.
 
+# Причины скоринга про запрошенные условия (сумма, срок, платёж). Без суммы клиент их не запрашивал —
+# ядро само спрашивало максимум продукта, поэтому такие причины клиенту не показываем
+REQUESTED_TERMS_REASONS = frozenset({"AMOUNT_OVER_PRODUCT", "AMOUNT_OVER_LIMIT", "TERM_ADJUSTED", "PAYMENT_TOO_HIGH"})
+
 PRECHECK_TEXT = {
     "APPROVE": ("HIGH", "Шансы высокие"),
     "COUNTER_OFFER": ("MEDIUM", "Одобрим, но на других условиях"),
@@ -610,7 +615,15 @@ def precheck(user: User, data: dict) -> dict:
     if offer and (best_offer is None or offer["amount"] > best_offer["amount"]):
         best_offer = offer
 
-    chance, title = PRECHECK_TEXT[result["result"]]
+    reasons = result.get("reasons", [])
+    outcome = result["result"]
+    if not asked:
+        reasons = [reason for reason in reasons if reason["code"] not in REQUESTED_TERMS_REASONS]
+        # Скоринг назвал меньший лимит, чем максимум продукта, — для вопроса «сколько дадут» это и есть ответ
+        if outcome == "COUNTER_OFFER" and offer:
+            outcome = "APPROVE"
+
+    chance, title = PRECHECK_TEXT[outcome]
     terms = None
     if offer:
         payment = scoring.calc_payment(offer["amount"], offer["term_months"], float(offer["rate"]))
@@ -624,11 +637,11 @@ def precheck(user: User, data: dict) -> dict:
         "product_code": product["code"],
         "chance": chance,
         "title": title,
-        "explanation": _precheck_explanation(result["result"], terms, asked),
+        "explanation": _precheck_explanation(outcome, terms, asked),
         "max_amount": best_offer["amount"] if best_offer else None,
         "max_amount_term_months": best_offer["term_months"] if best_offer else None,
         "terms": terms,
-        "reasons": [reason["text"] for reason in result.get("reasons", [])],
+        "reasons": [reason["text"] for reason in reasons],
     }
 
 
