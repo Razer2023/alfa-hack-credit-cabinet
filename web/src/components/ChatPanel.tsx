@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { Button } from '@alfalab/core-components/button';
 import { Plate } from '@alfalab/core-components/plate';
 import { Textarea } from '@alfalab/core-components/textarea';
@@ -16,10 +16,12 @@ type ChatPanelProps = {
   // Клиент пишет в /applications, сотрудник — в /bank/applications
   basePath: '/applications' | '/bank/applications';
   title: string;
+  // Шапка над перепиской — у клиента это его менеджер (S4.9)
+  header?: ReactNode;
 };
 
 // Переписка по заявке внутри кабинета (S4.10): новые сообщения приходят по общему SSE-потоку
-export function ChatPanel({ applicationId, basePath, title }: ChatPanelProps) {
+export function ChatPanel({ applicationId, basePath, title, header }: ChatPanelProps) {
   const user = useUser();
   const isClient = user.role === 'CLIENT';
   const path = `${basePath}/${applicationId}/messages`;
@@ -65,6 +67,7 @@ export function ChatPanel({ applicationId, basePath, title }: ChatPanelProps) {
 
   return (
     <Plate view='common' rounded={true} border={true} title={title}>
+      {header}
       {messages.length === 0 ? (
         <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
           {isClient ? 'Задайте вопрос по заявке — менеджер ответит здесь же.' : 'Клиент пока ничего не писал.'}
@@ -96,25 +99,28 @@ export function ChatPanel({ applicationId, basePath, title }: ChatPanelProps) {
           })}
         </div>
       )}
-      <Textarea
-        label='Сообщение'
-        block={true}
-        minRows={2}
-        maxLength={2000}
-        value={text}
-        onChange={(_, { value }) => setText(value)}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) send();
-        }}
-      />
+      <div className={styles.composer}>
+        <Textarea
+          label='Сообщение'
+          block={true}
+          minRows={1}
+          maxLength={2000}
+          value={text}
+          hint='Ctrl + Enter — отправить'
+          onChange={(_, { value }) => setText(value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) send();
+          }}
+        />
+        <Button view='accent' size={56} loading={busy} disabled={!text.trim()} onClick={send}>
+          Отправить
+        </Button>
+      </div>
       {error && (
         <Typography.Text view='primary-small' color='negative' tag='p' defaultMargins={false}>
           {error}
         </Typography.Text>
       )}
-      <Button view='secondary' size={40} loading={busy} disabled={!text.trim()} onClick={send}>
-        Отправить
-      </Button>
     </Plate>
   );
 }

@@ -29,3 +29,4 @@ export type ChatMessage = Schemas['MessageOut'];
 export type ProductMatch = Schemas['ProductMatchOut'];
 export type Dashboard = Schemas['DashboardOut'];
 export type DashboardStage = Schemas['DashboardStage'];
+export type Purposes = Schemas['PurposesOut'];

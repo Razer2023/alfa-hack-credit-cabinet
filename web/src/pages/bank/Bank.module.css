@@ -67,8 +67,18 @@ td.wrap {
   margin-bottom: var(--gap-12);
 }
 
+/* Вопрос клиенту: поле на всю ширину и «Убрать» */
+.question {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--gap-12);
+  align-items: start;
+  margin-bottom: var(--gap-12);
+}
+
 @media (max-width: 900px) {
-  .ask {
+  .ask,
+  .question {
     grid-template-columns: minmax(0, 1fr);
   }
 }

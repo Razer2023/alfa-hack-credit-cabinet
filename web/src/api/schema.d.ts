@@ -62,7 +62,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Цели кредита для подбора продукта (S1.2) */
+        /** Цели кредита под бизнес клиента (S1.2) */
         get: operations["purposes_api_v1_products_purposes_get"];
         put?: never;
         post?: never;
@@ -521,7 +521,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Запросить данные у клиента (S4.4) */
+        /** Запросить у клиента данные и документы одним запросом (S4.4) */
         post: operations["info_request_api_v1_bank_applications__application_id__info_request_post"];
         delete?: never;
         options?: never;
@@ -1240,8 +1240,18 @@ export interface components {
         };
         /** InfoRequestIn */
         InfoRequestIn: {
-            /** Items */
+            /**
+             * Items
+             * @description Вопросы клиенту
+             * @default []
+             */
             items: components["schemas"]["InfoQuestion"][];
+            /**
+             * Documents
+             * @description Документы с пояснением, зачем каждый — в том же запросе
+             * @default []
+             */
+            documents: components["schemas"]["DocumentAsk"][];
             /** Comment */
             comment?: string | null;
         };
@@ -1470,6 +1480,11 @@ export interface components {
              * @description Цель кредита: из списка /products/purposes или своя
              */
             purpose: string;
+            /**
+             * Title
+             * @description Формулировка цели для бизнеса клиента — для пояснений
+             */
+            title?: string | null;
             /** Amount */
             amount?: number | null;
             /** Term Months */
@@ -1523,6 +1538,29 @@ export interface components {
              * @default []
              */
             purposes: string[];
+        };
+        /** PurposeOut */
+        PurposeOut: {
+            /**
+             * Title
+             * @description Формулировка для бизнеса клиента — её видит клиент и она попадает в заявку
+             */
+            title: string;
+            /**
+             * Purpose
+             * @description Цель каталога, по которой подбирается продукт
+             */
+            purpose: string;
+        };
+        /** PurposesOut */
+        PurposesOut: {
+            /**
+             * Business
+             * @description Отрасль клиента по ОКВЭД; пусто — цели как в каталоге
+             */
+            business?: string | null;
+            /** Items */
+            items: components["schemas"]["PurposeOut"][];
         };
         /** Reason */
         Reason: {
@@ -1841,7 +1879,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": string[];
+                    "application/json": components["schemas"]["PurposesOut"];
                 };
             };
             /** @description Нужно войти */

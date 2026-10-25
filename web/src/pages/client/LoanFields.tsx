@@ -88,14 +88,6 @@ export function LoanFields({ product, terms, onChange }: LoanFieldsProps) {
               {payment.rate}%
             </Typography.Title>
           </div>
-          <div>
-            <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
-              <Term>Переплата</Term>
-            </Typography.Text>
-            <Typography.Title tag='div' view='small' font='system'>
-              <Money value={payment.overpayment} />
-            </Typography.Title>
-          </div>
         </div>
       )}
     </>

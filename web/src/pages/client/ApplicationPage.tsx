@@ -99,20 +99,19 @@ export function ApplicationPage({ id }: ApplicationPageProps) {
           <ApplicationSummary application={application} productName={product?.name ?? application.product_code} />
           <Gap size={24} />
           <StatusContent application={application} product={product} onChange={onChange} />
-        </section>
-        <aside>
-          {application.manager && (
-            <>
-              <ManagerContact manager={application.manager} />
-              <Gap size={16} />
-            </>
-          )}
           {application.status.code !== 'DRAFT' && (
             <>
-              <ChatPanel applicationId={application.id} basePath='/applications' title='Чат с банком' />
-              <Gap size={16} />
+              <Gap size={24} />
+              <ChatPanel
+                applicationId={application.id}
+                basePath='/applications'
+                title={application.manager ? 'Ваш менеджер' : 'Чат с банком'}
+                header={application.manager && <ManagerContact manager={application.manager} />}
+              />
             </>
           )}
+        </section>
+        <aside>
           {application.status.code !== 'DRAFT' && application.status.code !== 'CANCELLED' && (
             <>
               <Plate view='common' rounded={true} border={true} title='Путь заявки'>
