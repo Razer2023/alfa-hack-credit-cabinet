@@ -89,6 +89,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/precheck": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Предоценка суммы и шансов по ИНН (S2.1)
+         * @description До подачи заявки: та же проверка данных компании (ЕГРЮЛ, ФНС, БКИ, выписка) и та же скоринговая логика, что у заявки, но без сохранения результата и без запроса в кредитную историю от имени заявки. Без суммы и срока — оценивает только максимум по продукту.
+         */
+        post: operations["precheck_api_v1_precheck_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/applications": {
         parameters: {
             query?: never;
@@ -1191,6 +1211,61 @@ export interface components {
             /** Overpayment */
             overpayment: number;
         };
+        /** PrecheckIn */
+        PrecheckIn: {
+            /** Product Code */
+            product_code: string;
+            /**
+             * Amount
+             * @description Не указана — оцениваем только максимум
+             */
+            amount?: number | null;
+            /** Term Months */
+            term_months?: number | null;
+        };
+        /**
+         * PrecheckOut
+         * @description Предварительная оценка (S2.1): ничего не сохраняется и не влияет на кредитную историю.
+         */
+        PrecheckOut: {
+            /** Product Code */
+            product_code: string;
+            /**
+             * Chance
+             * @description HIGH — скорее одобрим, MEDIUM — на других условиях или решит специалист, LOW — сейчас вряд ли
+             * @enum {string}
+             */
+            chance: "HIGH" | "MEDIUM" | "LOW";
+            /** Title */
+            title: string;
+            /** Explanation */
+            explanation: string;
+            /**
+             * Max Amount
+             * @description Сколько можно получить по этому продукту — по данным ЕГРЮЛ, ФНС, БКИ и выписки
+             */
+            max_amount?: number | null;
+            /** Max Amount Term Months */
+            max_amount_term_months?: number | null;
+            /** @description Ориентировочные условия на запрошенную сумму и срок (или на максимум) */
+            terms?: components["schemas"]["PrecheckTerms"] | null;
+            /**
+             * Reasons
+             * @description Что влияет на оценку — человеческим языком
+             */
+            reasons?: string[];
+        };
+        /** PrecheckTerms */
+        PrecheckTerms: {
+            /** Amount */
+            amount: number;
+            /** Term Months */
+            term_months: number;
+            /** Rate */
+            rate: number;
+            /** Monthly Payment */
+            monthly_payment: number;
+        };
         /** PrefillIn */
         PrefillIn: {
             /** Inn */
@@ -1620,6 +1695,66 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+        };
+    };
+    precheck_api_v1_precheck_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["PrecheckIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PrecheckOut"];
+                };
+            };
+            /** @description Нужно войти */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Недостаточно прав */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Действие недоступно в текущем статусе */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

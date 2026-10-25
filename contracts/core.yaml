@@ -197,6 +197,54 @@ paths:
                 $ref: '#/components/schemas/ErrorOut'
       security:
       - HTTPBearer: []
+  /api/v1/precheck:
+    post:
+      tags:
+      - Справочники
+      summary: Предоценка суммы и шансов по ИНН (S2.1)
+      description: 'До подачи заявки: та же проверка данных компании (ЕГРЮЛ, ФНС, БКИ, выписка) и та же скоринговая логика,
+        что у заявки, но без сохранения результата и без запроса в кредитную историю от имени заявки. Без суммы и срока —
+        оценивает только максимум по продукту.'
+      operationId: precheck_api_v1_precheck_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PrecheckIn'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PrecheckOut'
+        '401':
+          description: Нужно войти
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '403':
+          description: Недостаточно прав
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '409':
+          description: Действие недоступно в текущем статусе
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorOut'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+      security:
+      - HTTPBearer: []
   /api/v1/applications:
     get:
       tags:
@@ -2848,6 +2896,100 @@ components:
       - total_payment
       - overpayment
       title: PaymentCalcOut
+    PrecheckIn:
+      properties:
+        product_code:
+          type: string
+          title: Product Code
+        amount:
+          anyOf:
+          - type: integer
+            maximum: 1000000000.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Amount
+          description: Не указана — оцениваем только максимум
+        term_months:
+          anyOf:
+          - type: integer
+            maximum: 120.0
+            exclusiveMinimum: 0.0
+          - type: 'null'
+          title: Term Months
+      type: object
+      required:
+      - product_code
+      title: PrecheckIn
+    PrecheckOut:
+      properties:
+        product_code:
+          type: string
+          title: Product Code
+        chance:
+          type: string
+          enum:
+          - HIGH
+          - MEDIUM
+          - LOW
+          title: Chance
+          description: HIGH — скорее одобрим, MEDIUM — на других условиях или решит специалист, LOW — сейчас вряд ли
+        title:
+          type: string
+          title: Title
+        explanation:
+          type: string
+          title: Explanation
+        max_amount:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Max Amount
+          description: Сколько можно получить по этому продукту — по данным ЕГРЮЛ, ФНС, БКИ и выписки
+        max_amount_term_months:
+          anyOf:
+          - type: integer
+          - type: 'null'
+          title: Max Amount Term Months
+        terms:
+          anyOf:
+          - $ref: '#/components/schemas/PrecheckTerms'
+          - type: 'null'
+          description: Ориентировочные условия на запрошенную сумму и срок (или на максимум)
+        reasons:
+          items:
+            type: string
+          type: array
+          title: Reasons
+          description: Что влияет на оценку — человеческим языком
+      type: object
+      required:
+      - product_code
+      - chance
+      - title
+      - explanation
+      title: PrecheckOut
+      description: 'Предварительная оценка (S2.1): ничего не сохраняется и не влияет на кредитную историю.'
+    PrecheckTerms:
+      properties:
+        amount:
+          type: integer
+          title: Amount
+        term_months:
+          type: integer
+          title: Term Months
+        rate:
+          type: number
+          title: Rate
+        monthly_payment:
+          type: integer
+          title: Monthly Payment
+      type: object
+      required:
+      - amount
+      - term_months
+      - rate
+      - monthly_payment
+      title: PrecheckTerms
     PrefillIn:
       properties:
         inn:

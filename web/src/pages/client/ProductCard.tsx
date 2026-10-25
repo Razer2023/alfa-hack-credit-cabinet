@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { Button } from '@alfalab/core-components/button';
 import { Typography } from '@alfalab/core-components/typography';
 
 import type { Product } from '../../api/types';
 import alfaMark from '../../assets/alfa-mark.svg';
 import { formatRub } from '../../format';
+import { PrecheckPanel } from './PrecheckPanel';
 import styles from './ProductCard.module.css';
 
 type ProductCardProps = {
@@ -15,6 +17,7 @@ type ProductCardProps = {
 
 /** Каталог использует ту же белую поверхность и фирменный акцент, что и обзор. */
 export function ProductCard({ product, loading, disabled, onApply }: ProductCardProps) {
+  const [precheck, setPrecheck] = useState(false);
   return (
     <article className={styles.card} aria-label={product.name}>
       <div className={styles.intro}>
@@ -39,6 +42,13 @@ export function ProductCard({ product, loading, disabled, onApply }: ProductCard
           <dd><Typography.Text view='primary-medium' weight='bold'>{product.min_term_months}–{product.max_term_months} мес.</Typography.Text></dd>
         </div>
       </dl>
+      {precheck ? (
+        <PrecheckPanel product={product} />
+      ) : (
+        <Button view='transparent' size={40} block={true} onClick={() => setPrecheck(true)}>
+          Узнать шансы и сумму по ИНН
+        </Button>
+      )}
       <Button view='accent' size={48} block={true} loading={loading} disabled={disabled}
         onClick={onApply} aria-label={`Оформить заявку: ${product.name}`}>Оформить заявку</Button>
       <Typography.Text className={styles.note} view='secondary-large' color='secondary' tag='p' defaultMargins={false}>

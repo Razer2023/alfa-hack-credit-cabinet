@@ -457,6 +457,91 @@ def request_info(session: Session, app: Application, actor: Actor, items: list[d
     transition(session, app, S.NEED_INFO, actor, "Банк попросил дополнить заявку", payload=app.need_info)
 
 
+# --- предоценка (S2.1) --------------------------------------------------------------------
+# Тот же путь, что у заявки: профиль и проверки в B, решение в C — но без сохранения результата.
+
+PRECHECK_TEXT = {
+    "APPROVE": ("HIGH", "Шансы высокие"),
+    "COUNTER_OFFER": ("MEDIUM", "Одобрим, но на других условиях"),
+    "MANUAL_REVIEW": ("MEDIUM", "Решение примет кредитный специалист"),
+    "REJECT": ("LOW", "Сейчас одобрить вряд ли получится"),
+}
+
+
+def precheck(user: User, data: dict) -> dict:
+    scoring, integrations = get_scoring(), get_integrations()
+    try:
+        product = scoring.get_product(data["product_code"])
+    except ExternalNotFound:
+        raise DomainError("unknown_product", "Такого кредитного продукта нет", 422) from None
+    inn = user.company.inn
+    try:
+        fields = integrations.company_profile(inn)["fields"]
+    except ExternalNotFound:
+        raise DomainError("company_not_found", "Не нашли компанию по ИНН — оценка недоступна", 404) from None
+    company = {name: field["value"] for name, field in fields.items()}
+
+    def snapshot_for(amount: int, term: int) -> dict:
+        application = {"product_code": product["code"], "amount": amount, "term_months": term, "purpose": "Предоценка"}
+        return {"application_id": "precheck", "inn": inn, "application": application, "company": company, "extra": {}}
+
+    enrichment = integrations.check_application(snapshot_for(product["max_amount"], product["max_term_months"]))["enrichment"]
+
+    def decide(amount: int, term: int) -> dict:
+        return scoring.decide(snapshot_for(amount, term) | {"enrichment": enrichment})
+
+    # Максимум: просим верхнюю границу продукта — скоринг либо согласится, либо назовёт лимит
+    best = decide(product["max_amount"], product["max_term_months"])
+    best_offer = (best.get("offers") or [None])[0] if best["result"] in ("APPROVE", "COUNTER_OFFER") else None
+
+    asked = data.get("amount") and data.get("term_months")
+    result = decide(data["amount"], data["term_months"]) if asked else best
+    offer = (result.get("offers") or [None])[0] if result["result"] in ("APPROVE", "COUNTER_OFFER") else None
+
+    # Лимит скоринг считает с учётом запроса, поэтому «максимум» не должен быть меньше уже предложенной суммы
+    if offer and (best_offer is None or offer["amount"] > best_offer["amount"]):
+        best_offer = offer
+
+    chance, title = PRECHECK_TEXT[result["result"]]
+    terms = None
+    if offer:
+        payment = scoring.calc_payment(offer["amount"], offer["term_months"], float(offer["rate"]))
+        terms = {
+            "amount": offer["amount"],
+            "term_months": offer["term_months"],
+            "rate": offer["rate"],
+            "monthly_payment": payment["monthly_payment"],
+        }
+    return {
+        "product_code": product["code"],
+        "chance": chance,
+        "title": title,
+        "explanation": _precheck_explanation(result["result"], terms, asked),
+        "max_amount": best_offer["amount"] if best_offer else None,
+        "max_amount_term_months": best_offer["term_months"] if best_offer else None,
+        "terms": terms,
+        "reasons": [reason["text"] for reason in result.get("reasons", [])],
+    }
+
+
+def _rub(value: int) -> str:
+    return f"{value:,} ₽".replace(",", " ")
+
+
+def _precheck_explanation(result: str, terms: dict | None, asked: bool) -> str:
+    if result == "APPROVE" and terms:
+        what = "эту сумму" if asked else f"до {_rub(terms['amount'])}"
+        return f"Скорее всего одобрим {what} на {terms['term_months']} мес. Окончательно условия подтвердит менеджер."
+    if result == "COUNTER_OFFER" and terms:
+        return (
+            f"Запрошенные условия вряд ли пройдут, но можем предложить {_rub(terms['amount'])} "
+            f"на {terms['term_months']} мес. Это можно указать сразу в заявке."
+        )
+    if result == "MANUAL_REVIEW":
+        return "Заявку посмотрит кредитный специалист — могут понадобиться документы. Срок решения — до 1 рабочего дня."
+    return "Можно уменьшить сумму, выбрать другой продукт или вернуться позже."
+
+
 # --- документы (S4.4, S4.7) ---------------------------------------------------------------
 # Файлы хранит сервис B, ядро ведёт сам запрос: что нужно, зачем (J9) и дошло ли до клиента.
 

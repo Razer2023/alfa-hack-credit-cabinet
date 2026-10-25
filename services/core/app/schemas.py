@@ -384,6 +384,32 @@ class DocumentRequestOut(Open):
     items: list[DocumentItemOut]
 
 
+class PrecheckIn(BaseModel):
+    product_code: str
+    amount: int | None = Field(None, gt=0, le=1_000_000_000, description="Не указана — оцениваем только максимум")
+    term_months: int | None = Field(None, gt=0, le=120)
+
+
+class PrecheckTerms(BaseModel):
+    amount: int
+    term_months: int
+    rate: float
+    monthly_payment: int
+
+
+class PrecheckOut(BaseModel):
+    """Предварительная оценка (S2.1): ничего не сохраняется и не влияет на кредитную историю."""
+
+    product_code: str
+    chance: Literal["HIGH", "MEDIUM", "LOW"] = Field(description="HIGH — скорее одобрим, MEDIUM — на других условиях или решит специалист, LOW — сейчас вряд ли")
+    title: str
+    explanation: str
+    max_amount: int | None = Field(None, description="Сколько можно получить по этому продукту — по данным ЕГРЮЛ, ФНС, БКИ и выписки")
+    max_amount_term_months: int | None = None
+    terms: PrecheckTerms | None = Field(None, description="Ориентировочные условия на запрошенную сумму и срок (или на максимум)")
+    reasons: list[str] = Field(default_factory=list, description="Что влияет на оценку — человеческим языком")
+
+
 class StatusReferenceOut(BaseModel):
     code: ApplicationStatus
     title: str
