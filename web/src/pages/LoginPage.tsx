@@ -2,9 +2,9 @@ import { type FormEvent, useState } from 'react';
 import { Button } from '@alfalab/core-components/button';
 import { Gap } from '@alfalab/core-components/gap';
 import { Input } from '@alfalab/core-components/input';
-import { Plate } from '@alfalab/core-components/plate';
 import { Typography } from '@alfalab/core-components/typography';
 
+import { Card } from '../components/Card';
 import { errorMessage } from '../api/client';
 import { useAuth } from '../auth/AuthContext';
 import styles from './LoginPage.module.css';
@@ -38,7 +38,7 @@ export function LoginPage() {
 
   return (
     <div className={styles.wrapper}>
-      <Plate view='common' rounded={true} border={true} title='Вход в кредитный кабинет'>
+      <Card title='Вход в кредитный кабинет'>
         <form onSubmit={submit}>
           <Input
             label='Логин'
@@ -75,7 +75,7 @@ export function LoginPage() {
             </li>
           ))}
         </ul>
-      </Plate>
+      </Card>
     </div>
   );
 }

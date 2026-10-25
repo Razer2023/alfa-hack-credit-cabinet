@@ -8,6 +8,7 @@ import { Typography } from '@alfalab/core-components/typography';
 
 import { api, errorMessage } from '../../api/client';
 import type { Dashboard as DashboardData, DashboardStage } from '../../api/types';
+import { Card } from '../../components/Card';
 import { useApplicationEvents } from '../../events';
 import { STATUS_COLOR } from '../../format';
 import styles from './Dashboard.module.css';
@@ -73,16 +74,19 @@ export function Dashboard() {
       )}
       {current && (
         <>
-          <Plate
-            view={current.bottleneck ? 'attention' : 'common'}
-            rounded={true}
-            border={true}
-            title={current.bottleneck ? 'Узкое место' : 'Узких мест не видно'}
-          >
-            <Typography.Text view='primary-medium' tag='p' defaultMargins={false}>
-              {current.bottleneck_text ?? 'Заявок, прошедших этапы банка, пока нет.'}
-            </Typography.Text>
-          </Plate>
+          {current.bottleneck ? (
+            <Plate view='attention' rounded={true} border={true} title='Узкое место'>
+              <Typography.Text view='primary-medium' tag='p' defaultMargins={false}>
+                {current.bottleneck_text}
+              </Typography.Text>
+            </Plate>
+          ) : (
+            <Card title='Узких мест не видно'>
+              <Typography.Text view='primary-medium' tag='p' defaultMargins={false}>
+                Заявок, прошедших этапы банка, пока нет.
+              </Typography.Text>
+            </Card>
+          )}
           <Gap size={16} />
           <div className={styles.summary}>
             <Typography.Text view='primary-medium' weight='bold'>

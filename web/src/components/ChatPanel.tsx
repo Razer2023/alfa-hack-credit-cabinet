@@ -1,9 +1,9 @@
 import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { Button } from '@alfalab/core-components/button';
-import { Plate } from '@alfalab/core-components/plate';
 import { Textarea } from '@alfalab/core-components/textarea';
 import { Typography } from '@alfalab/core-components/typography';
 
+import { Card } from './Card';
 import { api, errorMessage } from '../api/client';
 import type { ChatMessage } from '../api/types';
 import { useUser } from '../auth/AuthContext';
@@ -66,7 +66,7 @@ export function ChatPanel({ applicationId, basePath, title, header }: ChatPanelP
   }
 
   return (
-    <Plate view='common' rounded={true} border={true} title={title}>
+    <Card title={title}>
       {header}
       {messages.length === 0 ? (
         <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
@@ -121,6 +121,6 @@ export function ChatPanel({ applicationId, basePath, title, header }: ChatPanelP
           {error}
         </Typography.Text>
       )}
-    </Plate>
+    </Card>
   );
 }

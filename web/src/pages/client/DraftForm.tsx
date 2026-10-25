@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Gap } from '@alfalab/core-components/gap';
-import { Plate } from '@alfalab/core-components/plate';
 import { Typography } from '@alfalab/core-components/typography';
 
+import { Card } from '../../components/Card';
 import { api } from '../../api/client';
 import type { Application, CodeRequest, Product } from '../../api/types';
 import { CodeConfirm } from '../../components/CodeConfirm';
@@ -78,11 +78,11 @@ export function DraftForm({ application, product, onChange }: DraftFormProps) {
 
   return (
     <>
-      <Plate view='common' rounded={true} border={true} title='1. Компания'>
+      <Card title='1. Компания'>
         <CompanyStep application={application} onChange={onChange} />
-      </Plate>
+      </Card>
       <Gap size={16} />
-      <Plate view='common' rounded={true} border={true} title='2. Условия кредита'>
+      <Card title='2. Условия кредита'>
         <LoanFields product={product} terms={terms} onChange={setTerms} />
         <Gap size={8} />
         <Typography.Text view='primary-small' color={saveState === 'error' ? 'negative' : 'secondary'}>
@@ -90,9 +90,9 @@ export function DraftForm({ application, product, onChange }: DraftFormProps) {
           {saveState === 'saved' && !dirty && 'Черновик сохранён'}
           {saveState === 'error' && 'Не удалось сохранить черновик, проверьте соединение'}
         </Typography.Text>
-      </Plate>
+      </Card>
       <Gap size={16} />
-      <Plate view='common' rounded={true} border={true} title='3. Отправка в банк'>
+      <Card title='3. Отправка в банк'>
         <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
           {ready ? (
             <>
@@ -104,7 +104,7 @@ export function DraftForm({ application, product, onChange }: DraftFormProps) {
         </Typography.Text>
         <Gap size={12} />
         <CodeConfirm buttonText='Отправить заявку' disabled={!ready} requestCode={requestCode} confirm={confirm} />
-      </Plate>
+      </Card>
     </>
   );
 }

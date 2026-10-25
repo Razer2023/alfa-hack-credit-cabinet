@@ -7,6 +7,7 @@ import { Status } from '@alfalab/core-components/status';
 import { TBody, TCell, THead, THeadCell, TRow, Table } from '@alfalab/core-components/table';
 import { Typography } from '@alfalab/core-components/typography';
 
+import { Card } from '../../components/Card';
 import { api, errorMessage } from '../../api/client';
 import type { ApplicationEvent, BankApplication } from '../../api/types';
 import { useUser } from '../../auth/AuthContext';
@@ -156,9 +157,9 @@ export function BankCard({ id }: BankCardProps) {
       )}
       {(actions.includes('REQUEST_INFO') || actions.includes('REQUEST_DOCUMENTS')) && (
         <>
-          <Plate view='common' rounded={true} border={true} title='Запросить данные и документы у клиента' foldable={true} defaultFolded={true}>
+          <Card title='Запросить данные и документы у клиента' foldable={true} defaultFolded={true}>
             <ClientRequestForm application={application} onChange={onChange} />
-          </Plate>
+          </Card>
           <Gap size={16} />
         </>
       )}
@@ -169,7 +170,7 @@ export function BankCard({ id }: BankCardProps) {
 
       <div className={styles.grid}>
         <div>
-          <Plate view='common' rounded={true} border={true} title='Заявка'>
+          <Card title='Заявка'>
             <FactList
               facts={[
                 { label: 'Продукт', value: application.product_code },
@@ -183,9 +184,9 @@ export function BankCard({ id }: BankCardProps) {
                 })),
               ]}
             />
-          </Plate>
+          </Card>
           <Gap size={16} />
-          <Plate view='common' rounded={true} border={true} title='Компания'>
+          <Card title='Компания'>
             {application.form.company ? (
               <CompanyFacts company={application.form.company} />
             ) : (
@@ -193,20 +194,15 @@ export function BankCard({ id }: BankCardProps) {
                 Клиент не заполнил данные по ИНН
               </Typography.Text>
             )}
-          </Plate>
+          </Card>
           {application.offers.length > 0 && (
             <>
               <Gap size={16} />
               {application.offers.map((offer) => (
                 <div key={offer.id}>
-                  <Plate
-                    view='common'
-                    rounded={true}
-                    border={true}
-                    title={offer.kind === 'COUNTER' ? 'Контрпредложение' : 'Предложение'}
-                  >
+                  <Card title={offer.kind === 'COUNTER' ? 'Контрпредложение' : 'Предложение'}>
                     <OfferFacts offer={offer} />
-                  </Plate>
+                  </Card>
                   <Gap size={8} />
                 </div>
               ))}
@@ -215,7 +211,7 @@ export function BankCard({ id }: BankCardProps) {
         </div>
 
         <div>
-          <Plate view='common' rounded={true} border={true} title='Внешние проверки'>
+          <Card title='Внешние проверки'>
             {enrichment ? (
               <FactList
                 facts={[
@@ -240,9 +236,9 @@ export function BankCard({ id }: BankCardProps) {
                 Проверки ещё не выполнены
               </Typography.Text>
             )}
-          </Plate>
+          </Card>
           <Gap size={16} />
-          <Plate view='common' rounded={true} border={true} title='Скоринг'>
+          <Card title='Скоринг'>
             {scoring ? (
               <>
                 <div className={styles.score}>
@@ -290,11 +286,11 @@ export function BankCard({ id }: BankCardProps) {
                 Скоринг ещё не проводился
               </Typography.Text>
             )}
-          </Plate>
+          </Card>
           <Gap size={16} />
-          <Plate view='common' rounded={true} border={true} title='История'>
+          <Card title='История'>
             <EventList events={events} />
-          </Plate>
+          </Card>
         </div>
       </div>
     </>
