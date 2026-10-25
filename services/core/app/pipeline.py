@@ -17,7 +17,7 @@ from app.clients import get_integrations, get_scoring
 from app.clients.base import ExternalNotFound, ExternalServiceError
 from app.db import SessionLocal, utcnow
 from app.models import Application, ApplicationStatus as S, Role
-from app.service import SYSTEM, active_offer, record_event, snapshot, transition
+from app.service import SYSTEM, active_offer, assign_manager, record_event, snapshot, transition
 from app.statemachine import AUTOMATIC
 
 log = logging.getLogger(__name__)
@@ -35,6 +35,7 @@ MAX_RETRY_DELAY_SECONDS = 60
 
 def step(session: Session, app: Application) -> None:
     if app.status == S.SUBMITTED:
+        assign_manager(session, app)
         transition(session, app, S.CHECKING, SYSTEM)
 
     elif app.status == S.CHECKING:

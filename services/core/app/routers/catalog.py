@@ -35,6 +35,7 @@ def statuses() -> list[StatusReferenceOut]:
             code=status,
             title=info.title,
             hint=info.hint,
+            sla=info.sla,
             terminal=status in TERMINAL,
             next=[dst for (src, dst) in TRANSITIONS if src == status],
         )

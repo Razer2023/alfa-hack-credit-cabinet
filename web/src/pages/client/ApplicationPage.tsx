@@ -8,6 +8,7 @@ import { Typography } from '@alfalab/core-components/typography';
 import { api, errorMessage } from '../../api/client';
 import type { Application, ApplicationEvent, Product } from '../../api/types';
 import { EventList } from '../../components/EventList';
+import { ManagerContact } from '../../components/ManagerContact';
 import { ApplicationSummary } from '../../components/ApplicationSummary';
 import { StatusLabel } from '../../components/StatusLabel';
 import { Tracker } from '../../components/Tracker';
@@ -98,10 +99,16 @@ export function ApplicationPage({ id }: ApplicationPageProps) {
           <StatusContent application={application} product={product} onChange={onChange} />
         </section>
         <aside>
+          {application.manager && (
+            <>
+              <ManagerContact manager={application.manager} />
+              <Gap size={16} />
+            </>
+          )}
           {application.status.code !== 'DRAFT' && application.status.code !== 'CANCELLED' && (
             <>
               <Plate view='common' rounded={true} border={true} title='Путь заявки'>
-                <Tracker status={application.status.code} events={events} />
+                <Tracker status={application.status.code} events={events} sla={application.status.sla} />
               </Plate>
               <Gap size={16} />
             </>

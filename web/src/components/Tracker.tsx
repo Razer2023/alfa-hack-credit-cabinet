@@ -34,9 +34,10 @@ const CURRENT_STAGE: Record<ApplicationStatus, number> = {
 type TrackerProps = {
   status: ApplicationStatus;
   events: ApplicationEvent[];
+  sla?: string | null;
 };
 
-export function Tracker({ status, events }: TrackerProps) {
+export function Tracker({ status, events, sla }: TrackerProps) {
   const current = CURRENT_STAGE[status];
   const reachedAt = (stage: (typeof STAGES)[number]) =>
     events.find((event) => event.to_status && stage.reachedBy.includes(event.to_status))?.created_at;
@@ -52,11 +53,17 @@ export function Tracker({ status, events }: TrackerProps) {
       checkIsStepError={(step) => status === 'REJECTED' && step === current}
       checkIsStepPositive={(step) => status === 'ISSUED' && step === current}
     >
-      {STAGES.map((stage) => {
+      {STAGES.map((stage, index) => {
         const at = reachedAt(stage);
+        const inProgress = index + 1 === current && sla;
         return (
           <div key={stage.title}>
             <Typography.Text view='primary-medium'>{stage.title}</Typography.Text>
+            {inProgress && (
+              <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
+                обычно {sla}
+              </Typography.Text>
+            )}
             {at && (
               <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
                 {formatDateTime(at)}

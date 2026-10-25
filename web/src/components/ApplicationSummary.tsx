@@ -3,7 +3,7 @@ import { Typography } from '@alfalab/core-components/typography';
 
 import type { Application } from '../api/types';
 import alfaMark from '../assets/alfa-mark.svg';
-import { formatRub } from '../format';
+import { formatDateTime, formatRub } from '../format';
 import styles from './ApplicationSummary.module.css';
 
 type ApplicationSummaryProps = {
@@ -51,6 +51,12 @@ export function ApplicationSummary({ application, productName, onOpen }: Applica
           <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
             {application.status.hint}
           </Typography.Text>
+          {application.status.sla && (
+            <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
+              Обычно {application.status.sla}
+              {application.status.due_at && ` · ждём до ${formatDateTime(application.status.due_at)}`}
+            </Typography.Text>
+          )}
         </div>
         {onOpen && <Button view='secondary' size={48} onClick={onOpen}>
           {actions.includes('EDIT') ? 'Продолжить' : 'Открыть заявку'}

@@ -524,6 +524,8 @@ export interface components {
             decision: components["schemas"]["Decision"] | null;
             /** Offers */
             offers: components["schemas"]["OfferOut"][];
+            /** @description Кто ведёт заявку и как связаться (S4.9); назначается при отправке */
+            manager: components["schemas"]["ContactOut"] | null;
             company: components["schemas"]["CompanyOut"];
             /**
              * Created At
@@ -598,6 +600,8 @@ export interface components {
             decision: components["schemas"]["Decision"] | null;
             /** Offers */
             offers: components["schemas"]["OfferOut"][];
+            /** @description Кто ведёт заявку и как связаться (S4.9); назначается при отправке */
+            manager: components["schemas"]["ContactOut"] | null;
             company: components["schemas"]["CompanyOut"];
             /**
              * Created At
@@ -697,6 +701,20 @@ export interface components {
             inn: string;
             /** Name */
             name: string;
+        };
+        /**
+         * ContactOut
+         * @description Сотрудник банка, который ведёт заявку (S4.9).
+         */
+        ContactOut: {
+            /** Full Name */
+            full_name: string;
+            /** Position */
+            position: string | null;
+            /** Phone */
+            phone: string | null;
+            /** Work Hours */
+            work_hours: string | null;
         };
         /**
          * DataSource
@@ -1103,6 +1121,16 @@ export interface components {
             title: string;
             /** Hint */
             hint: string;
+            /**
+             * Sla
+             * @description Сколько обычно занимает этап (S4.6); null — ход за клиентом
+             */
+            sla?: string | null;
+            /**
+             * Due At
+             * @description К какому времени банк обещает завершить этап
+             */
+            due_at?: string | null;
         };
         /** StatusReferenceOut */
         StatusReferenceOut: {
@@ -1111,6 +1139,8 @@ export interface components {
             title: string;
             /** Hint */
             hint: string;
+            /** Sla */
+            sla?: string | null;
             /** Terminal */
             terminal: boolean;
             /** Next */

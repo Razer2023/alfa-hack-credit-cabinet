@@ -111,7 +111,8 @@ def test_event_feed_after_id(login):
     last = coffee.get("/events").json()[-1]["id"]
     run_pipeline()
     fresh = coffee.get("/events", params={"after_id": last}).json()
-    assert [e["to_status"] for e in fresh] == ["CHECKING", "SCORING", "PENDING_APPROVAL"]
+    assert [e["type"] for e in fresh][0] == "MANAGER_ASSIGNED"
+    assert [e["to_status"] for e in fresh if e["to_status"]] == ["CHECKING", "SCORING", "PENDING_APPROVAL"]
     assert stroy.get("/events").json() == []
 
 

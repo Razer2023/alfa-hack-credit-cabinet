@@ -74,6 +74,10 @@ class User(Base):
     full_name: Mapped[str] = mapped_column(String(255))
     role: Mapped[Role] = mapped_column(_enum(Role))
     company_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("companies.id"))
+    # Контакты сотрудника банка: клиент видит, кто ведёт заявку и как связаться (S4.9)
+    position: Mapped[str | None] = mapped_column(String(100))
+    phone: Mapped[str | None] = mapped_column(String(32))
+    work_hours: Mapped[str | None] = mapped_column(String(64))
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=utcnow)
 
     company: Mapped[Company | None] = relationship()
@@ -87,6 +91,8 @@ class Application(Base):
     company_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("companies.id"), index=True)
     created_by: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"))
     assignee_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
+    # Персональный менеджер: назначается при отправке, клиент видит его контакты (S4.9)
+    manager_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"))
 
     product_code: Mapped[str] = mapped_column(String(32))
     amount: Mapped[int | None] = mapped_column(BigInteger)  # рубли
@@ -112,6 +118,7 @@ class Application(Base):
     version: Mapped[int] = mapped_column(Integer, default=1)
 
     company: Mapped[Company] = relationship()
+    manager: Mapped[User | None] = relationship(foreign_keys=[manager_id])
     offers: Mapped[list["Offer"]] = relationship(back_populates="application", order_by="Offer.created_at")
 
     __mapper_args__ = {"version_id_col": version}
