@@ -6,6 +6,7 @@ import { Typography } from '@alfalab/core-components/typography';
 import { api } from '../../api/client';
 import type { PaymentCalc, Product } from '../../api/types';
 import { Money } from '../../components/Money';
+import { Term } from '../../components/Term';
 import { formatRub } from '../../format';
 import { type LoanTerms, termsError } from './loanTerms';
 import styles from './Forms.module.css';
@@ -73,7 +74,7 @@ export function LoanFields({ product, terms, onChange }: LoanFieldsProps) {
         <div className={styles.payment}>
           <div>
             <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
-              Платёж в месяц
+              <Term>Платёж в месяц</Term>
             </Typography.Text>
             <Typography.Title tag='div' view='small' font='system'>
               <Money value={payment.monthly_payment} bold={true} />
@@ -81,7 +82,7 @@ export function LoanFields({ product, terms, onChange }: LoanFieldsProps) {
           </div>
           <div>
             <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
-              Ставка
+              <Term>Ставка</Term>
             </Typography.Text>
             <Typography.Title tag='div' view='small' font='system'>
               {payment.rate}%
@@ -89,7 +90,7 @@ export function LoanFields({ product, terms, onChange }: LoanFieldsProps) {
           </div>
           <div>
             <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
-              Переплата
+              <Term>Переплата</Term>
             </Typography.Text>
             <Typography.Title tag='div' view='small' font='system'>
               <Money value={payment.overpayment} />

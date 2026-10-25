@@ -6,6 +6,7 @@ import { Typography } from '@alfalab/core-components/typography';
 import { api } from '../../api/client';
 import type { Application, CodeRequest, Product } from '../../api/types';
 import { CodeConfirm } from '../../components/CodeConfirm';
+import { Term } from '../../components/Term';
 import { CompanyStep } from './CompanyStep';
 import { LoanFields } from './LoanFields';
 import { type LoanTerms, termsReady } from './loanTerms';
@@ -93,9 +94,13 @@ export function DraftForm({ application, product, onChange }: DraftFormProps) {
       <Gap size={16} />
       <Plate view='common' rounded={true} border={true} title='3. Отправка в банк'>
         <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
-          {ready
-            ? 'Подтвердите отправку кодом — это ваша простая электронная подпись.'
-            : 'Заполните сумму, срок и цель кредита.'}
+          {ready ? (
+            <>
+              Подтвердите отправку кодом — это ваша <Term>простая электронная подпись</Term>.
+            </>
+          ) : (
+            'Заполните сумму, срок и цель кредита.'
+          )}
         </Typography.Text>
         <Gap size={12} />
         <CodeConfirm buttonText='Отправить заявку' disabled={!ready} requestCode={requestCode} confirm={confirm} />

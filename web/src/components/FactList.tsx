@@ -2,6 +2,7 @@ import type { ReactNode } from 'react';
 import { Typography } from '@alfalab/core-components/typography';
 
 import styles from './FactList.module.css';
+import { Term } from './Term';
 
 export type Fact = {
   label: string;
@@ -20,7 +21,7 @@ export function FactList({ facts }: FactListProps) {
         <div key={fact.label} className={styles.row}>
           <dt>
             <Typography.Text view='primary-small' color='secondary'>
-              {fact.label}
+              <Term>{fact.label}</Term>
             </Typography.Text>
           </dt>
           <dd className={styles.value}>

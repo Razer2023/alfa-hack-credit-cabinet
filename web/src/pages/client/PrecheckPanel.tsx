@@ -9,6 +9,7 @@ import { Typography } from '@alfalab/core-components/typography';
 import { api, errorMessage } from '../../api/client';
 import type { Precheck, Product } from '../../api/types';
 import { formatMonths, formatRub } from '../../format';
+import { Term } from '../../components/Term';
 import styles from './ProductCard.module.css';
 
 const CHANCE = {
@@ -45,7 +46,8 @@ export function PrecheckPanel({ product }: PrecheckPanelProps) {
   return (
     <div className={styles.precheck}>
       <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
-        Оценим по ИНН вашей компании: ЕГРЮЛ, ФНС, кредитная история и обороты. Это не заявка.
+        Оценим по ИНН вашей компании: <Term>ЕГРЮЛ</Term>, <Term>ФНС</Term>, <Term>кредитная история</Term> и обороты. Это не
+        заявка.
       </Typography.Text>
       <Gap size={12} />
       <div className={styles.precheckFields}>
