@@ -10,7 +10,7 @@
 Все числа берутся из rules/scorecard.yaml, здесь только порядок и арифметика.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from datetime import date
 from math import floor
 
@@ -185,12 +185,45 @@ def decide(req: DecisionIn, rules: Rules, today: date | None = None) -> dict:
 
     # 4. Класс риска
     if risk.decision == "REJECT":
-        return result("REJECT", [card.reason("LOW_SCORE")])
+        return result("REJECT", [_low_score_reason(factors, rules)])
     if risk.decision == "MANUAL_REVIEW":
         return result("MANUAL_REVIEW", [card.reason("BORDERLINE_SCORE")])
 
     # 5. Лимит и DSCR
-    return _affordable_offer(req, product, risk, metrics, rules, result)
+    out = _affordable_offer(req, product, risk, metrics, rules, result)
+    return _rescore_counter_offer(out, facts, req, product, risk, rules, result)
+
+
+def _rescore_counter_offer(out: dict, facts: Facts, req, product: Product, risk: RiskClass, rules: Rules, result) -> dict:
+    """Условия контрпредложения считаются по классу риска той суммы, которую банк предлагает.
+
+    Фактор «сумма к выручке» зависит от суммы: если клиент попросил слишком много (например, предоценка
+    спрашивает максимум продукта), балл падает, и без пересчёта предложение вышло бы по худшему классу.
+    Меньшая сумма может только улучшить класс, поэтому пересчёт сходится за пару шагов.
+    """
+    card = rules.scorecard
+    for _ in range(3):
+        if out["result"] != "COUNTER_OFFER":
+            break
+        offered = out["offers"][0]["amount"]
+        better = card.risk_class(score_factors(replace(facts, amount=offered), rules)[0])
+        if better.code == risk.code or better.decision != "AUTO":
+            break
+        candidate = _affordable_offer(req, product, better, _metrics(facts, req, product, better, rules), rules, result)
+        if candidate["result"] != "COUNTER_OFFER":
+            break
+        out, risk = candidate, better
+    return out
+
+
+def _low_score_reason(factors: list[dict], rules: Rules, top: int = 2) -> dict:
+    """S6.3: клиент видит не только «показатели не подходят», но и что сильнее всего снизило оценку."""
+    card = rules.scorecard
+    worst = sorted((f for f in factors if f["impact"] < 0), key=lambda f: f["impact"])[:top]
+    if not worst:
+        return card.reason("LOW_SCORE")
+    texts = [card.factors[f["code"]].client_text for f in worst]
+    return {"code": "LOW_SCORE", "text": card.reasons["LOW_SCORE_FACTORS"].format(factors=", ".join(texts))}
 
 
 def _metrics(facts: Facts, req: DecisionIn, product: Product, risk: RiskClass, rules: Rules) -> dict:
