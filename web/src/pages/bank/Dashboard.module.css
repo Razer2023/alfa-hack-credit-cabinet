@@ -1,0 +1,31 @@
+/* Дашборд узких мест (S8.1) */
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--gap-8);
+}
+
+.number {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.bottleneck {
+  background: var(--color-light-neutral-100);
+}
+
+.bar {
+  min-width: 120px;
+  height: var(--gap-8);
+  border-radius: var(--border-radius-8);
+  background: var(--color-light-neutral-300);
+  overflow: hidden;
+}
+
+.bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-light-accent-primary);
+}

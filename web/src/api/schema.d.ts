@@ -601,6 +601,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/bank/dashboard": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Где заявки теряют время (S8.1) */
+        get: operations["bottlenecks_api_v1_bank_dashboard_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/events": {
         parameters: {
             query?: never;
@@ -896,6 +913,90 @@ export interface components {
             phone: string | null;
             /** Work Hours */
             work_hours: string | null;
+        };
+        /** DashboardOut */
+        DashboardOut: {
+            /**
+             * Source
+             * @description LIVE — журнал ядра, DEMO — синтетический массив сервиса B
+             * @enum {string}
+             */
+            source: "LIVE" | "DEMO";
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Applications */
+            applications: number;
+            /** Stages */
+            stages: components["schemas"]["DashboardStage"][];
+            /**
+             * By Status
+             * @description Где заявки сейчас
+             */
+            by_status: components["schemas"]["DashboardStatusCount"][];
+            /** @description Этап банка или автоматики, где теряется больше всего времени */
+            bottleneck?: components["schemas"]["ApplicationStatus"] | null;
+            /** Bottleneck Text */
+            bottleneck_text: string | null;
+        };
+        /** DashboardStage */
+        DashboardStage: {
+            code: components["schemas"]["ApplicationStatus"];
+            /** Title */
+            title: string;
+            /**
+             * Owner
+             * @description Кто отвечает за этап: автоматика, банк или клиент
+             * @enum {string}
+             */
+            owner: "SYSTEM" | "BANK" | "CLIENT";
+            /**
+             * Sla
+             * @description Обещанный срок этапа
+             */
+            sla?: string | null;
+            /**
+             * Passed
+             * @description Сколько заявок прошли этап
+             */
+            passed: number;
+            /** Median Minutes */
+            median_minutes: number | null;
+            /**
+             * P90 Minutes
+             * @description 90 % заявок прошли этап быстрее
+             */
+            p90_minutes?: number | null;
+            /**
+             * Total Minutes
+             * @description Суммарное время заявок на этапе, включая тех, кто ещё ждёт
+             */
+            total_minutes: number;
+            /**
+             * In Progress
+             * @description Сколько заявок на этапе сейчас
+             */
+            in_progress: number;
+            /**
+             * Longest Wait Minutes
+             * @description Сколько ждёт самая давняя заявка на этапе
+             */
+            longest_wait_minutes?: number | null;
+            /**
+             * Over Sla
+             * @description Сколько заявок вышли за обещанный срок
+             */
+            over_sla: number;
+        };
+        /** DashboardStatusCount */
+        DashboardStatusCount: {
+            code: components["schemas"]["ApplicationStatus"];
+            /** Title */
+            title: string;
+            /** Count */
+            count: number;
         };
         /**
          * DataSource
@@ -3761,6 +3862,65 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["MessageOut"];
+                };
+            };
+            /** @description Нужно войти */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Недостаточно прав */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Действие недоступно в текущем статусе */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ErrorOut"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    bottlenecks_api_v1_bank_dashboard_get: {
+        parameters: {
+            query?: {
+                /** @description LIVE — журнал ядра, DEMO — синтетический массив сервиса B */
+                source?: "LIVE" | "DEMO";
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["DashboardOut"];
                 };
             };
             /** @description Нужно войти */

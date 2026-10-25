@@ -22,6 +22,8 @@ class IntegrationsClient(Protocol):
 
     def list_document_requests(self, application_id: str) -> list[dict]: ...
 
+    def dashboard_applications(self) -> list[dict]: ...
+
     def upload_document(self, request_id: str, code: str, filename: str, content_type: str, payload: bytes) -> dict: ...
 
     def download_document(self, request_id: str, code: str) -> tuple[bytes, str, str]:
@@ -43,6 +45,9 @@ class HttpIntegrationsClient:
 
     def list_document_requests(self, application_id: str) -> list[dict]:
         return self._client.request("GET", "/api/v1/document-requests", params={"application_id": application_id})
+
+    def dashboard_applications(self) -> list[dict]:
+        return self._client.request("GET", "/api/v1/dashboard/applications")
 
     def upload_document(self, request_id: str, code: str, filename: str, content_type: str, payload: bytes) -> dict:
         # Имя файла в заголовке — ASCII: сервис B всё равно приводит его к безопасному виду
@@ -115,6 +120,9 @@ class StubIntegrationsClient(StubDocuments):
         "term_months": "Укажите срок кредита",
         "purpose": "Укажите цель кредита",
     }
+
+    def dashboard_applications(self) -> list[dict]:
+        return stub_data.DASHBOARD
 
     def company_profile(self, inn: str) -> dict:
         company = stub_data.COMPANIES.get(inn)

@@ -13,7 +13,7 @@ from app.config import settings
 from app.db import engine
 from app.errors import DomainError
 from app.pipeline import Worker
-from app.routers import auth, bank, catalog, client, stream
+from app.routers import auth, bank, catalog, client, dashboard, stream
 from app.schemas import ErrorOut
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -76,7 +76,7 @@ async def stale_error(_: Request, __: StaleDataError):
     return _error(409, "conflict", "Заявка изменилась, обновите страницу")
 
 
-for router in (auth.router, catalog.router, client.router, bank.router, stream.router):
+for router in (auth.router, catalog.router, client.router, bank.router, dashboard.router, stream.router):
     app.include_router(router, prefix=API_PREFIX)
 
 
