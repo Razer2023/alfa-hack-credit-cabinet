@@ -5,43 +5,44 @@ import { Tag } from '@alfalab/core-components/tag';
 import { Typography } from '@alfalab/core-components/typography';
 
 import { api } from '../../api/client';
-import type { ProductMatch } from '../../api/types';
+import type { ProductMatch, Purposes } from '../../api/types';
 import styles from './ProductMatcher.module.css';
 
-export type MatchRequest = { purpose: string; amount: number | null; term_months: number | null };
+// purpose — цель каталога для подбора, title — формулировка для бизнеса клиента, она же попадает в заявку
+export type MatchRequest = { purpose: string; title: string; amount: number | null; term_months: number | null };
 
 type ProductMatcherProps = {
   // Подбор, на который пришёл ответ: null — цель не выбрана, каталог в исходном порядке
   onResult: (result: { request: MatchRequest; matches: ProductMatch[] } | null) => void;
 };
 
-// Подбор продукта по цели (S1.2): правила каталога — цель, сумма и срок в рамках продукта, затем ставка
+// Подбор продукта по цели (S1.2): задачи — под отрасль клиента по ОКВЭД, правила каталога — цель, сумма и срок, затем ставка
 export function ProductMatcher({ onResult }: ProductMatcherProps) {
-  const [purposes, setPurposes] = useState<string[]>([]);
-  const [purpose, setPurpose] = useState<string | null>(null);
+  const [purposes, setPurposes] = useState<Purposes | null>(null);
+  const [selected, setSelected] = useState<Purposes['items'][number] | null>(null);
   const [amount, setAmount] = useState<number | null>(null);
   const [term, setTerm] = useState('');
 
   useEffect(() => {
-    api<string[]>('/products/purposes').then(setPurposes).catch(() => setPurposes([]));
+    api<Purposes>('/products/purposes').then(setPurposes).catch(() => setPurposes(null));
   }, []);
 
   const termMonths = Number(term) || null;
   useEffect(() => {
-    if (!purpose) {
+    if (!selected) {
       onResult(null);
       return;
     }
-    const request = { purpose, amount, term_months: termMonths };
+    const request = { purpose: selected.purpose, title: selected.title, amount, term_months: termMonths };
     const timer = setTimeout(() => {
       api<ProductMatch[]>('/products/match', { method: 'POST', body: request })
         .then((matches) => onResult({ request, matches }))
         .catch(() => onResult(null));
     }, 300);
     return () => clearTimeout(timer);
-  }, [purpose, amount, termMonths, onResult]);
+  }, [selected, amount, termMonths, onResult]);
 
-  if (purposes.length === 0) return null;
+  if (!purposes || purposes.items.length === 0) return null;
 
   return (
     <section className={styles.matcher} aria-label='Подбор кредита по цели'>
@@ -49,22 +50,24 @@ export function ProductMatcher({ onResult }: ProductMatcherProps) {
         На что нужны деньги?
       </Typography.Title>
       <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
-        Выберите задачу — покажем, какой кредит подходит и почему.
+        {purposes.business
+          ? `Задачи, с которыми чаще приходят в отрасли «${purposes.business}». Выберите — покажем, какой кредит подходит и почему.`
+          : 'Выберите задачу — покажем, какой кредит подходит и почему.'}
       </Typography.Text>
       <div className={styles.tags}>
-        {purposes.map((item) => (
+        {purposes.items.map((item) => (
           <Tag
-            key={item}
+            key={item.title}
             size={40}
             shape='rounded'
-            checked={purpose === item}
-            onClick={() => setPurpose(purpose === item ? null : item)}
+            checked={selected?.title === item.title}
+            onClick={() => setSelected(selected?.title === item.title ? null : item)}
           >
-            {item}
+            {item.title}
           </Tag>
         ))}
       </div>
-      {purpose && (
+      {selected && (
         <div className={styles.fields}>
           <AmountInput
             label='Сколько нужно'

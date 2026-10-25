@@ -118,7 +118,7 @@ def escalate(
     return bank_view(app, user)
 
 
-@router.post("/{application_id}/info-request", response_model=ApplicationBankOut, summary="Запросить данные у клиента (S4.4)")
+@router.post("/{application_id}/info-request", response_model=ApplicationBankOut, summary="Запросить у клиента данные и документы одним запросом (S4.4)")
 def info_request(
     body: InfoRequestIn,
     app: Application = Depends(bank_application),
@@ -126,7 +126,8 @@ def info_request(
     session: Session = Depends(get_session),
 ):
     items = [item.model_dump() for item in body.items]
-    service.request_info(session, app, Actor.of(user), items, body.comment)
+    asks = [ask.model_dump() for ask in body.documents]
+    service.request_info(session, app, Actor.of(user), items, body.comment, asks)
     session.commit()
     return bank_view(app, user)
 

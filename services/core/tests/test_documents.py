@@ -112,3 +112,29 @@ def test_reasons_stay_after_request_is_answered(login):
     vector.post(f"/applications/{app_id}/info", {})
     docs = underwriter.get(f"/bank/applications/{app_id}/documents").json()
     assert docs[0]["items"][0]["reason"] == "Подтвердить выручку, на которую рассчитан кредит"
+
+
+def test_questions_and_documents_in_one_request(login):
+    vector, underwriter = login("vector"), login("underwriter")
+    app = submit(vector, "WORKING_CAPITAL", 3_000_000, 12)
+    run_pipeline()
+    body = {
+        "items": [{"field": "overdue", "message": "Поясните просрочку в БКИ"}],
+        "documents": [{"title": "Справка об отсутствии долгов", "reason": "Проверить, что просрочка закрыта"}],
+        "comment": "Можно фото",
+    }
+    card = underwriter.post(f"/bank/applications/{app['id']}/info-request", body).json()
+    assert card["status"]["code"] == "NEED_INFO"
+
+    items = vector.get(f"/applications/{app['id']}").json()["need_info"]["items"]
+    assert [i["message"] for i in items] == ["Поясните просрочку в БКИ", "Справка об отсутствии долгов"]
+    assert items[0]["document"] is None and items[1]["document"]["code"] == "doc1"
+    event = vector.get(f"/applications/{app['id']}/events").json()[-1]
+    assert event["message"] == "Банк попросил дополнить заявку и запросил документы: Справка об отсутствии долгов"
+
+
+def test_empty_request_rejected(login):
+    vector, underwriter = login("vector"), login("underwriter")
+    app = submit(vector, "WORKING_CAPITAL", 3_000_000, 12)
+    run_pipeline()
+    assert underwriter.post(f"/bank/applications/{app['id']}/info-request", {"items": []}).status_code == 422

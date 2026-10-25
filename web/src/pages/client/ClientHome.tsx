@@ -62,8 +62,8 @@ export function ClientHome() {
       const picked = match?.matches.find((item) => item.product.code === product.code);
       if (match && picked) {
         const body = picked.fits
-          ? { purpose: match.request.purpose, amount: match.request.amount ?? undefined, term_months: match.request.term_months ?? undefined }
-          : { purpose: match.request.purpose };
+          ? { purpose: match.request.title, amount: match.request.amount ?? undefined, term_months: match.request.term_months ?? undefined }
+          : { purpose: match.request.title };
         await api<Application>(`/applications/${created.id}`, { method: 'PATCH', body });
       }
       navigate(`/applications/${created.id}`);

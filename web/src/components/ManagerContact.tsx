@@ -1,34 +1,47 @@
 import { Link } from '@alfalab/core-components/link';
-import { Plate } from '@alfalab/core-components/plate';
 import { Typography } from '@alfalab/core-components/typography';
 
 import type { Application } from '../api/types';
-import { type Fact, FactList } from './FactList';
+import styles from './ManagerContact.module.css';
 
 type ManagerContactProps = {
   manager: NonNullable<Application['manager']>;
 };
 
-// Кто ведёт заявку и как с ним связаться (S4.9)
+// Кто ведёт заявку и как с ним связаться (S4.9) — шапка чата с менеджером
 export function ManagerContact({ manager }: ManagerContactProps) {
-  const facts: Fact[] = [];
-  if (manager.phone) {
-    const tel = manager.phone.replace(/[^\d+]/g, '');
-    facts.push({ label: 'Телефон', value: <Link href={`tel:${tel}`}>{manager.phone}</Link> });
-  }
-  if (manager.work_hours) facts.push({ label: 'Часы работы', value: manager.work_hours });
+  const initials = manager.full_name
+    .split(' ')
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join('');
+  const tel = manager.phone?.replace(/[^\d+]/g, '');
 
   return (
-    <Plate view='common' rounded={true} border={true} title='Ваш менеджер'>
-      <Typography.Text view='primary-medium' weight='bold' tag='p' defaultMargins={false}>
-        {manager.full_name}
-      </Typography.Text>
-      {manager.position && (
-        <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
-          {manager.position}
+    <div className={styles.manager}>
+      <span className={styles.avatar} aria-hidden='true'>
+        {initials}
+      </span>
+      <div className={styles.person}>
+        <Typography.Text view='primary-medium' weight='bold' tag='p' defaultMargins={false}>
+          {manager.full_name}
         </Typography.Text>
-      )}
-      {facts.length > 0 && <FactList facts={facts} />}
-    </Plate>
+        <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
+          {manager.position ?? 'Ваш менеджер'}
+        </Typography.Text>
+      </div>
+      <div className={styles.contacts}>
+        {manager.phone && (
+          <Typography.Text view='primary-small' tag='p' defaultMargins={false}>
+            <Link href={`tel:${tel}`}>{manager.phone}</Link>
+          </Typography.Text>
+        )}
+        {manager.work_hours && (
+          <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
+            {manager.work_hours}
+          </Typography.Text>
+        )}
+      </div>
+    </div>
   );
 }

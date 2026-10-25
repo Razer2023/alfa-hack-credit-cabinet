@@ -3,7 +3,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from app.models import ApplicationStatus, OfferKind, OfferStatus, Role
 
@@ -54,8 +54,19 @@ class ProductOut(BaseModel):
     purposes: list[str] = Field(default=[], description="Цели, под которые подходит продукт (S1.2)")
 
 
+class PurposeOut(BaseModel):
+    title: str = Field(description="Формулировка для бизнеса клиента — её видит клиент и она попадает в заявку")
+    purpose: str = Field(description="Цель каталога, по которой подбирается продукт")
+
+
+class PurposesOut(BaseModel):
+    business: str | None = Field(None, description="Отрасль клиента по ОКВЭД; пусто — цели как в каталоге")
+    items: list[PurposeOut]
+
+
 class ProductMatchIn(BaseModel):
     purpose: str = Field(min_length=1, max_length=100, description="Цель кредита: из списка /products/purposes или своя")
+    title: str | None = Field(None, max_length=200, description="Формулировка цели для бизнеса клиента — для пояснений")
     amount: int | None = Field(default=None, gt=0, le=1_000_000_000)
     term_months: int | None = Field(default=None, gt=0, le=120)
 
@@ -366,8 +377,17 @@ class InfoQuestion(BaseModel):
 
 
 class InfoRequestIn(BaseModel):
-    items: list[InfoQuestion] = Field(min_length=1)
+    items: list[InfoQuestion] = Field(default=[], description="Вопросы клиенту")
+    documents: list["DocumentAsk"] = Field(
+        default=[], max_length=10, description="Документы с пояснением, зачем каждый — в том же запросе"
+    )
     comment: str | None = Field(None, max_length=1000)
+
+    @model_validator(mode="after")
+    def not_empty(self) -> "InfoRequestIn":
+        if not self.items and not self.documents:
+            raise ValueError("Добавьте вопрос или документ")
+        return self
 
 
 class DocumentAsk(BaseModel):

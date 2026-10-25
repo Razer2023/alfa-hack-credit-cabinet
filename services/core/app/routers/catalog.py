@@ -3,10 +3,11 @@
 from fastapi import APIRouter, Depends
 
 from app import service
-from app.clients import get_scoring
-from app.clients.base import ExternalNotFound
+from app.clients import get_integrations, get_scoring
+from app.clients.base import ExternalNotFound, ExternalRejected, ExternalServiceError
 from app.deps import current_user, require
 from app.errors import DomainError
+from app.purposes import business_purposes
 from app.models import Role, User
 from app.schemas import (
     PaymentCalcIn,
@@ -16,6 +17,7 @@ from app.schemas import (
     ProductMatchIn,
     ProductMatchOut,
     ProductOut,
+    PurposesOut,
     StatusReferenceOut,
 )
 from app.statemachine import STATUS_INFO, TERMINAL, TRANSITIONS
@@ -28,14 +30,26 @@ def products() -> list[dict]:
     return get_scoring().list_products()
 
 
-@router.get("/products/purposes", response_model=list[str], summary="Цели кредита для подбора продукта (S1.2)")
-def purposes() -> list[str]:
-    return service.product_purposes(get_scoring().list_products())
+@router.get("/products/purposes", response_model=PurposesOut, summary="Цели кредита под бизнес клиента (S1.2)")
+def purposes(user: User = Depends(current_user)) -> dict:
+    catalog = service.product_purposes(get_scoring().list_products())
+    return business_purposes(catalog, _okved(user))
+
+
+def _okved(user: User) -> str | None:
+    # Отрасль — из профиля компании в ЕГРЮЛ (сервис B); недоступен — цели как в каталоге
+    if user.company is None:
+        return None
+    try:
+        fields = get_integrations().company_profile(user.company.inn)["fields"]
+    except (ExternalServiceError, ExternalNotFound, ExternalRejected):
+        return None
+    return (fields.get("okved") or {}).get("value")
 
 
 @router.post("/products/match", response_model=list[ProductMatchOut], summary="Подбор продукта по цели (S1.2)")
 def match(body: ProductMatchIn) -> list[dict]:
-    return service.match_products(get_scoring().list_products(), body.purpose, body.amount, body.term_months)
+    return service.match_products(get_scoring().list_products(), body.purpose, body.amount, body.term_months, body.title)
 
 
 @router.post("/calc/payment", response_model=PaymentCalcOut, summary="Расчёт ежемесячного платежа (S3.2)")

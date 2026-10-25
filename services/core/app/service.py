@@ -453,9 +453,23 @@ def escalate(session: Session, app: Application, actor: Actor, comment: str | No
     )
 
 
-def request_info(session: Session, app: Application, actor: Actor, items: list[dict], comment: str | None) -> None:
-    app.need_info = {"items": items, "comment": comment, "requested_by": actor.role.value}
-    transition(session, app, S.NEED_INFO, actor, "Банк попросил дополнить заявку", payload=app.need_info)
+def request_info(
+    session: Session,
+    app: Application,
+    actor: Actor,
+    items: list[dict],
+    comment: str | None,
+    asks: list[dict] | None = None,
+) -> None:
+    """Один запрос клиенту: вопросы и документы с пояснением, зачем каждый. Заявка уходит в NEED_INFO."""
+    ensure_transition(app, S.NEED_INFO, actor)  # до создания запроса в B, чтобы не оставлять сирот
+    documents = _document_items(app, asks, comment) if asks else []
+    app.need_info = {"items": items + documents, "comment": comment, "requested_by": actor.role.value}
+    message = "Банк попросил дополнить заявку"
+    if asks:
+        titles = ", ".join(ask["title"] for ask in asks)
+        message = f"Банк запросил документы: {titles}" if not items else f"{message} и запросил документы: {titles}"
+    transition(session, app, S.NEED_INFO, actor, message, payload=app.need_info)
 
 
 # --- чат по заявке (S4.10) ----------------------------------------------------------------
@@ -521,12 +535,15 @@ def product_purposes(products: list[dict]) -> list[str]:
     return goals
 
 
-def match_products(products: list[dict], purpose: str, amount: int | None, term_months: int | None) -> list[dict]:
+def match_products(
+    products: list[dict], purpose: str, amount: int | None, term_months: int | None, title: str | None = None
+) -> list[dict]:
     """Правила подбора прозрачны: цель из каталога, сумма и срок в рамках продукта, затем ставка."""
     result = []
     for product in products:
         purpose_match = any(_same_purpose(p, purpose) for p in product.get("purposes", []))
-        notes = [f"Подходит для цели «{purpose.strip()}»"] if purpose_match else ["Продукт для других целей"]
+        goal = (title or purpose).strip()
+        notes = [f"Подходит для цели «{goal}»"] if purpose_match else ["Продукт для других целей"]
         fits = purpose_match
         if amount is not None and not product["min_amount"] <= amount <= product["max_amount"]:
             fits = False
@@ -639,7 +656,10 @@ def _precheck_explanation(result: str, terms: dict | None, asked: bool) -> str:
 
 def request_documents(session: Session, app: Application, actor: Actor, asks: list[dict], comment: str | None) -> None:
     """Сотрудник просит документы и для каждого пишет, зачем он нужен. Заявка уходит клиенту (NEED_INFO)."""
-    ensure_transition(app, S.NEED_INFO, actor)  # до создания запроса в B, чтобы не оставлять сирот
+    request_info(session, app, actor, [], comment, asks)
+
+
+def _document_items(app: Application, asks: list[dict], comment: str | None) -> list[dict]:
     body = {
         "application_id": str(app.id),
         "inn": app.company.inn,
@@ -650,7 +670,7 @@ def request_documents(session: Session, app: Application, actor: Actor, asks: li
         request = get_integrations().create_document_request(body)
     except ExternalRejected as exc:
         raise DomainError("document_request_rejected", exc.message, 422) from None
-    items = [
+    return [
         {
             "field": f"document:{request['id']}:{item['code']}",
             "message": item["title"],
@@ -659,9 +679,6 @@ def request_documents(session: Session, app: Application, actor: Actor, asks: li
         }
         for item, ask in zip(request["items"], asks, strict=True)
     ]
-    app.need_info = {"items": items, "comment": comment, "requested_by": actor.role.value}
-    titles = ", ".join(ask["title"] for ask in asks)
-    transition(session, app, S.NEED_INFO, actor, f"Банк запросил документы: {titles}", payload=app.need_info)
 
 
 def _requested_documents(app: Application) -> list[dict]:

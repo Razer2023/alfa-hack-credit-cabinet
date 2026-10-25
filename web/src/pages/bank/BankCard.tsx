@@ -21,9 +21,8 @@ import { formatDateTime, formatMonths } from '../../format';
 import { navigate } from '../../router';
 import { OfferFacts } from '../client/OfferFacts';
 import { DecisionForm } from './DecisionForm';
-import { DocumentRequestForm } from './DocumentRequestForm';
+import { ClientRequestForm } from './ClientRequestForm';
 import { DocumentsPanel } from './DocumentsPanel';
-import { InfoRequestForm } from './InfoRequestForm';
 import styles from './Bank.module.css';
 
 const RESULT_TITLE: Record<string, string> = {
@@ -155,18 +154,10 @@ export function BankCard({ id }: BankCardProps) {
           <Gap size={16} />
         </>
       )}
-      {actions.includes('REQUEST_INFO') && (
+      {(actions.includes('REQUEST_INFO') || actions.includes('REQUEST_DOCUMENTS')) && (
         <>
-          <Plate view='common' rounded={true} border={true} title='Запросить данные у клиента' foldable={true} defaultFolded={true}>
-            <InfoRequestForm application={application} onChange={onChange} />
-          </Plate>
-          <Gap size={16} />
-        </>
-      )}
-      {actions.includes('REQUEST_DOCUMENTS') && (
-        <>
-          <Plate view='common' rounded={true} border={true} title='Запросить документы' foldable={true} defaultFolded={true}>
-            <DocumentRequestForm application={application} onChange={onChange} />
+          <Plate view='common' rounded={true} border={true} title='Запросить данные и документы у клиента' foldable={true} defaultFolded={true}>
+            <ClientRequestForm application={application} onChange={onChange} />
           </Plate>
           <Gap size={16} />
         </>
