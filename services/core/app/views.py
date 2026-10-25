@@ -1,19 +1,23 @@
 """Преобразование моделей в ответы API."""
 
+from datetime import timedelta
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.db import as_utc
 from app.models import Application, ApplicationEvent, Role, User
-from app.schemas import ApplicationBankOut, ApplicationOut, CompanyOut, EventOut, OfferOut, StatusOut
+from app.schemas import ApplicationBankOut, ApplicationOut, CompanyOut, ContactOut, EventOut, OfferOut, StatusOut
 from app.statemachine import STATUS_INFO, actions_for
 
 
 def _common(app: Application, role: Role) -> dict:
     info = STATUS_INFO[app.status]
+    due_at = as_utc(app.status_changed_at) + timedelta(seconds=info.sla_seconds) if info.sla_seconds else None
     return {
         "id": app.id,
         "number": app.number,
-        "status": StatusOut(code=app.status, title=info.title, hint=info.hint),
+        "status": StatusOut(code=app.status, title=info.title, hint=info.hint, sla=info.sla, due_at=due_at),
         "allowed_actions": actions_for(app.status, role),
         "product_code": app.product_code,
         "amount": app.amount,
@@ -23,6 +27,7 @@ def _common(app: Application, role: Role) -> dict:
         "need_info": app.need_info,
         "decision": app.decision,
         "offers": [OfferOut.model_validate(offer) for offer in app.offers],
+        "manager": ContactOut.model_validate(app.manager) if app.manager else None,
         "company": CompanyOut.model_validate(app.company),
         "created_at": app.created_at,
         "updated_at": app.updated_at,

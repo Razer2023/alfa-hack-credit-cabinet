@@ -70,6 +70,19 @@ class StatusOut(BaseModel):
     code: ApplicationStatus
     title: str
     hint: str
+    sla: str | None = Field(None, description="Сколько обычно занимает этап (S4.6); null — ход за клиентом")
+    due_at: datetime | None = Field(None, description="К какому времени банк обещает завершить этап")
+
+
+class ContactOut(BaseModel):
+    """Сотрудник банка, который ведёт заявку (S4.9)."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    full_name: str
+    position: str | None
+    phone: str | None
+    work_hours: str | None
 
 
 class OfferOut(BaseModel):
@@ -249,6 +262,7 @@ class ApplicationOut(BaseModel):
     need_info: NeedInfo | None = Field(description="Что банк просит дополнить (в статусе NEED_INFO)")
     decision: Decision | None
     offers: list[OfferOut]
+    manager: ContactOut | None = Field(description="Кто ведёт заявку и как связаться (S4.9); назначается при отправке")
     company: CompanyOut
     created_at: datetime
     updated_at: datetime
@@ -333,5 +347,6 @@ class StatusReferenceOut(BaseModel):
     code: ApplicationStatus
     title: str
     hint: str
+    sla: str | None = None
     terminal: bool
     next: list[ApplicationStatus]

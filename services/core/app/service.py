@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from datetime import timedelta
 from decimal import Decimal
 
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.clients import get_integrations, get_scoring
@@ -300,6 +301,32 @@ def take(session: Session, app: Application, actor: Actor) -> None:
         raise DomainError("invalid_status", "Заявка уже закрыта")
     app.assignee_id = actor.user_id
     record_event(session, app, actor, "ASSIGNED", "Заявку взял в работу сотрудник банка", visible=False)
+    # Менеджер, взявший заявку, становится контактом клиента
+    if actor.role == Role.MANAGER and app.manager_id != actor.user_id:
+        _set_manager(session, app, session.get(User, actor.user_id), actor)
+
+
+def assign_manager(session: Session, app: Application) -> None:
+    """Персональный менеджер — наименее загруженный: меньше всего незакрытых заявок (S4.9)."""
+    if app.manager_id is not None:
+        return
+    open_count = (
+        select(func.count(Application.id))
+        .where(Application.manager_id == User.id, Application.status.not_in(TERMINAL))
+        .scalar_subquery()
+    )
+    manager = session.scalars(
+        select(User).where(User.role == Role.MANAGER).order_by(open_count, User.login).limit(1)
+    ).first()
+    if manager is not None:
+        _set_manager(session, app, manager, SYSTEM)
+
+
+def _set_manager(session: Session, app: Application, manager: User, actor: Actor) -> None:
+    app.manager_id = manager.id
+    app.manager = manager
+    position = f", {manager.position.lower()}" if manager.position else ""
+    record_event(session, app, actor, "MANAGER_ASSIGNED", f"Заявку ведёт {manager.full_name}{position}")
 
 
 def decide_manual(session: Session, app: Application, actor: Actor, data: dict) -> None:

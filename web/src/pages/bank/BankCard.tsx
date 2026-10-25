@@ -120,6 +120,8 @@ export function BankCard({ id }: BankCardProps) {
       </div>
       <Typography.Text view='primary-medium' color='secondary' tag='p' defaultMargins={false}>
         ИНН {application.company.inn} · {application.status.hint}
+        {application.manager && ` · ведёт ${application.manager.full_name}`}
+        {application.status.due_at && ` · срок до ${formatDateTime(application.status.due_at)}`}
       </Typography.Text>
       {error && (
         <Typography.Text view='primary-small' color='negative' tag='p' defaultMargins={false}>

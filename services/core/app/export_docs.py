@@ -17,7 +17,7 @@ REPO = Path(__file__).resolve().parents[3]
 
 def statuses_markdown() -> str:
     rows = "\n".join(
-        f"| `{status.value}` | {info.title} | {info.hint} | {'да' if status in TERMINAL else ''} |"
+        f"| `{status.value}` | {info.title} | {info.hint} | {info.sla or ''} | {'да' if status in TERMINAL else ''} |"
         for status, info in STATUS_INFO.items()
     )
     return (
@@ -27,7 +27,7 @@ def statuses_markdown() -> str:
         "На стрелках — кто выполняет переход: `CLIENT` — клиент, `SYSTEM` — автоматический конвейер, "
         "`MANAGER` / `UNDERWRITER` — сотрудники банка.\n\n"
         f"```mermaid\n{to_mermaid()}\n```\n\n"
-        "| Код | Название | Что видит клиент | Финальный |\n|---|---|---|---|\n"
+        "| Код | Название | Что видит клиент | Обычный срок | Финальный |\n|---|---|---|---|---|\n"
         f"{rows}\n"
     )
 

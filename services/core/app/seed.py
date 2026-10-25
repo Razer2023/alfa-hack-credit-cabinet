@@ -17,13 +17,19 @@ COMPANIES = [
     ("7703456789", "ООО «Вектор Трейд»"),
 ]
 
+# Контакты сотрудников банка, которые клиент видит в заявке (S4.9). Телефоны вымышленные.
+STAFF_CONTACTS = {
+    "manager": ("Кредитный менеджер малого бизнеса", "+7 495 000-00-01", "пн–пт 9:00–19:00"),
+    "underwriter": ("Кредитный специалист", "+7 495 000-00-02", "пн–пт 10:00–18:00"),
+}
+
 # login, ФИО, роль, ИНН компании
 USERS = [
     ("coffee", "Иванова Мария Сергеевна", Role.CLIENT, "7701234567"),
     ("stroy", "Петров Алексей Викторович", Role.CLIENT, "7702345678"),
     ("vector", "Сидоров Игорь Павлович", Role.CLIENT, "7703456789"),
-    ("manager", "Смирнова Ольга (менеджер)", Role.MANAGER, None),
-    ("underwriter", "Кузнецов Дмитрий (андеррайтер)", Role.UNDERWRITER, None),
+    ("manager", "Смирнова Ольга Андреевна", Role.MANAGER, None),
+    ("underwriter", "Кузнецов Дмитрий Игоревич", Role.UNDERWRITER, None),
 ]
 
 
@@ -35,19 +41,19 @@ def seed(session: Session) -> None:
             session.add(companies[inn])
     session.flush()
 
-    existing = set(session.scalars(select(User.login)))
+    existing = {u.login: u for u in session.scalars(select(User))}
     for login, full_name, role, inn in USERS:
-        if login in existing:
-            continue
-        session.add(
-            User(
+        if login not in existing:
+            existing[login] = User(
                 login=login,
                 full_name=full_name,
                 role=role,
                 company_id=companies[inn].id if inn else None,
                 password_hash=hash_password(settings.demo_password),
             )
-        )
+            session.add(existing[login])
+        if login in STAFF_CONTACTS and existing[login].phone is None:
+            existing[login].position, existing[login].phone, existing[login].work_hours = STAFF_CONTACTS[login]
     session.commit()
 
 

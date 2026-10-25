@@ -1490,6 +1490,11 @@ components:
             $ref: '#/components/schemas/OfferOut'
           type: array
           title: Offers
+        manager:
+          anyOf:
+          - $ref: '#/components/schemas/ContactOut'
+          - type: 'null'
+          description: Кто ведёт заявку и как связаться (S4.9); назначается при отправке
         company:
           $ref: '#/components/schemas/CompanyOut'
         created_at:
@@ -1538,6 +1543,7 @@ components:
       - need_info
       - decision
       - offers
+      - manager
       - company
       - created_at
       - updated_at
@@ -1625,6 +1631,11 @@ components:
             $ref: '#/components/schemas/OfferOut'
           type: array
           title: Offers
+        manager:
+          anyOf:
+          - $ref: '#/components/schemas/ContactOut'
+          - type: 'null'
+          description: Кто ведёт заявку и как связаться (S4.9); назначается при отправке
         company:
           $ref: '#/components/schemas/CompanyOut'
         created_at:
@@ -1659,6 +1670,7 @@ components:
       - need_info
       - decision
       - offers
+      - manager
       - company
       - created_at
       - updated_at
@@ -1812,6 +1824,34 @@ components:
       - inn
       - name
       title: CompanyOut
+    ContactOut:
+      properties:
+        full_name:
+          type: string
+          title: Full Name
+        position:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Position
+        phone:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Phone
+        work_hours:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Work Hours
+      type: object
+      required:
+      - full_name
+      - position
+      - phone
+      - work_hours
+      title: ContactOut
+      description: Сотрудник банка, который ведёт заявку (S4.9).
     DataSource:
       type: string
       enum:
@@ -2539,6 +2579,19 @@ components:
         hint:
           type: string
           title: Hint
+        sla:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Sla
+          description: Сколько обычно занимает этап (S4.6); null — ход за клиентом
+        due_at:
+          anyOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+          title: Due At
+          description: К какому времени банк обещает завершить этап
       type: object
       required:
       - code
@@ -2555,6 +2608,11 @@ components:
         hint:
           type: string
           title: Hint
+        sla:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Sla
         terminal:
           type: boolean
           title: Terminal
