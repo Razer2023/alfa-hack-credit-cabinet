@@ -47,6 +47,8 @@
 }
 .brand img { height: var(--gap-24); width: auto; }
 .description { margin-top: var(--gap-12); }
+/* Подбор по цели (S1.2) */
+.match { display: flex; flex-direction: column; align-items: flex-start; gap: var(--gap-4); margin-top: var(--gap-16); }
 .limit { margin-top: var(--gap-32); }
 .amount { margin: var(--gap-8) 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .terms {

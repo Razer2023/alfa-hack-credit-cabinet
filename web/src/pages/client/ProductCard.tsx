@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@alfalab/core-components/button';
+import { Status } from '@alfalab/core-components/status';
 import { Typography } from '@alfalab/core-components/typography';
 
-import type { Product } from '../../api/types';
+import type { Product, ProductMatch } from '../../api/types';
 import alfaMark from '../../assets/alfa-mark.svg';
 import { formatRub } from '../../format';
 import { PrecheckPanel } from './PrecheckPanel';
@@ -13,10 +14,12 @@ type ProductCardProps = {
   loading: boolean;
   disabled: boolean;
   onApply: () => void;
+  // Результат подбора по цели (S1.2), если клиент выбрал задачу
+  match?: ProductMatch;
 };
 
 /** Каталог использует ту же белую поверхность и фирменный акцент, что и обзор. */
-export function ProductCard({ product, loading, disabled, onApply }: ProductCardProps) {
+export function ProductCard({ product, loading, disabled, onApply, match }: ProductCardProps) {
   const [precheck, setPrecheck] = useState(false);
   return (
     <article className={styles.card} aria-label={product.name}>
@@ -26,6 +29,20 @@ export function ProductCard({ product, loading, disabled, onApply }: ProductCard
         <Typography.Text className={styles.description} view='primary-small' color='secondary' tag='p' defaultMargins={false}>
           {product.description}
         </Typography.Text>
+        {match && (
+          <div className={styles.match}>
+            {match.recommended && (
+              <Status view='soft' color='green' size={20}>
+                Подходит лучше всего
+              </Status>
+            )}
+            {match.notes.map((note) => (
+              <Typography.Text key={note} view='primary-small' color={match.fits ? 'primary' : 'secondary'} tag='p' defaultMargins={false}>
+                {note}
+              </Typography.Text>
+            ))}
+          </div>
+        )}
       </div>
       <div className={styles.limit}>
         <Typography.Text view='primary-small' color='secondary'>Сумма кредита — до</Typography.Text>

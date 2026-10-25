@@ -51,6 +51,21 @@ class ProductOut(BaseModel):
     min_term_months: int
     max_term_months: int
     base_rate: float
+    purposes: list[str] = Field(default=[], description="Цели, под которые подходит продукт (S1.2)")
+
+
+class ProductMatchIn(BaseModel):
+    purpose: str = Field(min_length=1, max_length=100, description="Цель кредита: из списка /products/purposes или своя")
+    amount: int | None = Field(default=None, gt=0, le=1_000_000_000)
+    term_months: int | None = Field(default=None, gt=0, le=120)
+
+
+class ProductMatchOut(BaseModel):
+    product: ProductOut
+    purpose_match: bool = Field(description="Продукт предназначен для этой цели")
+    fits: bool = Field(description="Цель совпадает, сумма и срок в рамках продукта")
+    recommended: bool = Field(description="Лучший вариант: подходит и с самой низкой ставкой")
+    notes: list[str] = Field(description="Почему подходит или что не так — тексты для клиента")
 
 
 class PaymentCalcIn(BaseModel):

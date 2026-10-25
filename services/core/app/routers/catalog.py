@@ -8,7 +8,16 @@ from app.clients.base import ExternalNotFound
 from app.deps import current_user, require
 from app.errors import DomainError
 from app.models import Role, User
-from app.schemas import PaymentCalcIn, PaymentCalcOut, PrecheckIn, PrecheckOut, ProductOut, StatusReferenceOut
+from app.schemas import (
+    PaymentCalcIn,
+    PaymentCalcOut,
+    PrecheckIn,
+    PrecheckOut,
+    ProductMatchIn,
+    ProductMatchOut,
+    ProductOut,
+    StatusReferenceOut,
+)
 from app.statemachine import STATUS_INFO, TERMINAL, TRANSITIONS
 
 router = APIRouter(tags=["Справочники"], dependencies=[Depends(current_user)])
@@ -17,6 +26,16 @@ router = APIRouter(tags=["Справочники"], dependencies=[Depends(curren
 @router.get("/products", response_model=list[ProductOut], summary="Кредитные продукты (S1.1)")
 def products() -> list[dict]:
     return get_scoring().list_products()
+
+
+@router.get("/products/purposes", response_model=list[str], summary="Цели кредита для подбора продукта (S1.2)")
+def purposes() -> list[str]:
+    return service.product_purposes(get_scoring().list_products())
+
+
+@router.post("/products/match", response_model=list[ProductMatchOut], summary="Подбор продукта по цели (S1.2)")
+def match(body: ProductMatchIn) -> list[dict]:
+    return service.match_products(get_scoring().list_products(), body.purpose, body.amount, body.term_months)
 
 
 @router.post("/calc/payment", response_model=PaymentCalcOut, summary="Расчёт ежемесячного платежа (S3.2)")

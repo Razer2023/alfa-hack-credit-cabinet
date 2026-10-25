@@ -60,6 +60,7 @@ PRODUCTS: list[dict] = [
         "min_term_months": 3,
         "max_term_months": 24,
         "base_rate": 22.5,
+        "purposes": ["Текущие расходы", "Кассовый разрыв", "Закупка"],
     },
     {
         "code": "WORKING_CAPITAL",
@@ -70,6 +71,7 @@ PRODUCTS: list[dict] = [
         "min_term_months": 6,
         "max_term_months": 36,
         "base_rate": 19.9,
+        "purposes": ["Закупка товара", "Сезонные расходы", "Кассовый разрыв"],
     },
     {
         "code": "INVESTMENT",
@@ -80,5 +82,6 @@ PRODUCTS: list[dict] = [
         "min_term_months": 12,
         "max_term_months": 84,
         "base_rate": 18.5,
+        "purposes": ["Оборудование", "Ремонт", "Новая точка"],
     },
 ]

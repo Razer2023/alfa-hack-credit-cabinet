@@ -26,3 +26,4 @@ export type DocumentItem = Schemas['DocumentItemOut'];
 export type Precheck = Schemas['PrecheckOut'];
 export type OfferCheck = Schemas['OfferCheckOut'];
 export type ChatMessage = Schemas['MessageOut'];
+export type ProductMatch = Schemas['ProductMatchOut'];
