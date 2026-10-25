@@ -18,6 +18,7 @@ import { DraftForm } from './DraftForm';
 import { NeedInfoForm } from './NeedInfoForm';
 import { OfferBlock } from './OfferBlock';
 import { OfferFacts } from './OfferFacts';
+import { RejectionBlock } from './RejectionBlock';
 import styles from './ApplicationPage.module.css';
 
 type ApplicationPageProps = {
@@ -138,19 +139,7 @@ function StatusContent({ application, product, onChange }: StatusContentProps) {
     case 'COUNTER_OFFER':
       return <OfferBlock application={application} onChange={onChange} />;
     case 'REJECTED':
-      return (
-        <Plate view='negative' rounded={true} border={true} title='Банк не может одобрить заявку'>
-          {(application.decision?.reasons ?? []).map((reason) => (
-            <Typography.Text key={reason.code} view='primary-medium' tag='p' defaultMargins={false}>
-              {reason.text}
-            </Typography.Text>
-          ))}
-          <Gap size={12} />
-          <Typography.Text view='primary-small' color='secondary'>
-            Можно подать новую заявку на другую сумму или срок.
-          </Typography.Text>
-        </Plate>
-      );
+      return <RejectionBlock application={application} />;
     case 'ISSUED': {
       const offer = application.offers.find((item) => item.status === 'ACCEPTED');
       return (
