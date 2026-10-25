@@ -2,11 +2,13 @@
 
 from fastapi import APIRouter, Depends
 
+from app import service
 from app.clients import get_scoring
 from app.clients.base import ExternalNotFound
-from app.deps import current_user
+from app.deps import current_user, require
 from app.errors import DomainError
-from app.schemas import PaymentCalcIn, PaymentCalcOut, ProductOut, StatusReferenceOut
+from app.models import Role, User
+from app.schemas import PaymentCalcIn, PaymentCalcOut, PrecheckIn, PrecheckOut, ProductOut, StatusReferenceOut
 from app.statemachine import STATUS_INFO, TERMINAL, TRANSITIONS
 
 router = APIRouter(tags=["Справочники"], dependencies=[Depends(current_user)])
@@ -41,3 +43,17 @@ def statuses() -> list[StatusReferenceOut]:
         )
         for status, info in STATUS_INFO.items()
     ]
+
+
+@router.post(
+    "/precheck",
+    response_model=PrecheckOut,
+    summary="Предоценка суммы и шансов по ИНН (S2.1)",
+    description=(
+        "До подачи заявки: та же проверка данных компании (ЕГРЮЛ, ФНС, БКИ, выписка) и та же скоринговая "
+        "логика, что у заявки, но без сохранения результата и без запроса в кредитную историю от имени заявки. "
+        "Без суммы и срока — оценивает только максимум по продукту."
+    ),
+)
+def precheck(body: PrecheckIn, user: User = Depends(require(Role.CLIENT))):
+    return service.precheck(user, body.model_dump())

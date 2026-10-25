@@ -65,3 +65,25 @@
   .card { padding: var(--gap-24); }
   .amount { @mixin headline-system-mobile_large; }
 }
+
+/* Предоценка по ИНН (S2.1) */
+.precheck {
+  margin-bottom: var(--gap-16);
+  padding: var(--gap-16);
+  border-radius: var(--border-radius-16);
+  background: var(--color-light-base-bg-secondary);
+}
+
+.precheckFields {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--gap-12);
+}
+
+.precheckResult {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--gap-8);
+  margin-top: var(--gap-16);
+}
