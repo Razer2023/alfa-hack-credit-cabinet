@@ -130,3 +130,20 @@ def test_offer_check_endpoint_for_form(login, strict_scoring):
     # Проверка ничего не меняет в заявке
     assert manager.get(f"/bank/applications/{app_id}").json()["status"]["code"] == "PENDING_APPROVAL"
     assert login("stroy").post(f"/bank/applications/{app_id}/offer-check", {"amount": 1, "term_months": 1}).status_code == 403
+
+
+def test_manager_gets_forbidden_before_policy_check(login, monkeypatch):
+    """Права проверяются раньше скоринга: менеджер по рисковой заявке — 403, а не «условия не проходят»."""
+    from app.clients.scoring import StubScoringClient
+
+    vector, manager = login("vector"), login("manager")
+    app = submit(vector, "WORKING_CAPITAL", 3_000_000, 12)
+    run_pipeline()
+    assert vector.get(f"/applications/{app['id']}").json()["status"]["code"] == "MANUAL_REVIEW"
+
+    def fail(*_):
+        raise AssertionError("скоринг не должен вызываться до проверки прав")
+
+    monkeypatch.setattr(StubScoringClient, "check_offer", fail)
+    response = manager.post(f"/bank/applications/{app['id']}/decision", {"result": "APPROVE", "amount": 9_000_000})
+    assert response.status_code == 403 and response.json()["code"] == "forbidden"

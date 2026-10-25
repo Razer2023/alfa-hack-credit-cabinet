@@ -37,6 +37,10 @@ def test_without_amount_estimates_maximum_only(login):
     result = precheck(login("stroy"), {"product_code": "WORKING_CAPITAL"}).json()
     assert result["max_amount"] == 7_500_000
     assert result["terms"]["amount"] == 7_500_000
+    # Сумму клиент не вводил — причин про «запрошенную сумму» нет, лимит и есть ответ (ТЗ C от 25.10)
+    assert result["reasons"] == []
+    assert result["chance"] == "HIGH"
+    assert result["explanation"].startswith("Скорее всего одобрим до 7 500 000 ₽")
 
 
 def test_nothing_is_saved(login):
