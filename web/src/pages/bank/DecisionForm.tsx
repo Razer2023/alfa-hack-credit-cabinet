@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AmountInput } from '@alfalab/core-components/amount-input';
 import { Button } from '@alfalab/core-components/button';
 import { Gap } from '@alfalab/core-components/gap';
@@ -7,8 +7,9 @@ import { Textarea } from '@alfalab/core-components/textarea';
 import { Typography } from '@alfalab/core-components/typography';
 
 import { api, errorMessage } from '../../api/client';
-import type { BankApplication, DecisionIn } from '../../api/types';
+import type { BankApplication, DecisionIn, OfferCheck } from '../../api/types';
 import { formatMonths, formatRub } from '../../format';
+import { OfferHints } from './OfferHints';
 import styles from './Bank.module.css';
 
 type Result = DecisionIn['result'];
@@ -39,7 +40,27 @@ export function DecisionForm({ application, canReject, onChange }: DecisionFormP
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const needsReason = result === 'REJECT' && !comment.trim();
+  // Проверка условий в скоринге с задержкой после ввода (S5.4): ключ — условия, на которые пришёл ответ
+  const numericRate = rate ? Number(rate.replace(',', '.')) : null;
+  const termMonths = Number(term) || null;
+  const checkKey = result !== 'REJECT' && amount && termMonths ? `${amount}:${termMonths}:${numericRate ?? ''}` : null;
+  const [check, setCheck] = useState<{ key: string; value: OfferCheck } | null>(null);
+  useEffect(() => {
+    if (!checkKey || !amount || !termMonths) return;
+    const body = { amount, term_months: termMonths, rate: numericRate };
+    const timer = setTimeout(() => {
+      api<OfferCheck>(`/bank/applications/${application.id}/offer-check`, { method: 'POST', body })
+        .then((value) => setCheck({ key: checkKey, value }))
+        .catch(() => setCheck(null));
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [checkKey, amount, termMonths, numericRate, application.id]);
+  const currentCheck = check && check.key === checkKey ? check.value : null;
+  const outsidePolicy = result !== 'REJECT' && currentCheck !== null && !currentCheck.allowed;
+
+  // Менеджер не может выдать условия вне политики; андеррайтер может, но только с обоснованием
+  const blockedForManager = outsidePolicy && !canReject;
+  const needsReason = (result === 'REJECT' || (outsidePolicy && canReject)) && !comment.trim();
 
   async function submit() {
     setBusy(true);
@@ -47,8 +68,8 @@ export function DecisionForm({ application, canReject, onChange }: DecisionFormP
     const body: DecisionIn = { result, comment: comment.trim() || null };
     if (result !== 'REJECT') {
       body.amount = amount;
-      body.term_months = Number(term) || null;
-      body.rate = rate ? Number(rate.replace(',', '.')) : null;
+      body.term_months = termMonths;
+      body.rate = numericRate;
     }
     try {
       onChange(await api<BankApplication>(`/bank/applications/${application.id}/decision`, { method: 'POST', body }));
@@ -113,10 +134,26 @@ export function DecisionForm({ application, canReject, onChange }: DecisionFormP
             />
           </div>
           <Gap size={12} />
+          {currentCheck && (
+            <OfferHints
+              check={currentCheck}
+              onApplySuggestion={(terms) => {
+                setAmount(terms.amount);
+                setTerm(String(terms.term_months));
+                setRate(terms.rate === null ? '' : String(terms.rate));
+              }}
+            />
+          )}
         </>
       )}
       <Textarea
-        label={result === 'REJECT' ? 'Причина отказа — её увидит клиент' : 'Комментарий'}
+        label={
+          result === 'REJECT'
+            ? 'Причина отказа — её увидит клиент'
+            : outsidePolicy && canReject
+              ? 'Обоснуйте отступление от кредитной политики'
+              : 'Комментарий'
+        }
         block={true}
         minRows={2}
         maxLength={1000}
@@ -124,7 +161,15 @@ export function DecisionForm({ application, canReject, onChange }: DecisionFormP
         onChange={(_, { value }) => setComment(value)}
       />
       <Gap size={16} />
-      <Button view='accent' size={48} loading={busy} disabled={needsReason} onClick={submit}>
+      {blockedForManager && (
+        <>
+          <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
+            Измените условия или передайте заявку андеррайтеру.
+          </Typography.Text>
+          <Gap size={8} />
+        </>
+      )}
+      <Button view='accent' size={48} loading={busy} disabled={needsReason || blockedForManager} onClick={submit}>
         {result === 'APPROVE' ? 'Подтвердить одобрение' : result === 'COUNTER_OFFER' ? 'Предложить условия' : 'Отказать'}
       </Button>
       {error && (

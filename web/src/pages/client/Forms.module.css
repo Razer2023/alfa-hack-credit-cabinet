@@ -51,3 +51,16 @@
   justify-content: space-between;
   gap: var(--gap-8);
 }
+
+/* Причина отказа и что делать (S6.3) */
+.reason {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-4);
+  padding: var(--gap-12) 0;
+  border-bottom: 1px solid var(--color-light-neutral-300);
+}
+
+.reason:last-child {
+  border-bottom: none;
+}
