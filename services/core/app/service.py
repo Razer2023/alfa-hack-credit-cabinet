@@ -20,6 +20,7 @@ from app.models import (
     ApplicationStatus as S,
     Confirmation,
     ConfirmationPurpose,
+    Message,
     Offer,
     OfferKind,
     OfferStatus,
@@ -455,6 +456,47 @@ def escalate(session: Session, app: Application, actor: Actor, comment: str | No
 def request_info(session: Session, app: Application, actor: Actor, items: list[dict], comment: str | None) -> None:
     app.need_info = {"items": items, "comment": comment, "requested_by": actor.role.value}
     transition(session, app, S.NEED_INFO, actor, "Банк попросил дополнить заявку", payload=app.need_info)
+
+
+# --- чат по заявке (S4.10) ----------------------------------------------------------------
+
+
+def post_message(session: Session, app: Application, user: User, text: str) -> Message:
+    if app.status == S.DRAFT:
+        raise DomainError("chat_unavailable", "Переписка откроется после отправки заявки", 409)
+    text = text.strip()
+    if not text:
+        raise DomainError("empty_message", "Напишите сообщение", 422)
+    message = Message(application_id=app.id, author_id=user.id, author_role=user.role, text=text, author=user)
+    session.add(message)
+    session.flush()
+    # Событие в журнале доставляет сообщение собеседнику по тому же SSE-потоку, что и статусы
+    record_event(
+        session,
+        app,
+        Actor.of(user),
+        "MESSAGE",
+        f"{message_view(message)['author_name']}: {text[:120]}",
+        payload={"message_id": message.id},
+    )
+    return message
+
+
+def list_messages(session: Session, app: Application) -> list[Message]:
+    return list(
+        session.scalars(select(Message).where(Message.application_id == app.id).order_by(Message.id))
+    )
+
+
+def message_view(message: Message) -> dict:
+    author = message.author
+    return {
+        "id": message.id,
+        "author_role": message.author_role,
+        "author_name": author.company.name if message.author_role == Role.CLIENT and author.company else author.full_name,
+        "text": message.text,
+        "created_at": message.created_at,
+    }
 
 
 # --- предоценка (S2.1) --------------------------------------------------------------------

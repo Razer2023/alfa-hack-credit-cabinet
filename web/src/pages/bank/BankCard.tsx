@@ -11,6 +11,7 @@ import { api, errorMessage } from '../../api/client';
 import type { ApplicationEvent, BankApplication } from '../../api/types';
 import { useUser } from '../../auth/AuthContext';
 import { CompanyFacts } from '../../components/CompanyFacts';
+import { ChatPanel } from '../../components/ChatPanel';
 import { EventList } from '../../components/EventList';
 import { FactList } from '../../components/FactList';
 import { Money } from '../../components/Money';
@@ -171,6 +172,8 @@ export function BankCard({ id }: BankCardProps) {
         </>
       )}
       <DocumentsPanel applicationId={application.id} version={events.length} />
+      <Gap size={16} />
+      <ChatPanel applicationId={application.id} basePath='/bank/applications' title='Чат с клиентом' />
       <Gap size={16} />
 
       <div className={styles.grid}>

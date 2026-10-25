@@ -1,0 +1,22 @@
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-8);
+  max-height: 360px;
+  margin-bottom: var(--gap-12);
+  overflow-y: auto;
+}
+
+.message {
+  max-width: 85%;
+  padding: var(--gap-8) var(--gap-12);
+  border-radius: var(--border-radius-12);
+  background: var(--color-light-neutral-100);
+  overflow-wrap: anywhere;
+  white-space: pre-line;
+}
+
+.own {
+  align-self: flex-end;
+  background: var(--color-light-accent-secondary);
+}
