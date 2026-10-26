@@ -57,6 +57,18 @@
   max-height: none;
 }
 
+/* Как в мессенджере: сообщения прижаты к полю ввода, старые уходят вверх.
+   margin-top: auto, а не justify-content: flex-end — иначе верх длинной ленты не прокрутить */
+.thread > :first-child {
+  margin-top: auto;
+}
+
+.fill .empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
 @media (max-width: 600px) {
   .composer {
     flex-direction: column;
