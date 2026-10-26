@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react';
+import { Button } from '@alfalab/core-components/button';
 import { Typography } from '@alfalab/core-components/typography';
 
 import alfaMark from '../assets/alfa-mark.svg';
+import { useInvertedOnDark, useTheme } from '../theme/ThemeContext';
 import styles from './Layout.module.css';
 
 export type Tone = 'dark' | 'light';
@@ -20,7 +22,7 @@ export function Layout({ children, actions, navigation, tone = 'light', bleed = 
   const dark = tone === 'dark';
   return (
     <div className={styles.page}>
-      <header className={dark ? `${styles.header} ${styles.dark}` : styles.header}>
+      <header className={dark ? `${styles.header} ${styles.dark} dark-surface` : styles.header}>
         <div className={styles.bar}>
           {/* Логотип ведёт на главную: клиенту — обзор заявок, сотруднику — очередь */}
           <a href='#/' className={styles.brand} aria-label='Кредитный кабинет — на главную'>
@@ -30,13 +32,16 @@ export function Layout({ children, actions, navigation, tone = 'light', bleed = 
             </Typography.Text>
           </a>
           {navigation && <nav className={styles.navigation} aria-label='Разделы кабинета'>{navigation}</nav>}
-          {actions && <div className={styles.actions}>{actions}</div>}
+          <div className={styles.actions}>
+            {actions}
+            <ThemeToggle tone={tone} />
+          </div>
         </div>
       </header>
 
       <main className={bleed ? styles.bleed : styles.main}>{children}</main>
 
-      <footer className={styles.footer}>
+      <footer className={`${styles.footer} dark-surface`}>
         <div className={styles.footerBar}>
           <Typography.Text view='primary-small' color='secondary-inverted'>
             Прототип. Данные синтетические
@@ -45,6 +50,19 @@ export function Layout({ children, actions, navigation, tone = 'light', bleed = 
         </div>
       </footer>
     </div>
+  );
+}
+
+// Переключатель светлой и тёмной темы — в шапке на всех экранах, включая вход
+function ThemeToggle({ tone }: { tone: Tone }) {
+  const { theme, toggle } = useTheme();
+  const inverted = useInvertedOnDark() && tone === 'dark';
+  const next = theme === 'dark' ? 'Светлая тема' : 'Тёмная тема';
+  return (
+    <Button view='transparent' colors={inverted ? 'inverted' : 'default'} size={40} onClick={toggle}
+      aria-label={`Включить: ${next.toLowerCase()}`}>
+      {next}
+    </Button>
   );
 }
 

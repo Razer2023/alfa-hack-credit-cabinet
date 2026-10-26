@@ -49,7 +49,7 @@ function formatTick(value: number): string {
   return formatMinutes(value);
 }
 
-// Аналитика (S8.1): где заявки теряют время и где нарушен обещанный срок
+// Аналитика (S8.1), в общей теме кабинета: где заявки теряют время и где нарушен обещанный срок
 export function Dashboard() {
   const [source, setSource] = useState<Source>('LIVE');
   // По источнику отдельно: запоздавший ответ другой вкладки не затирает выбранную
@@ -81,16 +81,16 @@ export function Dashboard() {
       <div className={styles.container}>
         <header className={styles.heading}>
           <div>
-            <Typography.TitleResponsive tag='h1' view='large' font='system' color='primary-inverted'>
+            <Typography.TitleResponsive tag='h1' view='large' font='system' color='primary'>
               Аналитика
             </Typography.TitleResponsive>
-            <Typography.Text view='primary-medium' color='secondary-inverted' tag='p' defaultMargins={false}>
+            <Typography.Text view='primary-medium' color='secondary' tag='p' defaultMargins={false}>
               Где заявки теряют время и где нарушен обещанный срок
             </Typography.Text>
           </div>
           <div className={styles.switch} role='group' aria-label='Источник данных'>
             {(Object.keys(SOURCES) as Source[]).map((id) => (
-              <Button key={id} view={id === source ? 'secondary' : 'transparent'} colors='inverted' size={40}
+              <Button key={id} view={id === source ? 'secondary' : 'transparent'} size={40}
                 shape='rounded' aria-pressed={id === source} onClick={() => setSource(id)}>
                 {SOURCES[id]}
               </Button>
@@ -118,7 +118,7 @@ export function Dashboard() {
               </div>
             </div>
             <StageTable data={current} />
-            <Typography.Text view='primary-small' color='secondary-inverted' tag='p' defaultMargins={false}>
+            <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
               {current.source === 'LIVE'
                 ? 'По журналу событий ядра: время статуса — до следующего перехода, у заявок в работе — до текущего момента.'
                 : 'Синтетический массив сервиса интеграций: заранее посчитанные длительности этапов, чтобы показать дашборд на объёме.'}
@@ -143,14 +143,14 @@ function StageChart({ data }: DataProps) {
   return (
     <section className={styles.card} aria-labelledby='stage-chart'>
       <div className={styles.cardHeading}>
-        <Typography.Title id='stage-chart' tag='h2' view='xsmall' font='system' color='primary-inverted'>
+        <Typography.Title id='stage-chart' tag='h2' view='xsmall' font='system' color='primary'>
           Время по этапам
         </Typography.Title>
         <div className={styles.toggle} role='group' aria-label='Показатель'>
           {([['median', 'Обычно'], ['p90', '90 % быстрее']] as const).map(([id, title]) => (
             <button key={id} type='button' className={id === metric ? `${styles.toggleItem} ${styles.toggleActive}` : styles.toggleItem}
               aria-pressed={id === metric} onClick={() => setMetric(id)}>
-              <Typography.Text view='primary-small' weight='medium' color={id === metric ? 'primary-inverted' : 'secondary-inverted'}>
+              <Typography.Text view='primary-small' weight='medium' color={id === metric ? 'primary' : 'secondary'}>
                 {title}
               </Typography.Text>
             </button>
@@ -158,14 +158,14 @@ function StageChart({ data }: DataProps) {
         </div>
       </div>
       {max === 0 ? (
-        <Typography.Text view='primary-small' color='secondary-inverted' tag='p' defaultMargins={false}>
+        <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
           Заявок, прошедших этапы банка, пока нет.
         </Typography.Text>
       ) : (
         <div className={styles.chart} role='list' aria-label='Длительность этапов'>
           <div className={styles.scale} aria-hidden='true'>
             {[max, max / 2, 0].map((tick) => (
-              <Typography.Text key={tick} view='secondary-medium' color='secondary-inverted'>{tick ? formatTick(tick) : '0'}</Typography.Text>
+              <Typography.Text key={tick} view='secondary-medium' color='secondary'>{tick ? formatTick(tick) : '0'}</Typography.Text>
             ))}
           </div>
           <div className={styles.plot}>
@@ -185,7 +185,7 @@ function StageChart({ data }: DataProps) {
                     </div>
                   </div>
                   <Typography.Text className={styles.barLabel} view='secondary-medium'
-                    color={peak ? 'primary-inverted' : 'secondary-inverted'} weight={peak ? 'bold' : 'regular'}>
+                    color={peak ? 'primary' : 'secondary'} weight={peak ? 'bold' : 'regular'}>
                     {stage.title}
                   </Typography.Text>
                 </div>
@@ -206,7 +206,7 @@ function StatusDonut({ data }: DataProps) {
 
   return (
     <section className={styles.card} aria-labelledby='status-donut'>
-      <Typography.Title id='status-donut' tag='h2' view='xsmall' font='system' color='primary-inverted'>
+      <Typography.Title id='status-donut' tag='h2' view='xsmall' font='system' color='primary'>
         Заявки по статусам
       </Typography.Title>
       <div className={styles.donutRow}>
@@ -224,8 +224,8 @@ function StatusDonut({ data }: DataProps) {
             })}
           </svg>
           <div className={styles.donutCenter}>
-            <Typography.Text view='primary-small' color='secondary-inverted'>Всего</Typography.Text>
-            <Typography.Title tag='div' view='small' font='system' color='primary-inverted'>{data.applications}</Typography.Title>
+            <Typography.Text view='primary-small' color='secondary'>Всего</Typography.Text>
+            <Typography.Title tag='div' view='small' font='system' color='primary'>{data.applications}</Typography.Title>
           </div>
         </div>
         <ul className={styles.legend}>
@@ -233,10 +233,10 @@ function StatusDonut({ data }: DataProps) {
             <li key={item.code}>
               <span className={styles.legendDot} style={{ background: PALETTE[index % PALETTE.length] }} aria-hidden='true' />
               <span>
-                <Typography.Text view='primary-small' color='secondary-inverted' tag='p' defaultMargins={false}>{item.title}</Typography.Text>
-                <Typography.Text view='primary-medium' weight='bold' color='primary-inverted'>
+                <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>{item.title}</Typography.Text>
+                <Typography.Text view='primary-medium' weight='bold' color='primary'>
                   {item.count}
-                  {total > 0 && <Typography.Text view='primary-small' color='secondary-inverted'> · {Math.round((100 * item.count) / total)} %</Typography.Text>}
+                  {total > 0 && <Typography.Text view='primary-small' color='secondary'> · {Math.round((100 * item.count) / total)} %</Typography.Text>}
                 </Typography.Text>
               </span>
             </li>
@@ -252,7 +252,7 @@ function Bottleneck({ data }: DataProps) {
   const stage = data.stages.find((item) => item.code === data.bottleneck);
   return (
     <section className={stage ? `${styles.card} ${styles.alert}` : styles.card} aria-labelledby='bottleneck'>
-      <Typography.Text id='bottleneck' view='primary-small' weight='medium' color={stage ? 'static-primary-light' : 'secondary-inverted'}>
+      <Typography.Text id='bottleneck' view='primary-small' weight='medium' color={stage ? 'static-primary-light' : 'secondary'}>
         {stage ? 'Узкое место' : 'Узких мест не видно'}
       </Typography.Text>
       {stage ? (
@@ -263,7 +263,7 @@ function Bottleneck({ data }: DataProps) {
           </Typography.Text>
         </>
       ) : (
-        <Typography.Text view='primary-small' color='secondary-inverted' tag='p' defaultMargins={false}>
+        <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
           Заявок, прошедших этапы банка, пока нет.
         </Typography.Text>
       )}
@@ -276,25 +276,25 @@ function InProgress({ stages }: StagesProps) {
   const active = stages.filter((stage) => stage.in_progress > 0);
   return (
     <section className={styles.card} aria-labelledby='in-progress'>
-      <Typography.Title id='in-progress' tag='h2' view='xsmall' font='system' color='primary-inverted'>
+      <Typography.Title id='in-progress' tag='h2' view='xsmall' font='system' color='primary'>
         Сейчас в работе
       </Typography.Title>
       {active.length === 0 ? (
-        <Typography.Text view='primary-small' color='secondary-inverted' tag='p' defaultMargins={false}>Заявок на этапах нет.</Typography.Text>
+        <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>Заявок на этапах нет.</Typography.Text>
       ) : (
         <ul className={styles.list}>
           {active.map((stage) => (
             <li key={stage.code} className={styles.listItem}>
               <span className={styles.badge} aria-hidden='true'>
-                <Typography.Text view='primary-small' weight='bold' color='primary-inverted'>{stage.title[0]}</Typography.Text>
+                <Typography.Text view='primary-small' weight='bold' color='primary'>{stage.title[0]}</Typography.Text>
               </span>
               <span className={styles.listText}>
-                <Typography.Text view='primary-small' weight='medium' color='primary-inverted' tag='p' defaultMargins={false}>{stage.title}</Typography.Text>
-                <Typography.Text view='secondary-large' color='secondary-inverted' tag='p' defaultMargins={false}>
+                <Typography.Text view='primary-small' weight='medium' color='primary' tag='p' defaultMargins={false}>{stage.title}</Typography.Text>
+                <Typography.Text view='secondary-large' color='secondary' tag='p' defaultMargins={false}>
                   дольше всех {formatMinutes(stage.longest_wait_minutes)} · {OWNER[stage.owner]}
                 </Typography.Text>
               </span>
-              <Typography.Text view='primary-medium' weight='bold' color='primary-inverted'>{stage.in_progress}</Typography.Text>
+              <Typography.Text view='primary-medium' weight='bold' color='primary'>{stage.in_progress}</Typography.Text>
             </li>
           ))}
         </ul>
@@ -310,13 +310,13 @@ function OverSla({ stages }: StagesProps) {
   return (
     <section className={styles.card} aria-labelledby='over-sla'>
       <div className={styles.cardHeading}>
-        <Typography.Title id='over-sla' tag='h2' view='xsmall' font='system' color='primary-inverted'>Вне срока</Typography.Title>
+        <Typography.Title id='over-sla' tag='h2' view='xsmall' font='system' color='primary'>Вне срока</Typography.Title>
         <span className={total > 0 ? `${styles.pill} ${styles.pillAlert}` : styles.pill}>
-          <Typography.Text view='primary-medium' weight='bold' color={total > 0 ? 'static-primary-light' : 'primary-inverted'}>{total}</Typography.Text>
+          <Typography.Text view='primary-medium' weight='bold' color={total > 0 ? 'static-primary-light' : 'primary'}>{total}</Typography.Text>
         </span>
       </div>
       {late.length === 0 ? (
-        <Typography.Text view='primary-small' color='secondary-inverted' tag='p' defaultMargins={false}>
+        <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
           Все заявки укладываются в обещанные сроки.
         </Typography.Text>
       ) : (
@@ -324,10 +324,10 @@ function OverSla({ stages }: StagesProps) {
           {late.map((stage) => (
             <li key={stage.code} className={styles.listItem}>
               <span className={styles.listText}>
-                <Typography.Text view='primary-small' weight='medium' color='primary-inverted' tag='p' defaultMargins={false}>{stage.title}</Typography.Text>
-                {stage.sla && <Typography.Text view='secondary-large' color='secondary-inverted' tag='p' defaultMargins={false}>срок {stage.sla}</Typography.Text>}
+                <Typography.Text view='primary-small' weight='medium' color='primary' tag='p' defaultMargins={false}>{stage.title}</Typography.Text>
+                {stage.sla && <Typography.Text view='secondary-large' color='secondary' tag='p' defaultMargins={false}>срок {stage.sla}</Typography.Text>}
               </span>
-              <Typography.Text view='primary-medium' weight='bold' color='primary-inverted'>{stage.over_sla}</Typography.Text>
+              <Typography.Text view='primary-medium' weight='bold' color='primary'>{stage.over_sla}</Typography.Text>
             </li>
           ))}
         </ul>
@@ -343,11 +343,11 @@ function StageTable({ data }: DataProps) {
 
   return (
     <section className={styles.card} aria-labelledby='all-stages'>
-      <Typography.Title id='all-stages' tag='h2' view='xsmall' font='system' color='primary-inverted'>Все этапы</Typography.Title>
+      <Typography.Title id='all-stages' tag='h2' view='xsmall' font='system' color='primary'>Все этапы</Typography.Title>
       <div className={styles.table} role='table' aria-labelledby='all-stages'>
         <div className={`${styles.tableRow} ${styles.tableHead}`} role='row'>
           {columns.map((title, index) => (
-            <Typography.Text key={title} role='columnheader' view='primary-small' color='secondary-inverted'
+            <Typography.Text key={title} role='columnheader' view='primary-small' color='secondary'
               className={index >= 2 && index <= 6 ? styles.number : undefined}>
               {title}
             </Typography.Text>
@@ -357,9 +357,9 @@ function StageTable({ data }: DataProps) {
           <div key={stage.code} role='row'
             className={stage.code === data.bottleneck ? `${styles.tableRow} ${styles.peakRow}` : styles.tableRow}>
             <span role='cell'>
-              <Typography.Text view='primary-small' weight='bold' color='primary-inverted' tag='p' defaultMargins={false}>{stage.title}</Typography.Text>
+              <Typography.Text view='primary-small' weight='bold' color='primary' tag='p' defaultMargins={false}>{stage.title}</Typography.Text>
               {stage.sla && (
-                <Typography.Text view='secondary-large' color='secondary-inverted' tag='p' defaultMargins={false}>Срок: {stage.sla}</Typography.Text>
+                <Typography.Text view='secondary-large' color='secondary' tag='p' defaultMargins={false}>Срок: {stage.sla}</Typography.Text>
               )}
             </span>
             <Cell>{OWNER[stage.owner]}</Cell>
@@ -372,7 +372,7 @@ function StageTable({ data }: DataProps) {
             <Cell number>{stage.over_sla > 0 ? <span className={styles.lateCount}>{stage.over_sla}</span> : '—'}</Cell>
             <span role='cell'>
               {stage.owner === 'CLIENT' ? (
-                <Typography.Text view='primary-small' color='secondary-inverted'>ждём клиента</Typography.Text>
+                <Typography.Text view='primary-small' color='secondary'>ждём клиента</Typography.Text>
               ) : (
                 <div className={styles.share} aria-label={`${Math.round((100 * stage.total_minutes) / maxTotal)} % от самого долгого этапа`}>
                   <span style={{ width: `${(100 * stage.total_minutes) / maxTotal}%` }} />
@@ -388,7 +388,7 @@ function StageTable({ data }: DataProps) {
 
 function Cell({ children, number = false }: { children: ReactNode; number?: boolean }) {
   return (
-    <Typography.Text role='cell' view='primary-small' color='primary-inverted' className={number ? styles.number : undefined}>
+    <Typography.Text role='cell' view='primary-small' color='primary' className={number ? styles.number : undefined}>
       {children}
     </Typography.Text>
   );

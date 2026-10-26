@@ -10,7 +10,7 @@ type SlotProps = {
 // Тёмный первый экран под тёмной шапкой (обзор и кредиты клиента)
 export function Hero({ children, className }: SlotProps) {
   return (
-    <div className={styles.hero}>
+    <div className={`${styles.hero} dark-surface`}>
       <div className={className ? `${styles.container} ${className}` : styles.container}>{children}</div>
     </div>
   );

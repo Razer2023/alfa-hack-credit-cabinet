@@ -1,7 +1,7 @@
-/* Аналитика (S8.1): тёмный дашборд в стиле первого экрана клиента — карточки на полупрозрачном белом, акцент красный */
+/* Аналитика (S8.1): дашборд в общей теме кабинета — карточки на фоне страницы, акцент красный */
 .page {
   flex: 1;
-  background: var(--color-light-base-bg-primary-inverted);
+  background: var(--color-light-base-bg-secondary);
 }
 
 .container {
@@ -26,7 +26,7 @@
   gap: var(--gap-4);
   padding: var(--gap-4);
   border-radius: var(--border-radius-pill);
-  background: var(--color-light-specialbg-component-inverted);
+  background: var(--color-light-base-bg-primary);
 }
 
 .grid {
@@ -50,7 +50,7 @@
   min-width: 0;
   padding: var(--gap-24);
   border-radius: var(--border-radius-24);
-  background: var(--color-light-specialbg-component-inverted);
+  background: var(--color-light-base-bg-primary);
 }
 
 .alert {
@@ -110,7 +110,7 @@
 .plot {
   display: flex;
   gap: var(--gap-12);
-  background-image: linear-gradient(var(--color-light-border-key-inverted-alpha-15) 1px, transparent 1px);
+  background-image: linear-gradient(var(--color-light-neutral-translucent-300) 1px, transparent 1px);
   background-size: 100% 50%;
   background-repeat: repeat-y;
 }
@@ -128,7 +128,7 @@
   align-items: flex-end;
   justify-content: center;
   height: calc(var(--gap-128) * 2);
-  border-bottom: 1px solid var(--color-light-border-key-inverted-alpha-15);
+  border-bottom: 1px solid var(--color-light-neutral-translucent-300);
 }
 
 .barValue {
@@ -136,7 +136,7 @@
   width: min(100%, var(--gap-48));
   min-height: var(--gap-4);
   border-radius: var(--border-radius-8) var(--border-radius-8) 0 0;
-  background: var(--color-light-border-key-inverted-alpha-15);
+  background: var(--color-light-neutral-translucent-300);
 }
 
 .peak {
@@ -180,7 +180,7 @@
 }
 
 .donutTrack {
-  stroke: var(--color-light-border-key-inverted-alpha-15);
+  stroke: var(--color-light-neutral-translucent-300);
 }
 
 .donutCenter {
@@ -243,7 +243,7 @@
   width: var(--gap-40);
   height: var(--gap-40);
   border-radius: var(--border-radius-12);
-  background: var(--color-light-base-bg-primary-inverted);
+  background: var(--color-light-base-bg-secondary);
 }
 
 .pill {
@@ -253,7 +253,7 @@
   height: var(--gap-32);
   padding: 0 var(--gap-12);
   border-radius: var(--border-radius-pill);
-  background: var(--color-light-base-bg-primary-inverted);
+  background: var(--color-light-base-bg-secondary);
 }
 
 .pillAlert {
@@ -272,7 +272,7 @@
   gap: var(--gap-16);
   min-width: calc(var(--gap-128) * 8);
   padding: var(--gap-12) var(--gap-12);
-  border-top: 1px solid var(--color-light-border-key-inverted-alpha-15);
+  border-top: 1px solid var(--color-light-neutral-translucent-300);
 }
 
 .tableHead {
@@ -281,7 +281,7 @@
 
 .peakRow {
   border-radius: var(--border-radius-12);
-  background: var(--color-light-specialbg-component-inverted);
+  background: var(--color-light-base-bg-secondary);
 }
 
 .number {
@@ -301,7 +301,7 @@
 .share {
   height: var(--gap-8);
   border-radius: var(--border-radius-8);
-  background: var(--color-light-border-key-inverted-alpha-15);
+  background: var(--color-light-neutral-translucent-300);
   overflow: hidden;
 }
 
