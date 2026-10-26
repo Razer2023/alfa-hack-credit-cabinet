@@ -15,12 +15,16 @@ import { ApplicationPage } from './pages/client/ApplicationPage';
 import { ClientHome } from './pages/client/ClientHome';
 import { LoginPage } from './pages/LoginPage';
 import { matchRoute, navigate, useRoute } from './router';
+import { useInvertedOnDark } from './theme/ThemeContext';
+import { ThemeProvider } from './theme/ThemeProvider';
 
 export function App() {
   return (
-    <AuthProvider>
-      <Shell />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <Shell />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
@@ -28,6 +32,7 @@ export function App() {
 function Shell() {
   const { user, logout } = useAuth();
   const path = useRoute();
+  const inverted = useInvertedOnDark();
 
   // Одно соединение SSE на всё время входа: статусы обновляются без перезагрузки (S4.5)
   useEffect(() => {
@@ -44,14 +49,16 @@ function Shell() {
     );
   }
 
-  // Тёмные: обзор и кредиты клиента (тёмный первый экран и белый лист поверх) и аналитика банка
+  // Тёмные только обзор и кредиты клиента: у них тёмный первый экран и белый лист поверх.
+  // Аналитика банка — в общей теме кабинета, но со своей раскладкой на всю ширину.
   const client = user.role === 'CLIENT';
-  const tone = client ? (path === '/' || path === '/products' ? 'dark' : 'light') : path === '/dashboard' ? 'dark' : 'light';
+  const analytics = !client && path === '/dashboard';
+  const tone = client && (path === '/' || path === '/products') ? 'dark' : 'light';
 
   return (
     <Layout
       tone={tone}
-      bleed={tone === 'dark'}
+      bleed={tone === 'dark' || analytics}
       navigation={client ? <>
         <NavLink tone={tone} href='#/' current={path !== '/products'}>Обзор</NavLink>
         <NavLink tone={tone} href='#/products' current={path === '/products'}>Кредитные продукты</NavLink>
@@ -66,7 +73,7 @@ function Shell() {
           </Typography.Text>
           <Button
             view='secondary'
-            colors={tone === 'dark' ? 'inverted' : 'default'}
+            colors={tone === 'dark' && inverted ? 'inverted' : 'default'}
             size={40}
             onClick={() => {
               logout();

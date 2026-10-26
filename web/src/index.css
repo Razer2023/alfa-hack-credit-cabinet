@@ -1,17 +1,38 @@
 /* Токены дизайн-системы (палитра bluetint, отступы, типографика) и тема компонентов corp. */
 @import '@alfalab/core-components/vars/bundle/corp.css';
 @import '@alfalab/core-components/themes/corp.css';
+/* Тёмная тема: при сборке переносится на :root[data-theme="dark"] (postcss.config.js), включается в src/theme.tsx */
+@import '@alfalab/core-components/themes/dark.css';
 
 /* Сетка страниц по макету «Кабинет — клиент v2»: контент 1140 и поля по бокам */
 :root {
   --page-gutter: var(--gap-24);
   --page-width: calc(1140px + 2 * var(--page-gutter));
+  color-scheme: light;
 }
 
 @media (max-width: 740px) {
   :root {
     --page-gutter: var(--gap-20);
   }
+}
+
+/* В тёмной теме карточки светлее фона страницы: меняем местами фон страницы и фон карточек */
+:root[data-theme='dark'] {
+  --color-light-base-bg-primary: var(--color-dark-base-bg-secondary);
+  --color-light-base-bg-secondary: var(--color-dark-base-bg-primary);
+  color-scheme: dark;
+}
+
+/* Тёмные поверхности (шапка обзора, первый экран, аналитика, подвал) в светлой теме нарисованы
+   «инвертированными» токенами. В тёмной теме инвертированные токены светлые, поэтому внутри
+   таких поверхностей возвращаем им тёмные значения — поверхность выглядит одинаково в обеих темах. */
+:root[data-theme='dark'] .dark-surface {
+  --color-light-base-bg-primary-inverted: var(--color-dark-base-bg-primary);
+  --color-light-text-primary-inverted: var(--color-dark-text-primary);
+  --color-light-text-secondary-inverted: var(--color-dark-text-secondary);
+  --color-light-specialbg-component-inverted: var(--color-dark-specialbg-component);
+  --color-light-border-key-inverted-alpha-15: var(--color-dark-border-key-alpha-15);
 }
 
 *,
@@ -24,6 +45,12 @@ html,
 body,
 #root {
   min-height: 100%;
+}
+
+/* Полоса прокрутки видна всегда: при переходе между короткой и длинной страницей ширина не меняется
+   и интерфейс не сдвигается влево-вправо. scrollbar-gutter поддерживается не везде, overflow-y: scroll — везде */
+html {
+  overflow-y: scroll;
 }
 
 body {

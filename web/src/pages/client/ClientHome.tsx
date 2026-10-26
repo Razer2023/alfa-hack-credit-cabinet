@@ -14,6 +14,7 @@ import { formatDateTime, formatMonths, formatRub } from '../../format';
 import { Hero, Sheet } from '../../layout/Page';
 import { useRoute } from '../../router';
 import { nextStep, stageLabel } from '../../stages';
+import { useInvertedOnDark } from '../../theme/ThemeContext';
 import { Catalog } from './Catalog';
 import styles from './ClientHome.module.css';
 import { HowItWorks } from './HowItWorks';
@@ -29,6 +30,7 @@ function Overview() {
   const [products, setProducts] = useState<Product[]>([]);
   const [applications, setApplications] = useState<Application[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const inverted = useInvertedOnDark();
 
   const loadApplications = useCallback(() => {
     api<Application[]>('/applications').then(setApplications).catch((e) => setError(errorMessage(e)));
@@ -53,7 +55,7 @@ function Overview() {
   if (applications === null) {
     return (
       <>
-        <Hero>{error ? null : <Spinner preset={48} visible={true} colors='inverted' />}</Hero>
+        <Hero>{error ? null : <Spinner preset={48} visible={true} colors={inverted ? 'inverted' : 'default'} />}</Hero>
         <Sheet>{errorPlate}</Sheet>
       </>
     );
@@ -143,6 +145,7 @@ function FeaturedApplication({ application, productName }: FeaturedApplicationPr
     application.purpose,
   ].filter(Boolean).join(' · ');
   const manager = application.manager;
+  const inverted = useInvertedOnDark();
 
   return (
     <div className={styles.featured}>
@@ -162,7 +165,7 @@ function FeaturedApplication({ application, productName }: FeaturedApplicationPr
       <div className={styles.actions}>
         {action
           ? <Button view='accent' size={56} href={href}>{action}</Button>
-          : <Button view='secondary' colors='inverted' size={56} href={href}>Открыть заявку</Button>}
+          : <Button view='secondary' colors={inverted ? 'inverted' : 'default'} size={56} href={href}>Открыть заявку</Button>}
         <Typography.Text className={styles.pill} view='primary-small' color='secondary-inverted'>
           {application.status.hint}
           {application.status.sla && <><br />Обычно {application.status.sla}</>}
