@@ -37,28 +37,54 @@
   background: var(--color-light-base-bg-primary);
 }
 
+/* Путь занимает две верхние строки справа, чат — две нижние слева:
+   чат начинается сразу под «Что делать» и тянется до низа истории */
 .grid {
   display: grid;
   grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  grid-template-rows: auto auto 1fr;
+  grid-template-areas:
+    'todo path'
+    'chat path'
+    'chat history';
   align-items: start;
   gap: var(--gap-24);
 }
 
-.aside {
+.todo {
+  grid-area: todo;
+}
+
+.path {
+  grid-area: path;
+}
+
+.chat {
+  grid-area: chat;
   display: flex;
   flex-direction: column;
-  gap: var(--gap-24);
-  min-width: 0;
+  align-self: stretch;
+}
+
+.history {
+  grid-area: history;
+}
+
+/* Отменённая заявка — без пути */
+.noPath {
+  grid-template-rows: auto 1fr;
+  grid-template-areas:
+    'todo history'
+    'chat history';
 }
 
 .wide {
-  grid-template-columns: minmax(0, 1fr);
-}
-
-.wide .aside {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--gap-128) * 3)), 1fr));
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-rows: auto;
+  grid-template-areas:
+    'todo todo'
+    'path path'
+    'chat history';
 }
 
 .card {
@@ -130,6 +156,12 @@
 @media (max-width: 900px) {
   .grid {
     grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto;
+    grid-template-areas: 'todo' 'path' 'chat' 'history';
+  }
+
+  .noPath {
+    grid-template-areas: 'todo' 'chat' 'history';
   }
 }
 
