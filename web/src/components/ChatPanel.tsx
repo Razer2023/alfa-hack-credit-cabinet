@@ -18,10 +18,12 @@ type ChatPanelProps = {
   title: string;
   // Шапка над перепиской — у клиента это его менеджер (S4.9)
   header?: ReactNode;
+  // Растянуть на всю высоту ячейки: лента занимает свободное место, поле ввода — внизу
+  fill?: boolean;
 };
 
 // Переписка по заявке внутри кабинета (S4.10): новые сообщения приходят по общему SSE-потоку
-export function ChatPanel({ applicationId, basePath, title, header }: ChatPanelProps) {
+export function ChatPanel({ applicationId, basePath, title, header, fill = false }: ChatPanelProps) {
   const user = useUser();
   const isClient = user.role === 'CLIENT';
   const path = `${basePath}/${applicationId}/messages`;
@@ -66,12 +68,19 @@ export function ChatPanel({ applicationId, basePath, title, header }: ChatPanelP
   }
 
   return (
-    <Card title={title}>
+    <Card
+      title={title}
+      limitContentWidth={false}
+      className={fill ? styles.fill : undefined}
+      contentClassName={fill ? styles.fillContent : undefined}
+    >
       {header}
       {messages.length === 0 ? (
-        <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
-          {isClient ? 'Задайте вопрос по заявке — менеджер ответит здесь же.' : 'Клиент пока ничего не писал.'}
-        </Typography.Text>
+        <div className={styles.empty}>
+          <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
+            {isClient ? 'Задайте вопрос по заявке — менеджер ответит здесь же.' : 'Клиент пока ничего не писал.'}
+          </Typography.Text>
+        </div>
       ) : (
         <div ref={thread} className={styles.thread} aria-live='polite'>
           {messages.map((message) => {

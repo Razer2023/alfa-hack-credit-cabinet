@@ -134,32 +134,28 @@ export function ApplicationPage({ id }: ApplicationPageProps) {
         ))}
       </nav>
 
-      {/* Контрпредложение сравнивает два варианта рядом, поэтому «Что делать» — на всю ширину */}
-      <div className={wide ? `${styles.grid} ${styles.wide}` : styles.grid}>
-        <div id='todo' className={styles.anchor}>
+      {/* Одна сетка: слева «Что делать» и под ним чат до низа колонки, справа путь и история.
+          Контрпредложение сравнивает два варианта рядом, поэтому «Что делать» — на всю ширину */}
+      <div className={`${styles.grid} ${wide ? styles.wide : showTracker ? '' : styles.noPath}`}>
+        <div id='todo' className={`${styles.todo} ${styles.anchor}`}>
           <StatusContent application={application} product={product} productName={productName} onChange={onChange} />
         </div>
-        <aside className={styles.aside}>
-          {showTracker && (
-            <section id='path' className={`${styles.card} ${styles.anchor}`} aria-labelledby='path-title'>
-              <Typography.Title id='path-title' tag='h2' view='small' font='system'>Путь заявки</Typography.Title>
-              <Tracker status={application.status.code} events={events} sla={application.status.sla} />
-            </section>
-          )}
-        </aside>
-      </div>
-
-      {/* Чат с менеджером слева, история заявки справа */}
-      <div className={styles.grid}>
-        <div id='chat' className={styles.anchor}>
+        {showTracker && (
+          <section id='path' className={`${styles.card} ${styles.path} ${styles.anchor}`} aria-labelledby='path-title'>
+            <Typography.Title id='path-title' tag='h2' view='small' font='system'>Путь заявки</Typography.Title>
+            <Tracker status={application.status.code} events={events} sla={application.status.sla} />
+          </section>
+        )}
+        <div id='chat' className={`${styles.chat} ${styles.anchor}`}>
           <ChatPanel
             applicationId={application.id}
             basePath='/applications'
             title={application.manager ? 'Ваш менеджер' : 'Чат с банком'}
             header={application.manager && <ManagerContact manager={application.manager} />}
+            fill={true}
           />
         </div>
-        <section id='history' className={`${styles.card} ${styles.anchor}`} aria-labelledby='history-title'>
+        <section id='history' className={`${styles.card} ${styles.history} ${styles.anchor}`} aria-labelledby='history-title'>
           <Typography.Title id='history-title' tag='h2' view='small' font='system'>История</Typography.Title>
           <EventList events={events} />
         </section>

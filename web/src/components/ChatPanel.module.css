@@ -32,6 +32,43 @@
   min-width: 0;
 }
 
+/* Пустая переписка: подсказка с отступом до поля ввода, как у ленты */
+.empty {
+  margin-bottom: var(--gap-12);
+}
+
+/* fill: Plate → контейнер содержимого → обёртка → описание — колонка, лента забирает свободную высоту */
+.fill {
+  flex: 1;
+}
+
+.fillContent,
+.fillContent > :last-child,
+.fillContent > :last-child > :first-child {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.fill .thread,
+.fill .empty {
+  flex: 1 1 0;
+  min-height: calc(var(--gap-128) * 2);
+  max-height: none;
+}
+
+/* Как в мессенджере: сообщения прижаты к полю ввода, старые уходят вверх.
+   margin-top: auto, а не justify-content: flex-end — иначе верх длинной ленты не прокрутить */
+.thread > :first-child {
+  margin-top: auto;
+}
+
+.fill .empty {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
 @media (max-width: 600px) {
   .composer {
     flex-direction: column;
