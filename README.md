@@ -37,7 +37,8 @@ docker compose up --build
 - [Статусы заявки (диаграмма)](docs/architecture/statuses.md)
 - [Модель данных](docs/architecture/data-model.md)
 - [Переход на настоящие данные](docs/architecture/real-data.md)
-- [OpenAPI ядра](contracts/core.yaml)
+- [Скоринг и кредитное решение: балльная карта, DSCR, контрпредложение, SLA, упрощения](services/scoring/README.md)
+- [OpenAPI ядра](contracts/core.yaml) · [скоринга](contracts/scoring.yaml) · [интеграций](contracts/integrations.yaml)
 
 ## Данные: синтетические сейчас, настоящие потом
 
