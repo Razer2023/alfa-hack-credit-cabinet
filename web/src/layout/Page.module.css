@@ -1,0 +1,32 @@
+.container {
+  width: 100%;
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: 0 var(--page-gutter);
+}
+
+.hero {
+  padding: var(--gap-56) 0 var(--gap-128);
+  background: var(--color-light-base-bg-primary-inverted);
+}
+
+.sheet {
+  position: relative;
+  flex: 1;
+  margin-top: var(--gap-64-neg);
+  padding: var(--gap-56) 0 var(--gap-64);
+  border-radius: var(--border-radius-64) var(--border-radius-64) 0 0;
+  background: var(--color-light-base-bg-primary);
+}
+
+@media (max-width: 740px) {
+  .hero {
+    padding: var(--gap-24) 0 var(--gap-72);
+  }
+
+  .sheet {
+    margin-top: var(--gap-40-neg);
+    padding: var(--gap-24) 0 var(--gap-32);
+    border-radius: var(--border-radius-32) var(--border-radius-32) 0 0;
+  }
+}

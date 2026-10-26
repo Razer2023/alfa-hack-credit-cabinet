@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button } from '@alfalab/core-components/button';
 import { Gap } from '@alfalab/core-components/gap';
-import { Plate } from '@alfalab/core-components/plate';
 import { Textarea } from '@alfalab/core-components/textarea';
 import { Typography } from '@alfalab/core-components/typography';
 
@@ -11,6 +10,7 @@ import { CompanyStep } from './CompanyStep';
 import { DocumentUpload } from './DocumentUpload';
 import { LoanFields } from './LoanFields';
 import { type LoanTerms, termsError } from './loanTerms';
+import { Panel } from './Panel';
 
 type NeedInfoFormProps = {
   application: Application;
@@ -85,7 +85,7 @@ export function NeedInfoForm({ application, product, onChange }: NeedInfoFormPro
   }
 
   return (
-    <Plate view='attention' rounded={true} border={true} title='Банку нужны дополнительные данные'>
+    <Panel title='Банку нужны дополнительные данные' eyebrow={{ tone: 'attention', text: application.status.title }}>
       <ul>
         {items.filter((item) => !item.document).map((item) => (
           <li key={item.field}>
@@ -164,6 +164,6 @@ export function NeedInfoForm({ application, product, onChange }: NeedInfoFormPro
           </Typography.Text>
         </>
       )}
-    </Plate>
+    </Panel>
   );
 }

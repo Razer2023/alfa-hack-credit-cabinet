@@ -1,10 +1,10 @@
 import { Button } from '@alfalab/core-components/button';
 import { Gap } from '@alfalab/core-components/gap';
-import { Plate } from '@alfalab/core-components/plate';
 import { Typography } from '@alfalab/core-components/typography';
 
 import type { Application } from '../../api/types';
 import styles from './Forms.module.css';
+import { Panel } from './Panel';
 
 // Что клиенту делать дальше по каждой причине отказа (S6.3). Коды и тексты причин — из скоринга (services/scoring/rules)
 const ADVICE: Record<string, string> = {
@@ -30,7 +30,7 @@ export function RejectionBlock({ application }: RejectionBlockProps) {
   const byStaff = decision?.decided_by !== 'SYSTEM';
 
   return (
-    <Plate view='negative' rounded={true} border={true} title='Банк не может одобрить заявку сейчас'>
+    <Panel title='Банк не может одобрить заявку сейчас' eyebrow={{ tone: 'negative', text: application.status.title }}>
       <Typography.Text view='primary-medium' weight='bold' tag='p' defaultMargins={false}>
         Почему
       </Typography.Text>
@@ -62,6 +62,6 @@ export function RejectionBlock({ application }: RejectionBlockProps) {
       <Button view='secondary' size={40} href='#/products'>
         Оценить шансы на другую сумму
       </Button>
-    </Plate>
+    </Panel>
   );
 }

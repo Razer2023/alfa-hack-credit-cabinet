@@ -1,11 +1,10 @@
 import { type FormEvent, useState } from 'react';
 import { Button } from '@alfalab/core-components/button';
-import { Gap } from '@alfalab/core-components/gap';
 import { Input } from '@alfalab/core-components/input';
 import { Typography } from '@alfalab/core-components/typography';
 
-import { Card } from '../components/Card';
 import { errorMessage } from '../api/client';
+import alfaMark from '../assets/alfa-mark.svg';
 import { useAuth } from '../auth/AuthContext';
 import styles from './LoginPage.module.css';
 
@@ -13,10 +12,11 @@ const DEMO_USERS = [
   { login: 'coffee', who: 'Кофейня — одобрение' },
   { login: 'stroy', who: 'Стройка — контрпредложение' },
   { login: 'vector', who: 'Вектор — ручное рассмотрение' },
-  { login: 'manager', who: 'менеджер: подтверждает одобрения' },
-  { login: 'underwriter', who: 'андеррайтер: рисковые заявки и отказы' },
+  { login: 'manager', who: 'Менеджер: подтверждает одобрения' },
+  { login: 'underwriter', who: 'Андеррайтер: рисковые заявки и отказы' },
 ];
 
+// Вход по макету «Кабинет — клиент v2» (8e): светлый фон, белая карточка, демо-доступ под формой
 export function LoginPage() {
   const { login } = useAuth();
   const [loginName, setLoginName] = useState('');
@@ -38,8 +38,12 @@ export function LoginPage() {
 
   return (
     <div className={styles.wrapper}>
-      <Card title='Вход в кредитный кабинет'>
-        <form onSubmit={submit}>
+      <section className={styles.card} aria-labelledby='login-title'>
+        <span className={styles.symbol} aria-hidden='true'><img src={alfaMark} alt='' /></span>
+        <Typography.TitleResponsive id='login-title' tag='h1' view='medium' font='system'>
+          Вход в кредитный кабинет
+        </Typography.TitleResponsive>
+        <form className={styles.form} onSubmit={submit}>
           <Input
             label='Логин'
             block={true}
@@ -47,7 +51,6 @@ export function LoginPage() {
             value={loginName}
             onChange={(_, { value }) => setLoginName(value)}
           />
-          <Gap size={12} />
           <Input
             label='Пароль'
             type='password'
@@ -57,25 +60,28 @@ export function LoginPage() {
             error={error ?? undefined}
             onChange={(_, { value }) => setPassword(value)}
           />
-          <Gap size={16} />
-          <Button type='submit' view='accent' size={48} block={true} loading={busy} disabled={!loginName || !password}>
+          <Button type='submit' view='accent' size={56} block={true} loading={busy} disabled={!loginName || !password}>
             Войти
           </Button>
         </form>
-        <Gap size={16} />
-        <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
-          Демо-пользователи (пароль — CORE_DEMO_PASSWORD из .env):
-        </Typography.Text>
-        <ul className={styles.demo}>
-          {DEMO_USERS.map((user) => (
-            <li key={user.login}>
-              <Typography.Text view='primary-small'>
-                <b>{user.login}</b> — {user.who}
-              </Typography.Text>
-            </li>
-          ))}
-        </ul>
-      </Card>
+        <div className={styles.demo}>
+          <Typography.Text view='primary-small' weight='medium' tag='p' defaultMargins={false}>Демо-доступ</Typography.Text>
+          <Typography.Text view='secondary-large' color='secondary' tag='p' defaultMargins={false}>
+            Пароль — CORE_DEMO_PASSWORD из .env. Нажмите на логин, чтобы подставить.
+          </Typography.Text>
+          <ul className={styles.users}>
+            {DEMO_USERS.map((user) => (
+              <li key={user.login}>
+                <button type='button' className={styles.user} onClick={() => setLoginName(user.login)}
+                  aria-label={`Подставить логин ${user.login}`}>
+                  <Typography.Text className={styles.login} view='primary-small' weight='medium'>{user.login}</Typography.Text>
+                  <Typography.Text view='primary-small' color='secondary'>{user.who}</Typography.Text>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
     </div>
   );
 }

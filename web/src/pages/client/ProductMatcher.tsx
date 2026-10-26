@@ -46,7 +46,7 @@ export function ProductMatcher({ onResult }: ProductMatcherProps) {
 
   return (
     <section className={styles.matcher} aria-label='Подбор кредита по цели'>
-      <Typography.Title tag='h2' view='xsmall' font='system'>
+      <Typography.Title tag='h3' view='xsmall' font='system'>
         На что нужны деньги?
       </Typography.Title>
       <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
@@ -60,6 +60,7 @@ export function ProductMatcher({ onResult }: ProductMatcherProps) {
             key={item.title}
             size={40}
             shape='rounded'
+            view='filled'
             checked={selected?.title === item.title}
             onClick={() => setSelected(selected?.title === item.title ? null : item)}
           >

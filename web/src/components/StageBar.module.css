@@ -1,0 +1,31 @@
+.bar {
+  display: flex;
+  gap: var(--gap-4);
+}
+
+.segment {
+  flex: 1;
+  height: var(--gap-4);
+  border-radius: var(--border-radius-2);
+  background: var(--color-light-neutral-300);
+}
+
+.done {
+  background: var(--color-light-neutral-1500);
+}
+
+.active {
+  background: var(--color-light-accent-primary);
+}
+
+.inverted .segment {
+  background: var(--color-light-border-key-inverted-alpha-15);
+}
+
+.inverted .done {
+  background: var(--color-light-text-primary-inverted);
+}
+
+.inverted .active {
+  background: var(--color-light-accent-primary);
+}
