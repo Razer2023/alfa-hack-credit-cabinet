@@ -1,0 +1,104 @@
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-24);
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--gap-16);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-6);
+  min-height: calc(var(--gap-128) * 2 + var(--gap-24));
+  padding: calc(var(--gap-24) + var(--gap-4));
+  border-radius: var(--border-radius-32);
+  background: var(--color-light-base-bg-secondary);
+}
+
+.illustration {
+  margin-top: auto;
+}
+
+.picture {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-8);
+  padding: var(--gap-16);
+  border-radius: var(--border-radius-16);
+  background: var(--color-light-base-bg-primary);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  padding: var(--gap-6) var(--gap-10);
+  border-radius: var(--border-radius-4) var(--border-radius-4) 0 0;
+  border-bottom: 1px solid var(--color-light-neutral-500);
+  background: var(--color-light-neutral-translucent-100);
+}
+
+.toast {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--gap-8);
+  padding: var(--gap-10) var(--gap-12);
+  border-radius: var(--border-radius-12);
+  background: var(--color-light-base-bg-primary-inverted);
+}
+
+.underline {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.code {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--gap-4);
+}
+
+.cell {
+  display: grid;
+  place-items: center;
+  height: var(--gap-32);
+  border-radius: var(--border-radius-6);
+  background: var(--color-light-neutral-100);
+}
+
+.focus {
+  outline: 1.5px solid var(--color-light-neutral-1500);
+}
+
+@media (max-width: 1000px) {
+  .steps {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* На телефоне шаги листаются вбок */
+@media (max-width: 740px) {
+  .steps {
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin-right: calc(var(--page-gutter) * -1);
+    padding-right: var(--page-gutter);
+  }
+
+  .step {
+    flex: none;
+    width: calc(var(--gap-128) * 2);
+    min-height: calc(var(--gap-128) + var(--gap-96));
+    padding: var(--gap-20);
+    border-radius: var(--border-radius-24);
+    scroll-snap-align: start;
+  }
+}

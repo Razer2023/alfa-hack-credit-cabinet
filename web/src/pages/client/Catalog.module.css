@@ -1,0 +1,220 @@
+/* Кредиты по макету «Кабинет — клиент v2» (9a–9c) */
+@import '@alfalab/core-components/vars/typography.css';
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-8);
+}
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-48);
+}
+
+.calculator {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: var(--gap-40);
+  padding: var(--gap-40);
+  border-radius: var(--border-radius-32);
+  background: var(--color-light-base-bg-secondary);
+}
+
+.calculatorMain {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-24);
+  min-width: 0;
+}
+
+.offer {
+  display: flex;
+  flex-direction: column;
+  align-self: start;
+  gap: var(--gap-20);
+  min-width: 0;
+  padding: var(--gap-32);
+  border-radius: var(--border-radius-24);
+  background: var(--color-light-base-bg-primary);
+}
+
+.offerHeading {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--gap-8);
+}
+
+.offerProduct {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--gap-4);
+  margin-top: var(--gap-8-neg);
+}
+
+.number {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.facts {
+  margin: 0;
+  border-bottom: 1px solid var(--color-light-neutral-translucent-200);
+}
+
+.facts > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--gap-12);
+  padding: var(--gap-10) 0;
+  border-top: 1px solid var(--color-light-neutral-translucent-200);
+}
+
+.facts dd {
+  margin: 0;
+}
+
+.needs {
+  padding: var(--gap-12) var(--gap-16);
+  border: 1px solid var(--color-light-neutral-translucent-300);
+  border-radius: var(--border-radius-16);
+}
+
+.offerActions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-4);
+}
+
+.products {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-16);
+}
+
+.table {
+  border-bottom: 1px solid var(--color-light-neutral-translucent-200);
+}
+
+.productRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) repeat(3, minmax(0, 1fr)) calc(var(--gap-128) + var(--gap-12));
+  align-items: center;
+  gap: var(--gap-24);
+  min-height: var(--gap-72);
+  padding: var(--gap-12) 0;
+  border-top: 1px solid var(--color-light-neutral-translucent-200);
+}
+
+.tableHead {
+  min-height: var(--gap-40);
+  padding: 0;
+  border-top: none;
+}
+
+.productName {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.right {
+  text-align: right;
+}
+
+.mobileTerms {
+  display: none;
+}
+
+/* Предоценка по ИНН (S2.1) */
+.precheck {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-12);
+}
+
+.precheckFields {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: var(--gap-12);
+}
+
+.note {
+  display: flex;
+  gap: var(--gap-10);
+  padding: var(--gap-12) var(--gap-16);
+  border-radius: var(--border-radius-16);
+  background: var(--color-light-base-bg-secondary);
+}
+
+.precheckResult {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--gap-6);
+  padding-top: var(--gap-20);
+  border-top: 1px solid var(--color-light-neutral-translucent-200);
+}
+
+.reasons {
+  align-self: stretch;
+  margin: var(--gap-8) 0 0;
+  padding: 0;
+  list-style: none;
+  border-bottom: 1px solid var(--color-light-neutral-translucent-200);
+}
+
+.reasons li {
+  padding: var(--gap-10) 0;
+  border-top: 1px solid var(--color-light-neutral-translucent-200);
+}
+
+@media (max-width: 1000px) {
+  .calculator {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--gap-20);
+  }
+}
+
+@media (max-width: 740px) {
+  .sheet {
+    gap: var(--gap-32);
+  }
+
+  .calculator {
+    margin: 0 calc(var(--gap-8) * -1);
+    padding: var(--gap-20);
+    border-radius: var(--border-radius-24);
+  }
+
+  .offer {
+    padding: var(--gap-20);
+    border-radius: var(--border-radius-20);
+  }
+
+  .productRow {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: var(--gap-12);
+  }
+
+  .tableHead,
+  .desktop {
+    display: none;
+  }
+
+  .mobileTerms {
+    display: block;
+  }
+
+  .productName > :nth-child(2) {
+    display: none;
+  }
+
+  .precheckFields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

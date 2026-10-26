@@ -1,19 +1,18 @@
 import { useState } from 'react';
 import { Button } from '@alfalab/core-components/button';
-import { Gap } from '@alfalab/core-components/gap';
-import { Plate } from '@alfalab/core-components/plate';
 import { Typography } from '@alfalab/core-components/typography';
 
-import { Card } from '../../components/Card';
 import { api, errorMessage } from '../../api/client';
 import type { Application, CodeRequest, Offer } from '../../api/types';
 import { CodeConfirm } from '../../components/CodeConfirm';
-import { OfferFacts } from './OfferFacts';
 import { Term } from '../../components/Term';
-import styles from './Forms.module.css';
+import { formatMonths, formatRub } from '../../format';
+import styles from './OfferBlock.module.css';
+import { FactRows, Note, Panel } from './Panel';
 
 type OfferBlockProps = {
   application: Application;
+  productName: string;
   onChange: (application: Application) => void;
 };
 
@@ -26,7 +25,7 @@ function activeOffer(offers: Offer[]): Offer | undefined {
 }
 
 // Решение и условия (S6.1), контрпредложение (S6.2), подписание (S7.1)
-export function OfferBlock({ application, onChange }: OfferBlockProps) {
+export function OfferBlock({ application, productName, onChange }: OfferBlockProps) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const path = `/applications/${application.id}`;
@@ -48,50 +47,87 @@ export function OfferBlock({ application, onChange }: OfferBlockProps) {
   const decline = () => act(() => api<Application>(`${path}/cancel`, { method: 'POST', body: { reason: 'Клиент отказался от условий' } }));
 
   const errorText = error && (
-    <>
-      <Gap size={8} />
-      <Typography.Text view='primary-small' color='negative'>
-        {error}
-      </Typography.Text>
-    </>
+    <Typography.Text view='primary-small' color='negative' tag='p' defaultMargins={false}>
+      {error}
+    </Typography.Text>
+  );
+  const footnote = (
+    <Typography.Text view='secondary-large' color='secondary' tag='p' defaultMargins={false}>
+      Окончательные условия — в договоре.
+    </Typography.Text>
   );
 
   if (application.status.code === 'COUNTER_OFFER') {
     const proposed = application.offers.filter((offer) => offer.status === 'PROPOSED');
+    const single = proposed.length === 1;
     return (
-      <Card title='Банк предлагает другие условия'>
-        {reasons.map((reason) => (
-          <Typography.Text key={reason.code} view='primary-medium' tag='p' defaultMargins={false}>
-            {reason.text}
+      <Panel title='Банк предлагает другие условия' eyebrow={{ tone: 'attention', text: 'Другие условия' }}>
+        <div className={styles.intro}>
+          {reasons.map((reason) => (
+            <Typography.Text key={reason.code} view='primary-medium' tag='p' defaultMargins={false}>
+              {reason.text}
+            </Typography.Text>
+          ))}
+          <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
+            Это <Term name='Контрпредложение'>контрпредложение</Term>: условия можно принять или отказаться.
           </Typography.Text>
-        ))}
-        <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
-          Это <Term name='Контрпредложение'>контрпредложение</Term>: условия можно принять или отказаться.
-        </Typography.Text>
-        <Gap size={16} />
-        <div className={styles.offers}>
+        </div>
+        <div className={styles.compare}>
+          <div className={`${styles.option} ${styles.requested}`}>
+            <Typography.Title tag='h3' view='small' font='system' color='secondary'>Вы просили</Typography.Title>
+            <Typography.TitleResponsive className={styles.amount} tag='div' view='xlarge' font='system' color='secondary'>
+              {application.amount !== null ? formatRub(application.amount) : '—'}
+            </Typography.TitleResponsive>
+            <FactRows rows={[{ label: 'Срок', value: application.term_months !== null ? formatMonths(application.term_months) : '—' }]} />
+          </div>
           {proposed.map((offer) => (
-            <Plate
-              key={offer.id}
-              view='positive'
-              rounded={true}
-              title='Предложение банка'
-              buttons={[
-                <Button key='accept' view='accent' size={40} loading={busy} onClick={() => accept(offer)}>
-                  Принять условия
-                </Button>,
-              ]}
-            >
-              <OfferFacts offer={offer} />
-            </Plate>
+            <div key={offer.id} className={`${styles.option} ${styles.proposed}`}>
+              <Typography.Title tag='h3' view='small' font='system'>Банк предлагает</Typography.Title>
+              <div className={styles.was}>
+                <Typography.TitleResponsive className={styles.amount} tag='div' view='xlarge' font='system'>
+                  {formatRub(offer.amount)}
+                </Typography.TitleResponsive>
+                {application.amount !== null && application.amount !== offer.amount && (
+                  <Typography.Text view='primary-small' color='secondary'>было {formatRub(application.amount)}</Typography.Text>
+                )}
+              </div>
+              <div>
+                <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}><Term>Платёж в месяц</Term></Typography.Text>
+                <Typography.Title className={styles.payment} tag='div' view='medium' font='system'>{formatRub(offer.monthly_payment)}</Typography.Title>
+              </div>
+              <FactRows
+                rows={[
+                  { label: <Term>Ставка</Term>, value: `${offer.rate}%` },
+                  {
+                    label: 'Срок',
+                    value: (
+                      <>
+                        {application.term_months !== null && application.term_months !== offer.term_months && (
+                          <Typography.Text className={styles.before} view='primary-small' color='secondary'>
+                            было {application.term_months}
+                          </Typography.Text>
+                        )}
+                        {formatMonths(offer.term_months)}
+                      </>
+                    ),
+                  },
+                ]}
+              />
+              {!single && (
+                <Button view='accent' size={48} loading={busy} onClick={() => accept(offer)}>Принять условия</Button>
+              )}
+            </div>
           ))}
         </div>
-        <Gap size={16} />
-        <Button view='secondary' size={40} disabled={busy} onClick={decline}>
-          Отказаться
-        </Button>
+        <div className={styles.actions}>
+          {single && (
+            <Button view='accent' size={56} loading={busy} onClick={() => accept(proposed[0])}>Принять условия</Button>
+          )}
+          <Button view='secondary' size={56} disabled={busy} onClick={decline}>Отказаться</Button>
+        </div>
         {errorText}
-      </Card>
+        {footnote}
+      </Panel>
     );
   }
 
@@ -108,19 +144,31 @@ export function OfferBlock({ application, onChange }: OfferBlockProps) {
   }
 
   return (
-    <Plate view='positive' rounded={true} border={true} title='Кредит одобрен'>
-      <OfferFacts offer={offer} />
-      <Gap size={16} />
-      <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
-        Подпишите договор кодом — деньги поступят на расчётный счёт компании.
-      </Typography.Text>
-      <Gap size={12} />
-      <CodeConfirm buttonText='Подписать договор' requestCode={requestCode} confirm={confirm} />
-      <Gap size={12} />
-      <Button view='transparent' size={32} disabled={busy} onClick={decline}>
-        Отказаться от кредита
-      </Button>
+    <Panel title='Кредит одобрен' aside={productName}>
+      <Typography.TitleResponsive className={styles.amount} tag='div' view='xlarge' font='system'>
+        {formatRub(offer.amount)}
+      </Typography.TitleResponsive>
+      <div>
+        <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}><Term>Платёж в месяц</Term></Typography.Text>
+        <Typography.Title className={styles.payment} tag='div' view='medium' font='system'>{formatRub(offer.monthly_payment)}</Typography.Title>
+      </div>
+      <FactRows
+        rows={[
+          { label: <Term>Ставка</Term>, value: `${offer.rate}%` },
+          { label: 'Срок', value: formatMonths(offer.term_months) },
+        ]}
+      />
+      <Note>Для подписи понадобится код из СМС — деньги поступят на расчётный счёт компании</Note>
+      <div className={styles.sign}>
+        <div className={styles.code}>
+          <CodeConfirm buttonText='Подписать договор' requestCode={requestCode} confirm={confirm} />
+        </div>
+        <Button view='transparent' size={40} disabled={busy} onClick={decline}>
+          Отказаться от кредита
+        </Button>
+      </div>
       {errorText}
-    </Plate>
+      {footnote}
+    </Panel>
   );
 }

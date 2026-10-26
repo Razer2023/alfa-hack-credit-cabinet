@@ -18,6 +18,12 @@ export function formatDateTime(value: string): string {
   return dateTime.format(new Date(value));
 }
 
+const time = new Intl.DateTimeFormat('ru-RU', { hour: '2-digit', minute: '2-digit' });
+
+export function formatTime(value: string): string {
+  return time.format(new Date(value));
+}
+
 export function formatMonths(value: number): string {
   const rest10 = value % 10;
   const rest100 = value % 100;

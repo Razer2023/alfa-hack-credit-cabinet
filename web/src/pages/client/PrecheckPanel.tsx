@@ -1,21 +1,20 @@
 import { useState } from 'react';
 import { AmountInput } from '@alfalab/core-components/amount-input';
 import { Button } from '@alfalab/core-components/button';
-import { Gap } from '@alfalab/core-components/gap';
 import { Input } from '@alfalab/core-components/input';
-import { Status } from '@alfalab/core-components/status';
 import { Typography } from '@alfalab/core-components/typography';
 
 import { api, errorMessage } from '../../api/client';
 import type { Precheck, Product } from '../../api/types';
 import { formatMonths, formatRub } from '../../format';
+import { DotLabel } from '../../components/StatusDot';
 import { Term } from '../../components/Term';
-import styles from './ProductCard.module.css';
+import styles from './Catalog.module.css';
 
 const CHANCE = {
-  HIGH: { color: 'green', label: 'Высокие шансы' },
-  MEDIUM: { color: 'orange', label: 'Средние шансы' },
-  LOW: { color: 'red', label: 'Низкие шансы' },
+  HIGH: { tone: 'positive', label: 'Высокие шансы' },
+  MEDIUM: { tone: 'attention', label: 'Средние шансы' },
+  LOW: { tone: 'negative', label: 'Низкие шансы' },
 } as const;
 
 type PrecheckPanelProps = {
@@ -45,11 +44,6 @@ export function PrecheckPanel({ product }: PrecheckPanelProps) {
 
   return (
     <div className={styles.precheck}>
-      <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
-        Оценим по ИНН вашей компании: <Term>ЕГРЮЛ</Term>, <Term>ФНС</Term>, <Term>кредитная история</Term> и обороты. Это не
-        заявка.
-      </Typography.Text>
-      <Gap size={12} />
       <div className={styles.precheckFields}>
         <AmountInput
           label='Сумма (необязательно)'
@@ -69,8 +63,13 @@ export function PrecheckPanel({ product }: PrecheckPanelProps) {
           onChange={(_, { value }) => setTerm(value.replace(/\D/g, ''))}
         />
       </div>
-      <Gap size={12} />
-      <Button view='secondary' size={40} block={true} loading={busy} onClick={estimate}>
+      <div className={styles.note}>
+        <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
+          Это не заявка, на кредитную историю не влияет. Смотрим <Term>ЕГРЮЛ</Term>, <Term>ФНС</Term>,{' '}
+          <Term>кредитная история</Term> и обороты.
+        </Typography.Text>
+      </div>
+      <Button view='secondary' size={48} block={true} loading={busy} onClick={estimate}>
         Оценить
       </Button>
       {error && (
@@ -80,9 +79,7 @@ export function PrecheckPanel({ product }: PrecheckPanelProps) {
       )}
       {result && (
         <div className={styles.precheckResult} aria-live='polite'>
-          <Status view='soft' color={CHANCE[result.chance].color}>
-            {CHANCE[result.chance].label}
-          </Status>
+          <DotLabel tone={CHANCE[result.chance].tone}>{CHANCE[result.chance].label}</DotLabel>
           <Typography.Text view='primary-medium' weight='bold' tag='p' defaultMargins={false}>
             {result.title}
           </Typography.Text>
@@ -90,10 +87,19 @@ export function PrecheckPanel({ product }: PrecheckPanelProps) {
             {result.explanation}
           </Typography.Text>
           {result.max_amount && (
-            <Typography.Text view='primary-small' tag='p' defaultMargins={false}>
-              Можно получить до <b>{formatRub(result.max_amount)}</b>
-              {result.max_amount_term_months && ` на ${formatMonths(result.max_amount_term_months)}`}
-            </Typography.Text>
+            <>
+              <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
+                Можно получить до
+              </Typography.Text>
+              <Typography.Title className={styles.number} tag='div' view='medium' font='system'>
+                {formatRub(result.max_amount)}
+              </Typography.Title>
+              {result.max_amount_term_months && (
+                <Typography.Text view='primary-small' tag='p' defaultMargins={false}>
+                  на {formatMonths(result.max_amount_term_months)}
+                </Typography.Text>
+              )}
+            </>
           )}
           {result.terms && (
             <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
@@ -101,13 +107,17 @@ export function PrecheckPanel({ product }: PrecheckPanelProps) {
               {result.terms.rate}%, платёж {formatRub(result.terms.monthly_payment)} в месяц
             </Typography.Text>
           )}
-          {(result.reasons ?? []).map((reason) => (
-            <Typography.Text key={reason} view='primary-small' color='secondary' tag='p' defaultMargins={false}>
-              • {reason}
-            </Typography.Text>
-          ))}
+          {(result.reasons ?? []).length > 0 && (
+            <ul className={styles.reasons}>
+              {(result.reasons ?? []).map((reason) => (
+                <li key={reason}>
+                  <Typography.Text view='primary-small'>{reason}</Typography.Text>
+                </li>
+              ))}
+            </ul>
+          )}
           <Typography.Text view='secondary-large' color='secondary' tag='p' defaultMargins={false}>
-            Предварительная оценка, не решение банка. Не влияет на кредитную историю.
+            Предварительная оценка, не решение банка.
           </Typography.Text>
         </div>
       )}

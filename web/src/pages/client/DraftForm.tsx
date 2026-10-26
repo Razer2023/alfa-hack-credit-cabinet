@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Gap } from '@alfalab/core-components/gap';
 import { Typography } from '@alfalab/core-components/typography';
 
-import { Card } from '../../components/Card';
 import { api } from '../../api/client';
 import type { Application, CodeRequest, Product } from '../../api/types';
 import { CodeConfirm } from '../../components/CodeConfirm';
+import { Money } from '../../components/Money';
 import { Term } from '../../components/Term';
+import { formatTime } from '../../format';
 import { CompanyStep } from './CompanyStep';
+import styles from './DraftForm.module.css';
 import { LoanFields } from './LoanFields';
 import { type LoanTerms, termsReady } from './loanTerms';
+import { usePayment } from './usePayment';
 
 type DraftFormProps = {
   application: Application;
@@ -36,7 +38,14 @@ function isDirty(terms: LoanTerms, application: Application): boolean {
   );
 }
 
-// Мастер заявки (S3.1–S3.4): компания по ИНН → условия → отправка с кодом
+// Сроки этапов после отправки — те же, что в «Как получить кредит»
+const NEXT_STEPS = [
+  { title: 'Проверка данных', time: '1–2 мин' },
+  { title: 'Оценка заявки', time: '1–2 мин' },
+  { title: 'Подтверждение сотрудником', time: 'до 2 часов' },
+];
+
+// Мастер заявки (S3.1–S3.4): «Заявка на кредит для бизнеса» — компания по ИНН, сумма и срок, цель, отправка с кодом
 export function DraftForm({ application, product, onChange }: DraftFormProps) {
   const [terms, setTerms] = useState<LoanTerms>({
     amount: application.amount,
@@ -45,6 +54,7 @@ export function DraftForm({ application, product, onChange }: DraftFormProps) {
   });
   const [saveState, setSaveState] = useState<SaveState>('idle');
   const dirty = isDirty(terms, application);
+  const payment = usePayment(product, terms);
 
   // Автосохранение черновика: изменения не теряются при перезагрузке (S3.4)
   useEffect(() => {
@@ -75,36 +85,77 @@ export function DraftForm({ application, product, onChange }: DraftFormProps) {
   }
 
   const ready = termsReady(product, terms);
+  const saveText = saveState === 'saving' ? 'Сохраняем черновик…'
+    : saveState === 'error' ? 'Не удалось сохранить черновик, проверьте соединение'
+    : dirty ? '' : `Черновик сохранён в ${formatTime(application.updated_at)}`;
 
   return (
-    <>
-      <Card title='1. Компания'>
-        <CompanyStep application={application} onChange={onChange} />
-      </Card>
-      <Gap size={16} />
-      <Card title='2. Условия кредита'>
-        <LoanFields product={product} terms={terms} onChange={setTerms} />
-        <Gap size={8} />
-        <Typography.Text view='primary-small' color={saveState === 'error' ? 'negative' : 'secondary'}>
-          {saveState === 'saving' && 'Сохраняем черновик…'}
-          {saveState === 'saved' && !dirty && 'Черновик сохранён'}
-          {saveState === 'error' && 'Не удалось сохранить черновик, проверьте соединение'}
-        </Typography.Text>
-      </Card>
-      <Gap size={16} />
-      <Card title='3. Отправка в банк'>
-        <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
-          {ready ? (
-            <>
-              Подтвердите отправку кодом — это ваша <Term>простая электронная подпись</Term>.
-            </>
-          ) : (
-            'Заполните сумму, срок и цель кредита.'
-          )}
-        </Typography.Text>
-        <Gap size={12} />
-        <CodeConfirm buttonText='Отправить заявку' disabled={!ready} requestCode={requestCode} confirm={confirm} />
-      </Card>
-    </>
+    <div className={styles.layout}>
+      <section className={styles.form} aria-labelledby='draft-title'>
+        <div className={styles.heading}>
+          <Typography.TitleResponsive id='draft-title' tag='h2' view='medium' font='system'>
+            Заявка на кредит для бизнеса
+          </Typography.TitleResponsive>
+          <Typography.Text view='secondary-large' color={saveState === 'error' ? 'negative' : 'secondary'} aria-live='polite'>
+            {saveText}
+          </Typography.Text>
+        </div>
+
+        <div className={styles.group}>
+          <Typography.Title tag='h3' view='xsmall' font='system'>Компания</Typography.Title>
+          <CompanyStep application={application} onChange={onChange} />
+        </div>
+
+        <LoanFields product={product} terms={terms} onChange={setTerms} grouped={true} />
+
+        <div className={styles.submit}>
+          <div className={styles.note}>
+            <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
+              {ready ? (
+                <>Данные защищены. Отправка — по коду из СМС, это ваша <Term>простая электронная подпись</Term></>
+              ) : (
+                'Заполните сумму, срок и цель кредита — после этого заявку можно отправить.'
+              )}
+            </Typography.Text>
+          </div>
+          <div className={styles.confirm}>
+            <CodeConfirm buttonText='Отправить заявку' disabled={!ready} requestCode={requestCode} confirm={confirm} />
+          </div>
+        </div>
+      </section>
+
+      <aside className={styles.aside}>
+        <div className={styles.card}>
+          <div>
+            <Typography.Text view='primary-small' color='secondary' tag='p' defaultMargins={false}>
+              <Term>Платёж в месяц</Term>
+            </Typography.Text>
+            <Typography.Title className={styles.number} tag='div' view='medium' font='system'>
+              {payment ? <Money value={payment.monthly_payment} bold={true} /> : '—'}
+            </Typography.Title>
+          </div>
+          <div className={styles.line}>
+            <Typography.Text view='primary-small' color='secondary'><Term>Ставка</Term></Typography.Text>
+            <Typography.Text view='primary-medium' weight='medium'>
+              {payment ? `${payment.rate}%` : product ? `от ${product.base_rate}%` : '—'}
+            </Typography.Text>
+          </div>
+          <Typography.Text view='secondary-large' color='secondary' tag='p' defaultMargins={false}>
+            {payment ? 'По базовой ставке. Точные условия — в решении банка.' : 'Укажите сумму и срок — посчитаем платёж.'}
+          </Typography.Text>
+        </div>
+        <div className={styles.card}>
+          <Typography.Text view='primary-large' weight='bold' tag='p' defaultMargins={false}>Что будет дальше</Typography.Text>
+          <ul className={styles.steps}>
+            {NEXT_STEPS.map((step) => (
+              <li key={step.title} className={styles.line}>
+                <Typography.Text view='primary-small'>{step.title}</Typography.Text>
+                <Typography.Text view='primary-small' color='secondary'>{step.time}</Typography.Text>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </aside>
+    </div>
   );
 }

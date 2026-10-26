@@ -3,33 +3,7 @@ import { Typography } from '@alfalab/core-components/typography';
 
 import type { ApplicationEvent, ApplicationStatus } from '../api/types';
 import { formatDateTime } from '../format';
-
-// Путь заявки для клиента (S4.5). Каждый этап завершается одним из статусов.
-const STAGES: { title: string; reachedBy: ApplicationStatus[] }[] = [
-  { title: 'Заявка отправлена', reachedBy: ['SUBMITTED'] },
-  { title: 'Проверка данных', reachedBy: ['SCORING'] },
-  { title: 'Оценка заявки', reachedBy: ['PENDING_APPROVAL', 'MANUAL_REVIEW', 'REJECTED'] },
-  { title: 'Решение банка', reachedBy: ['APPROVED', 'COUNTER_OFFER', 'REJECTED'] },
-  { title: 'Подписание договора', reachedBy: ['SIGNED'] },
-  { title: 'Деньги зачислены', reachedBy: ['ISSUED'] },
-];
-
-// Номер этапа (с 1), на котором заявка сейчас
-const CURRENT_STAGE: Record<ApplicationStatus, number> = {
-  DRAFT: 1,
-  SUBMITTED: 2,
-  CHECKING: 2,
-  NEED_INFO: 2,
-  SCORING: 3,
-  PENDING_APPROVAL: 4,
-  MANUAL_REVIEW: 4,
-  COUNTER_OFFER: 5,
-  APPROVED: 5,
-  REJECTED: 4,
-  SIGNED: 6,
-  ISSUED: 6,
-  CANCELLED: 1,
-};
+import { CURRENT_STAGE, STAGES } from '../stages';
 
 type TrackerProps = {
   status: ApplicationStatus;

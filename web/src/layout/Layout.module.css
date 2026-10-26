@@ -1,3 +1,4 @@
+/* Каркас по макету «Кабинет — клиент v2»: шапка 72, контейнер 1140, тёмный подвал со скруглением */
 .page {
   display: flex;
   flex-direction: column;
@@ -5,68 +6,144 @@
 }
 
 .header {
+  background: var(--color-light-base-bg-primary);
+  border-bottom: 1px solid var(--color-light-neutral-translucent-200);
+}
+
+.dark {
+  background: var(--color-light-base-bg-primary-inverted);
+  border-bottom-color: var(--color-light-specialbg-component-inverted);
+}
+
+.bar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   flex-wrap: wrap;
-  gap: var(--gap-24);
-  padding: var(--gap-20) var(--gap-32);
-  background: var(--color-light-base-bg-primary);
-  border-bottom: 1px solid var(--color-light-neutral-400);
+  gap: var(--gap-8) var(--gap-48);
+  max-width: var(--page-width);
+  min-height: var(--gap-72);
+  margin: 0 auto;
+  padding: 0 var(--page-gutter);
 }
 
 .brand {
   display: flex;
   align-items: center;
-  border-radius: var(--border-radius-12);
+  gap: var(--gap-10);
+  border-radius: var(--border-radius-8);
+  text-decoration: none;
 }
 
-.brand:focus-visible {
+.brand:focus-visible,
+.navLink:focus-visible {
   outline: 2px solid var(--color-light-accent-primary);
   outline-offset: 2px;
-}
-
-.actions {
-  display: flex;
-  align-items: center;
-  gap: var(--gap-12);
-  margin-left: auto;
-  flex-wrap: wrap;
-}
-
-.main {
-  flex: 1;
-  width: 100%;
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: var(--gap-40) var(--gap-32);
-}
-
-.footer {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: var(--gap-12);
-  padding: var(--gap-20) var(--gap-32);
-  border-top: 1px solid var(--color-light-neutral-400);
-  background: var(--color-light-base-bg-primary);
 }
 
 .symbol {
   display: grid;
   place-items: center;
   flex-shrink: 0;
-  width: var(--gap-40);
-  height: var(--gap-40);
-  border-radius: var(--border-radius-12);
-  background: var(--color-light-accent-primary-press);
+  width: var(--gap-24);
+  height: var(--gap-24);
+  border-radius: var(--border-radius-6);
+  background: var(--color-light-accent-primary);
 }
-.symbol img { width: var(--gap-16); height: var(--gap-24); }
-.navigation { display: flex; flex-wrap: wrap; gap: var(--gap-8); }
+
+.symbol img {
+  width: var(--gap-10);
+  height: var(--gap-16);
+}
+
+.navigation {
+  display: flex;
+  align-self: stretch;
+  gap: var(--gap-32);
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  border-bottom: 2px solid transparent;
+  padding-top: 2px;
+  text-decoration: none;
+}
+
+.navCurrent {
+  border-bottom-color: var(--color-light-accent-primary);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--gap-20);
+  margin-left: auto;
+}
+
+.main {
+  flex: 1;
+  width: 100%;
+  max-width: var(--page-width);
+  margin: 0 auto;
+  padding: var(--gap-32) var(--page-gutter) var(--gap-64);
+}
+
+.bleed {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-light-base-bg-primary);
+}
+
+.footer {
+  border-radius: var(--border-radius-32) var(--border-radius-32) 0 0;
+  background: var(--color-light-base-bg-primary-inverted);
+}
+
+.footerBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--gap-4) var(--gap-12);
+  max-width: var(--page-width);
+  min-height: var(--gap-72);
+  margin: 0 auto;
+  padding: var(--gap-20) var(--page-gutter);
+}
 
 @media (max-width: 740px) {
-  .header { padding: var(--gap-16); gap: var(--gap-16); }
-  .navigation { order: 3; width: 100%; }
-  .main { padding: var(--gap-24) var(--gap-16); }
-  .footer { padding: var(--gap-16); }
+  .bar {
+    gap: 0 var(--gap-12);
+    min-height: var(--gap-56);
+  }
+
+  .tagline {
+    display: none;
+  }
+
+  /* Разделы — второй строкой под логотипом */
+  .navigation {
+    order: 3;
+    width: 100%;
+    gap: var(--gap-24);
+    min-height: calc(var(--gap-40) + var(--gap-4));
+  }
+
+  .actions > :first-child:not(:last-child) {
+    display: none;
+  }
+
+  .main {
+    padding: var(--gap-16) var(--gap-12) var(--gap-24);
+  }
+
+  .footer {
+    border-radius: var(--border-radius-24) var(--border-radius-24) 0 0;
+  }
+
+  .footerBar {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }

@@ -1,0 +1,73 @@
+/* Одобрение и контрпредложение по макету «Кабинет — клиент v2» (11a–11d) */
+.amount,
+.payment {
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.intro {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-8);
+  margin-top: var(--gap-12-neg);
+}
+
+.compare {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--gap-128) * 2.5)), 1fr));
+  gap: var(--gap-16);
+}
+
+.option {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap-16);
+  min-width: 0;
+  padding: var(--gap-32);
+  border-radius: var(--border-radius-24);
+}
+
+.requested {
+  background: var(--color-light-base-bg-secondary);
+}
+
+.proposed {
+  outline: 2px solid var(--color-light-neutral-1500);
+  outline-offset: -2px;
+}
+
+.was {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--gap-4) var(--gap-12);
+}
+
+.before {
+  margin-right: var(--gap-10);
+}
+
+.actions,
+.sign {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--gap-12) var(--gap-16);
+}
+
+.code {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+@media (max-width: 740px) {
+  .option {
+    padding: var(--gap-20);
+    border-radius: var(--border-radius-20);
+  }
+
+  .actions > button {
+    flex: 1 1 100%;
+  }
+}

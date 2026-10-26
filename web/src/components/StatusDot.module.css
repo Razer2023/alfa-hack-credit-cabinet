@@ -1,0 +1,19 @@
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--gap-8);
+}
+
+.dot {
+  flex: none;
+  width: var(--gap-8);
+  height: var(--gap-8);
+  border-radius: 50%;
+  background: var(--color-light-neutral-1500);
+}
+
+.positive { background: var(--color-light-status-positive); }
+.attention { background: var(--color-light-status-attention); }
+.negative { background: var(--color-light-accent-primary); }
+.muted { background: var(--color-light-neutral-500); }
+.neutral.inverted { background: var(--color-light-text-primary-inverted); }

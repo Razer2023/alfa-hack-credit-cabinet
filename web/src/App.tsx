@@ -7,7 +7,7 @@ import { useAuth, useUser } from './auth/AuthContext';
 import { AuthProvider } from './auth/AuthProvider';
 import { EventToast } from './components/EventToast';
 import { openEventStream } from './events';
-import { Layout } from './layout/Layout';
+import { Layout, NavLink } from './layout/Layout';
 import { BankCard } from './pages/bank/BankCard';
 import { BankHome } from './pages/bank/BankHome';
 import { Dashboard } from './pages/bank/Dashboard';
@@ -44,23 +44,30 @@ function Shell() {
     );
   }
 
+  // Тёмные: обзор и кредиты клиента (тёмный первый экран и белый лист поверх) и аналитика банка
+  const client = user.role === 'CLIENT';
+  const tone = client ? (path === '/' || path === '/products' ? 'dark' : 'light') : path === '/dashboard' ? 'dark' : 'light';
+
   return (
     <Layout
-      navigation={user.role === 'CLIENT' ? <>
-        <Button view={path === '/products' ? 'transparent' : 'secondary'} size={40} href='#/' aria-current={path === '/' ? 'page' : undefined}>Обзор</Button>
-        <Button view={path === '/products' ? 'secondary' : 'transparent'} size={40} href='#/products' aria-current={path === '/products' ? 'page' : undefined}>Кредитные продукты</Button>
+      tone={tone}
+      bleed={tone === 'dark'}
+      navigation={client ? <>
+        <NavLink tone={tone} href='#/' current={path !== '/products'}>Обзор</NavLink>
+        <NavLink tone={tone} href='#/products' current={path === '/products'}>Кредитные продукты</NavLink>
       </> : <>
-        <Button view={path === '/dashboard' ? 'transparent' : 'secondary'} size={40} href='#/' aria-current={path === '/dashboard' ? undefined : 'page'}>Заявки</Button>
-        <Button view={path === '/dashboard' ? 'secondary' : 'transparent'} size={40} href='#/dashboard' aria-current={path === '/dashboard' ? 'page' : undefined}>Узкие места</Button>
+        <NavLink tone={tone} href='#/' current={path !== '/dashboard'}>Заявки</NavLink>
+        <NavLink tone={tone} href='#/dashboard' current={path === '/dashboard'}>Аналитика</NavLink>
       </>}
       actions={
         <>
-          <Typography.Text view='primary-small' color='secondary'>
+          <Typography.Text view='primary-small' color={tone === 'dark' ? 'secondary-inverted' : 'secondary'}>
             {user.company?.name ?? user.full_name}
           </Typography.Text>
           <Button
             view='secondary'
-            size={32}
+            colors={tone === 'dark' ? 'inverted' : 'default'}
+            size={40}
             onClick={() => {
               logout();
               navigate('/');
